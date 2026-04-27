@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cryptotrack.domain.model.GlobalMarket
+import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.domain.model.TotalMarketCap
 import com.example.cryptotrack.domain.model.TotalVolume
 import com.example.cryptotrack.domain.usecase.GetGlobalMarketUseCase
@@ -30,10 +31,17 @@ class CoinGeckoViewModel @Inject constructor(
         )
     )
 
+    val market = mutableStateOf<List<MarketData>>(emptyList())
 
     fun loadGlobalMarket() {
         viewModelScope.launch {
             globalMarket.value = getGlobalMarketUseCase()
+        }
+    }
+
+    fun loadMarket() {
+        viewModelScope.launch {
+            market.value = getMarketUseCase()
         }
     }
 

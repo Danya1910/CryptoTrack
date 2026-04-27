@@ -1,10 +1,12 @@
 package com.example.cryptotrack.data.api
 
 import android.icu.util.Currency
+import com.example.cryptotrack.data.dto.CoinDetailsDto
 import com.example.cryptotrack.data.dto.GlobalMarketDto
 import com.example.cryptotrack.data.dto.GlobalMarketResponseDto
 import com.example.cryptotrack.data.dto.MarketDataDto
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CoinGeckoApi {
@@ -17,5 +19,8 @@ interface CoinGeckoApi {
     suspend fun getMarket(
         @Query("vs_currency") vsCurrency: String = "usd"
     ) : List<MarketDataDto>
+
+    @GET(value = "coins/{id}")
+    suspend fun getCoinDetails(@Path("id") id: String) : CoinDetailsDto
 
 }

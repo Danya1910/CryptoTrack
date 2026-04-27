@@ -43,11 +43,15 @@ fun Greeting(
     val viewModel: CoinGeckoViewModel = hiltViewModel()
     val state = viewModel.globalMarket.value
 
+    val state2 = viewModel.market.value
+
     LaunchedEffect(Unit) {
         viewModel.loadGlobalMarket()
+        viewModel.loadMarket()
     }
 
     Log.d("Greeting Screen", "$state")
+    Log.d("Greeting Screen", "$state2")
 
 }
 

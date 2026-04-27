@@ -3,6 +3,7 @@ package com.example.cryptotrack.data.repository
 import com.example.cryptotrack.data.api.CoinGeckoApi
 import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.data.mapper.toDomain
+import com.example.cryptotrack.domain.model.CoinDetails
 import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.repository.CoinGeckoRepository
 import javax.inject.Inject
@@ -17,6 +18,10 @@ class CoinGeckoRepositoryImpl @Inject constructor(
 
     override suspend fun getMarket() : List<MarketData> {
         return api.getMarket().map { it.toDomain() }
+    }
+
+    override suspend fun getCoinDetails(id: String) : CoinDetails {
+        return api.getCoinDetails(id = id).toDomain()
     }
 
 }
