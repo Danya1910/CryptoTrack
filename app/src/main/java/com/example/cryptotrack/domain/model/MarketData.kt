@@ -9,5 +9,6 @@ data class MarketData(
     val marketCap: Double,
     val marketCapRank: Int,
     val lastUpdated: String,
-    val priceChange24h: Double,
+    val priceChangePercentage24h: Double,
 )
+

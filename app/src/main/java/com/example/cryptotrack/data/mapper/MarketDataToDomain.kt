@@ -13,6 +13,6 @@ fun MarketDataDto.toDomain() : MarketData {
         marketCap = market_cap ?: 0.0,
         marketCapRank = market_cap_rank ?: 0,
         lastUpdated = last_updated ?: "",
-        priceChange24h = price_change_24h ?: 0.0
+        priceChange24h = price_change_percentage_24h ?: 0.0
     )
 }
