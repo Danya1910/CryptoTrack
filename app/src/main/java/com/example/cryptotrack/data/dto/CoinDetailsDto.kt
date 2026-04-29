@@ -37,6 +37,8 @@ data class MarketDetailDataDto(
     val ath: PriceDto,
     val ath_change_percentage: PriceDto,
     val ath_date: DateDto,
+    val high_24h: PriceDto,
+    val low_24h: PriceDto,
 
     val atl: PriceDto,
     val atl_change_percentage: PriceDto,

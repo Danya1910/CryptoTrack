@@ -38,6 +38,8 @@ data class MarketDetailData(
     val atl: Price,
     val atlChangePercentage: Price,
     val atlDate: PriceDate,
+    val high24h: Price,
+    val low24h: Price,
 )
 
 data class Price(

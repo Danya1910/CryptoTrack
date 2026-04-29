@@ -54,7 +54,9 @@ fun MarketDetailDataDto.toDomain() : MarketDetailData {
         athDate = ath_date.toDomain(),
         atl = atl.toDomain(),
         atlChangePercentage = atl_change_percentage.toDomain(),
-        atlDate = atl_date.toDomain()
+        atlDate = atl_date.toDomain(),
+        high24h = high_24h.toDomain(),
+        low24h = low_24h.toDomain(),
     )
 }
 
