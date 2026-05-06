@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.viewmodel.widgets
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,28 +16,64 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.cryptotrack.R
+import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.Inter
 
 
 @Composable
 fun TrendCoinsWidget() {
+
 }
 
 
 @Composable
-@Preview(showBackground = true)
+@Preview(showBackground = true, backgroundColor = 0xFF292929)
 private fun TrendCoinsWidgetPreview() {
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(modifier = Modifier.width(20.dp))
+            Text(
+                text = "Популярно \uD83D\uDD25",
+                fontFamily = Inter,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "Полностью",
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Gray,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable {}
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        CoinIcon()
+        CoinIcon()
+        CoinIcon()
     }
 
 }
@@ -48,27 +85,68 @@ private fun CoinIcon() {
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
+            .clickable {
+                //Навишация на подпобное описание монеты
+            }
     ) {
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = "1",
+                fontFamily = Inter,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Gray,
             )
-            Spacer(modifier = Modifier.width(5.dp))
-            AsyncImage(
-                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
+            Spacer(modifier = Modifier.width(10.dp))
+//            AsyncImage(
+//                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
+//                contentDescription = null,
+//                modifier = Modifier.size(25.dp),
+//            )
+            Icon(
+                painter = painterResource(R.drawable.bitcoin),
                 contentDescription = null,
-                modifier = Modifier.size(20.dp)
+                tint = Color.Unspecified,
+                modifier = Modifier.size(25.dp),
             )
-            Spacer(modifier = Modifier.width(3.dp))
+            Spacer(modifier = Modifier.width(15.dp))
             Text(
                 text = "Bitcoin",
-                fontSize = 
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+                letterSpacing = 1.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
+            Text(
+                text = "$ 68.7",
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                color = Green,
+                letterSpacing = 0.5.sp,
+            )
+            Text(
+                text = "%",
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+                color = Green,
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_up),
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(15.dp),
+            )
+            Spacer(modifier = Modifier.width(10.dp))
         }
     }
 }
