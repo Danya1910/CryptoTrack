@@ -43,6 +43,13 @@ import okhttp3.Route
 
 @Composable
 fun CoinMarketWidget() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        CoinMarketHat()
+        CoinsMarketList()
+    }
 }
 
 
@@ -53,7 +60,6 @@ private fun CoinMarketWidgetPreview() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
     ) {
         CoinMarketHat()
         CoinsMarketList()

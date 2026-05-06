@@ -31,6 +31,65 @@ import com.example.cryptotrack.R
 
 @Composable
 fun GlobalMarketWidget() {
+    val text = "123"
+    val iconId = "inlineIcon"
+
+    val annotatedString = buildAnnotatedString {
+        append("Монет: ")
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+            append(text)
+        }
+        append(", Бирж: 228, Рост рынка: 2% ")
+
+        // 2. Резервируем место под иконку
+        appendInlineContent(iconId, "[icon]")
+
+        append(", Капитализация: ")
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+            append(text)
+        }
+    }
+
+    val inlineContent = mapOf(
+        iconId to InlineTextContent(
+            Placeholder(
+                width = 16.sp,
+                height = 16.sp,
+                placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
+            )
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_up),
+                contentDescription = null,
+                tint = Color.Unspecified,
+            )
+        }
+    )
+    Box(
+        modifier = Modifier
+            .height(25.dp)
+            .fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .horizontalScroll(
+                    rememberScrollState()
+                )
+        ) {
+            Text(
+                text = annotatedString,
+                inlineContent = inlineContent,
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.Gray,
+                softWrap = false,
+                maxLines = 1,
+            )
+        }
+    }
 }
 
 
