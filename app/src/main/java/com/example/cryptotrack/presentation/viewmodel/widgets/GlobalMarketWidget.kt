@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.R
-import kotlinx.serialization.internal.InlinePrimitiveDescriptor
 
 
 @Composable
