@@ -1,4 +1,4 @@
-package com.example.cryptotrack.presentation.viewmodel.widgets
+package com.example.cryptotrack.presentation.widgets
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box

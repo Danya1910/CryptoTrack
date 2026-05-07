@@ -15,3 +15,7 @@ val Green = Color(0xFF1AFF00)
 val Red = Color(0xFFFF0000)
 
 val BlackBackground = Color(0xFF292929)
+
+val BlackNavigation = Color(0xFF232323)
+
+val SearchBarColor = Color(0xFF353535)

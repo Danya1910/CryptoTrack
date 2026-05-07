@@ -1,0 +1,25 @@
+package com.example.cryptotrack.presentation.widgets
+
+import com.example.cryptotrack.R
+
+sealed class BottomNavComponents (
+    val route: String,
+    val title: String,
+    val icon: Int
+) {
+    data object Market: BottomNavComponents(
+        route = "Market",
+        title = "Market",
+        icon = R.drawable.ic_graph
+    )
+    data object Search: BottomNavComponents(
+        route = "Search",
+        title = "Search",
+        icon = R.drawable.ic_search
+    )
+    data object Profile: BottomNavComponents(
+        route = "Profile",
+        title = "Profile",
+        icon = R.drawable.ic_profile
+    )
+}
