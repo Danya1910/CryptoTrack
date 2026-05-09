@@ -38,14 +38,14 @@ fun TrendCoinsWidget() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(
+                shape = RoundedCornerShape(30.dp),
+                elevation = 4.dp,
+                spotColor = Color.White,
+            )
             .background(
                 color = BlackBackground,
                 shape = RoundedCornerShape(30.dp)
-            )
-            .shadow(
-                shape = RoundedCornerShape(30.dp),
-                elevation = 2.dp,
-                spotColor = Color.White,
             )
             .padding(
                 horizontal = 10.dp,
@@ -96,14 +96,14 @@ private fun TrendCoinsWidgetPreview() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(
+                shape = RoundedCornerShape(30.dp),
+                elevation = 4.dp,
+                spotColor = Color.White,
+            )
             .background(
                 color = BlackBackground,
                 shape = RoundedCornerShape(30.dp)
-            )
-            .shadow(
-                shape = RoundedCornerShape(30.dp),
-                elevation = 2.dp,
-                spotColor = Color.White,
             )
             .padding(
                 horizontal = 10.dp,

@@ -25,6 +25,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
@@ -73,6 +75,7 @@ private fun Content(
             .padding(paddingValues)
             .fillMaxSize()
             .background(color = BlackBackground)
+            .padding(horizontal = 15.dp)
     ) {
         SearchField()
         Spacer(modifier = Modifier.height(20.dp))
@@ -155,10 +158,16 @@ fun SuggestionList() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                spotColor = Color.White,
+                shape = RoundedCornerShape(30.dp)
+            )
             .background(
                 color = BlackBackground,
                 shape = RoundedCornerShape(30.dp)
             )
+
     ) {
         Column(
             modifier = Modifier
@@ -166,6 +175,9 @@ fun SuggestionList() {
                 .padding(horizontal = 10.dp, vertical = 15.dp)
         ) {
             Suggestion()
+            Spacer(modifier = Modifier.height(10.dp))
+            Suggestion()
+            Spacer(modifier = Modifier.height(10.dp))
             Suggestion()
         }
     }

@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +54,7 @@ private fun CoinMarketWidgetPreview() {
             .fillMaxWidth()
     ) {
         CoinMarketHat()
+        Spacer(modifier = Modifier.height(5.dp))
         CoinsMarketList()
     }
 }
@@ -198,14 +200,14 @@ fun CoinsMarketList() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(
+                shape = RoundedCornerShape(30.dp),
+                elevation = 4.dp,
+                spotColor = Color.White,
+            )
             .background(
                 color = BlackBackground,
                 shape = RoundedCornerShape(30.dp)
-            )
-            .shadow(
-                shape = RoundedCornerShape(30.dp),
-                elevation = 2.dp,
-                spotColor = Color.White,
             )
             .padding(
                 horizontal = 10.dp,
