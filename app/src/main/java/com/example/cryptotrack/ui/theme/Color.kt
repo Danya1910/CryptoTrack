@@ -19,3 +19,5 @@ val BlackBackground = Color(0xFF292929)
 val BlackNavigation = Color(0xFF232323)
 
 val SearchBarColor = Color(0xFF353535)
+
+val Orange = Color(0xFFF8A43F)

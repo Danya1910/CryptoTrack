@@ -1,10 +1,7 @@
 package com.example.cryptotrack.presentation.screens
 
-import android.bluetooth.le.ScanRecord
-import android.widget.Space
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -23,28 +19,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.currentComposer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.BrushPainter
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.example.cryptotrack.R
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
+import com.example.cryptotrack.presentation.widgets.TopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
-import com.example.cryptotrack.ui.theme.SearchBarColor
 
 
 @Composable
@@ -56,7 +48,9 @@ fun CoinDetailScreen() {
 private fun CoinDetailScreenPreview() {
 
     Scaffold(
-        topBar = {},
+        topBar = {
+            TopAppBar()
+        },
         bottomBar = {
             BottomBarPreview()
         }
@@ -519,7 +513,10 @@ private fun CommunityBlock() {
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .clickable {
+                    //вставить ссылку
+                }
         ) {
             //           AsyncImage(
 //                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
@@ -536,6 +533,31 @@ private fun CommunityBlock() {
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = "Официальный сайт",
+                textAlign = TextAlign.Start,
+                fontFamily = Inter,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+            )
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clickable {
+                    //вставить ссылку
+                }
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_reddit),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .size(30.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "Reddit",
                 textAlign = TextAlign.Start,
                 fontFamily = Inter,
                 fontSize = 12.sp,
