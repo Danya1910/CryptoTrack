@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.widgets
 
+import android.icu.text.DateFormat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,13 +8,29 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.cryptotrack.domain.model.CoinChart
 import com.example.cryptotrack.domain.model.CoinsChartList
+import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.Inter
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 
 @Composable
@@ -195,28 +212,57 @@ fun Graph() {
 
     val chartData = points.list
 
+    val maxPrice = chartData.maxOf { it.price }
+    val minPrice = chartData.minOf { it.price }
+
+    val priceCounter = minPrice
+
+    val priceStep = (maxPrice - minPrice) / 5
+    val priceList = mutableListOf<Double>()
+
+
+    val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
+    val timeList = mutableListOf<String>()
+
+    for (i in chartData) {
+        timeList.add(
+            Instant.ofEpochMilli(i.time)
+                .atZone(ZoneId.systemDefault())
+                .format(formatter)
+        )
+    }
+    val timeSteps = 5
+
+
+    val textMeasurer = rememberTextMeasurer()
 
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
             .height(500.dp)
-            .background(Color.White)
+            .background(BlackBackground)
     ) {
         val topPadding = size.height * 0.1f
-        val bottomPadding = size.height * 0.02f
+        val bottomPadding = size.height * 0.05f
 
 
         val graphHeight = size.height - topPadding - bottomPadding
 
-        val maxPrice = chartData.maxOf{it.price}
-        val minPrice = chartData.minOf{it.price}
 
         val priceRange = (maxPrice - minPrice).takeIf { it != 0.0 } ?: 1.0
 
-        val maxTime = chartData.maxOf{it.time}
-        val minTime = chartData.minOf{it.time}
+        val maxTime = chartData.maxOf { it.time }
+        val minTime = chartData.minOf { it.time }
 
         val timeRange = (maxTime - minTime).takeIf { it != 0L } ?: 1L
+
+        for (i in 0..5) {
+            priceList.add(priceCounter + i * priceStep)
+        }
+
+
+        val areaPath = Path()
 
 
         val path = Path()
@@ -225,13 +271,29 @@ fun Graph() {
             val normalizedY = ((value.price - minPrice) / priceRange).toFloat()
             val y = topPadding + graphHeight * (1f - normalizedY)
 
+
+
             if (index == 0) {
                 path.moveTo(x, y)
             } else {
                 path.lineTo(x, y)
             }
 
+            if (index == 0) {
+                areaPath.moveTo(x, y)
+            } else {
+                areaPath.lineTo(x, y)
+            }
+
         }
+        val lastX = ((chartData.last().time - minTime) / timeRange.toFloat() * size.width)
+
+        val bottomY = topPadding + graphHeight
+
+        areaPath.lineTo(x = lastX, y = bottomY)
+        areaPath.lineTo(x = 0f, y = bottomY)
+        areaPath.close()
+
         drawPath(
             path = path,
             color = Color.Green,
@@ -239,5 +301,109 @@ fun Graph() {
                 width = 5f
             ),
         )
+        drawPath(
+            path = areaPath,
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    Green.copy(alpha = 0.7f),
+                    Green.copy(alpha = 0.1f)
+                )
+            )
+        )
+        clipPath(areaPath) {
+            val dotSpacing = 20f
+            val dotRadius = 2f
+            var y = 0f
+
+            while (y < size.height) {
+                var x = 0f
+                while (x < size.width) {
+                    drawCircle(
+                        color = Green.copy(alpha = 0.5f),
+                        radius = dotRadius,
+                        center = Offset(x, y)
+                    )
+                    x += dotSpacing
+                }
+                y += dotSpacing
+            }
+        }
+
+
+        for(i in 0..timeSteps) {
+            val index = i *(timeList.size - 1) / timeSteps
+            val x = size.width * i / timeSteps
+
+            val text = timeList[index]
+
+            val textLayoutResult = textMeasurer.measure(
+                text = text,
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+
+
+            drawText(
+                textLayoutResult = textLayoutResult,
+                topLeft = Offset(
+                    x = x - textLayoutResult.size.width / 2,
+                    y = size.height - 30f
+                )
+            )
+        }
+
+        for (i in 1..5) {
+            val y = topPadding + graphHeight * (1f - i / 5f)
+
+            val textPadding = 10f
+
+            val currentPrice = priceList[i]
+
+            val priceText = when {
+                currentPrice >= 1_000_000 -> {
+                    String.format("%.1fm", currentPrice / 1_000_000)
+                }
+
+                currentPrice >= 1_000 -> {
+                    String.format("%.1fk", currentPrice / 1_000)
+                }
+
+                else -> {
+                    String.format("%.0f", currentPrice)
+                }
+            }
+
+
+            val textLayoutResult = textMeasurer.measure(
+                text = priceText,
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Medium
+                )
+            )
+
+            val textX = size.width - textLayoutResult.size.width - textPadding
+
+            drawText(
+                textLayoutResult = textLayoutResult,
+                topLeft = Offset(
+                    x = textX,
+                    y = y - textLayoutResult.size.height / 2
+                )
+            )
+
+            drawLine(
+                color = Color.White,
+                start = Offset(0f, y),
+                end = Offset(textX - 10f, y)
+            )
+        }
+
     }
 }
