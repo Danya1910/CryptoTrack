@@ -40,12 +40,14 @@ import com.example.cryptotrack.ui.theme.Inter
 
 
 @Composable
-fun CoinDetailScreen() {
+fun CoinDetailsScreen(
+     coinId: String
+) {
 }
 
 @Composable
 @Preview(showBackground = true)
-private fun CoinDetailScreenPreview() {
+private fun CoinDetailsScreenPreview() {
 
     Scaffold(
         topBar = {

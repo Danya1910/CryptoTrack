@@ -1,0 +1,13 @@
+package com.example.cryptotrack.presentation.states
+
+import com.example.cryptotrack.domain.model.GlobalMarket
+import com.example.cryptotrack.domain.model.MarketData
+import com.example.cryptotrack.domain.model.TrendCoins
+
+data class MarketScreenStates (
+    val globalMarket:  GlobalMarket? = null,
+    val trendCoins: TrendCoins? = null,
+    val market: List<MarketData>? = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null,
+)

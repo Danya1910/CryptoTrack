@@ -9,11 +9,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.cryptotrack.presentation.widgets.BottomBar
+import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.CoinMarketWidget
 import com.example.cryptotrack.presentation.widgets.GlobalMarketWidget
@@ -22,12 +23,9 @@ import com.example.cryptotrack.ui.theme.BlackBackground
 
 
 @Composable
-fun MarketScreen() {
-}
-
-@Composable
-@Preview(showBackground = true)
-private fun MarketScreenPreview() {
+fun MarketScreen(
+    viewModel: CoinGeckoViewModel
+) {
 
     Scaffold(
         topBar = {},
@@ -36,15 +34,38 @@ private fun MarketScreenPreview() {
             BottomBarPreview()
         }
     ) { paddingValues ->
-        Content(paddingValues = paddingValues)
+        Content(
+            viewModel = viewModel,
+            paddingValues = paddingValues,)
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun MarketScreenPreview() {
+
+//    Scaffold(
+//        topBar = {},
+//        containerColor = BlackBackground,
+//        bottomBar = {
+//            BottomBarPreview()
+//        }
+//    ) { paddingValues ->
+//        //Content(paddingValues = paddingValues)
+//    }
 
 }
 
 @Composable
 private fun Content(
     paddingValues: PaddingValues,
+    viewModel: CoinGeckoViewModel,
 ) {
+
+    LaunchedEffect(Unit) {
+        viewModel.loadMarketScreen()
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
