@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,19 +27,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Red
 
 
 @Composable
-fun CoinMarketWidget() {
+fun CoinMarketWidget(
+    coins: List<MarketData>?
+) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
         CoinMarketHat()
-        CoinsMarketList()
+        CoinsMarketList(
+            coins = coins
+        )
     }
 }
 
@@ -53,15 +61,14 @@ private fun CoinMarketWidgetPreview() {
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        CoinMarketHat()
-        Spacer(modifier = Modifier.height(5.dp))
-        CoinsMarketList()
+//        CoinMarketHat()
+//        Spacer(modifier = Modifier.height(5.dp))
+//        CoinsMarketList()
     }
 }
 
 @Composable
 fun CoinMarketHat(
-
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -106,7 +113,17 @@ fun CoinMarketHat(
 }
 
 @Composable
-fun CoinMarket() {
+fun CoinMarket(
+    coin: MarketData?
+) {
+
+    val isPositive =
+        (coin?.priceChangePercentage24h ?: 0.0) >= 0
+
+    val percentageColor =
+        if (isPositive) Green
+        else Red
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -131,15 +148,20 @@ fun CoinMarket() {
                 .fillMaxHeight()
                 .weight(2f),
         ) {
-            Icon(
-                painter = painterResource(R.drawable.bitcoin),
+            AsyncImage(
+                model = coin?.image,
                 contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(25.dp),
             )
+//            Icon(
+//                painter = painterResource(R.drawable.bitcoin),
+//                contentDescription = null,
+//                tint = Color.Unspecified,
+//                modifier = Modifier.size(30.dp)
+//            )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Bitcoin",
+                text = coin?.name ?: "Unknown",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
@@ -149,7 +171,7 @@ fun CoinMarket() {
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Btc",
+                text = coin?.symbol ?: "Unk",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Light,
@@ -160,7 +182,7 @@ fun CoinMarket() {
         }
         Text(
             textAlign = TextAlign.Left,
-            text = "12.35$",
+            text = coin?.currentPrice.toString(),
             fontFamily = Inter,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
@@ -178,17 +200,20 @@ fun CoinMarket() {
                 .weight(0.7f)
         ) {
             Text(
-                text = "1.23%",
+                text = coin?.priceChangePercentage24h.toString() + "%",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
-                color = Color.Green,
+                color = percentageColor,
             )
             Spacer(modifier = Modifier.width(3.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_up),
+                painter = painterResource(
+                    if(isPositive) R.drawable.ic_up
+                        else R.drawable.ic_down
+                ),
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = percentageColor,
             )
         }
     }
@@ -196,7 +221,9 @@ fun CoinMarket() {
 
 
 @Composable
-fun CoinsMarketList() {
+fun CoinsMarketList(
+    coins: List<MarketData>?
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -215,11 +242,10 @@ fun CoinsMarketList() {
             )
     ) {
         Column {
-            CoinMarket()
-            Spacer(modifier = Modifier.height(10.dp))
-            CoinMarket()
-            Spacer(modifier = Modifier.height(10.dp))
-            CoinMarket()
+            coins?.forEach { coin ->
+                CoinMarket(coin = coin)
+                Spacer(modifier = Modifier.height(10.dp))
+            }
         }
     }
 }

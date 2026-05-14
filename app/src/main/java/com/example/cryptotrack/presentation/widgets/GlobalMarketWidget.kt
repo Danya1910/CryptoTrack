@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,26 +27,47 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.GlobalMarket
+import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.Red
 
 
 @Composable
-fun GlobalMarketWidget() {
-    val text = "123"
+fun GlobalMarketWidget(
+    globalMarket: GlobalMarket?,
+) {
+    val isPositive =
+        globalMarket?.marketCapChangePercentage24hUsd?.let {
+            if(it >= 0) true
+            else false
+        }
+
+    val percentageColor = if(isPositive == true) Green else Red
+
     val iconId = "inlineIcon"
 
     val annotatedString = buildAnnotatedString {
         append("Монет: ")
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
-            append(text)
+            append(globalMarket?.activeCryptocurrencies.toString())
         }
         append(", Бирж: 228, Рост рынка: 2% ")
-
-        // 2. Резервируем место под иконку
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+            append(globalMarket?.markets.toString())
+        }
+        append(", Рост рынка: 2% ")
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = percentageColor)) {
+            append(globalMarket?.marketCapChangePercentage24hUsd.toString() + "%")
+        }
         appendInlineContent(iconId, "[icon]")
 
+        append(", Объем торговли: ")
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+            append(globalMarket?.totalVolume?.usd.toString())
+        }
         append(", Капитализация: ")
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
-            append(text)
+            append(globalMarket?.totalMarketCap?.usd.toString())
         }
     }
 
@@ -59,9 +80,12 @@ fun GlobalMarketWidget() {
             )
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_up),
+                painter = painterResource(
+                    if(isPositive == true) R.drawable.ic_up
+                    else R.drawable.ic_down
+                ),
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = percentageColor,
             )
         }
     )

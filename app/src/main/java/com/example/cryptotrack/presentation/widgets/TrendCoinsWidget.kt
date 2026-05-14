@@ -27,14 +27,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.TrendCoin
+import com.example.cryptotrack.domain.model.TrendCoins
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 
 
 @Composable
-fun TrendCoinsWidget() {
+fun TrendCoinsWidget(
+    trends: TrendCoins?
+) {
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,9 +87,13 @@ fun TrendCoinsWidget() {
                 Spacer(modifier = Modifier.width(20.dp))
             }
             Spacer(modifier = Modifier.height(10.dp))
-            CoinIcon()
-            CoinIcon()
-            CoinIcon()
+
+            trends?.coins?.forEach { coin->
+                CoinIcon(
+                    coin = coin
+                )
+            }
+
         }
     }
 
@@ -139,16 +149,18 @@ private fun TrendCoinsWidgetPreview() {
                 Spacer(modifier = Modifier.width(20.dp))
             }
             Spacer(modifier = Modifier.height(10.dp))
-            CoinIcon()
-            CoinIcon()
-            CoinIcon()
+//            CoinIcon()
+//            CoinIcon()
+//            CoinIcon()
         }
     }
 
 }
 
 @Composable
-private fun CoinIcon() {
+private fun CoinIcon(
+    coin: TrendCoin?
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -165,26 +177,26 @@ private fun CoinIcon() {
         ) {
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "1",
+                text = coin?.coinId.toString(),
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 color = Color.Gray,
             )
             Spacer(modifier = Modifier.width(10.dp))
-//            AsyncImage(
-//                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
-//                contentDescription = null,
-//                modifier = Modifier.size(25.dp),
-//            )
-            Icon(
-                painter = painterResource(R.drawable.bitcoin),
+            AsyncImage(
+                model = coin?.thumb,
                 contentDescription = null,
-                tint = Color.Unspecified,
                 modifier = Modifier.size(25.dp),
             )
+//            Icon(
+//                painter = painterResource(R.drawable.bitcoin),
+//                contentDescription = null,
+//                tint = Color.Unspecified,
+//                modifier = Modifier.size(25.dp),
+//            )
             Spacer(modifier = Modifier.width(15.dp))
             Text(
-                text = "Bitcoin",
+                text = coin?.name ?: "Unknown",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
@@ -195,7 +207,7 @@ private fun CoinIcon() {
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = "$ 68.7",
+                text = coin?.data?.priceChangePercentage24h.toString(),
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,

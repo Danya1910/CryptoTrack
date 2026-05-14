@@ -20,6 +20,9 @@ import com.example.cryptotrack.presentation.widgets.CoinMarketWidget
 import com.example.cryptotrack.presentation.widgets.GlobalMarketWidget
 import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.example.cryptotrack.domain.model.GlobalMarket
 
 
 @Composable
@@ -36,7 +39,8 @@ fun MarketScreen(
     ) { paddingValues ->
         Content(
             viewModel = viewModel,
-            paddingValues = paddingValues,)
+            paddingValues = paddingValues,
+            )
     }
 }
 
@@ -66,6 +70,8 @@ private fun Content(
         viewModel.loadMarketScreen()
     }
 
+    val screenState by viewModel.marketScreenState.collectAsState()
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -74,10 +80,16 @@ private fun Content(
             .fillMaxSize()
             .background(color = BlackBackground)
     ) {
-        GlobalMarketWidget()
+        GlobalMarketWidget(
+            globalMarket = screenState.globalMarket
+        )
         Spacer(modifier = Modifier.height(20.dp))
-        TrendCoinsWidget()
+        TrendCoinsWidget(
+            trends = screenState.trendCoins
+        )
         Spacer(modifier = Modifier.height(20.dp))
-        CoinMarketWidget()
+        CoinMarketWidget(
+            coins = screenState.market
+        )
     }
 }
