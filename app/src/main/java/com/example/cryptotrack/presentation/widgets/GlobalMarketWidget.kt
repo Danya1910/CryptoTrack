@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.widgets
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Red
 
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun GlobalMarketWidget(
     globalMarket: GlobalMarket?,
@@ -44,6 +46,11 @@ fun GlobalMarketWidget(
 
     val percentageColor = if(isPositive == true) Green else Red
 
+    val marketCap = String.format(
+        "%.1f",
+        globalMarket?.marketCapChangePercentage24hUsd
+    )
+
     val iconId = "inlineIcon"
 
     val annotatedString = buildAnnotatedString {
@@ -51,13 +58,13 @@ fun GlobalMarketWidget(
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
             append(globalMarket?.activeCryptocurrencies.toString())
         }
-        append(", Бирж: 228, Рост рынка: 2% ")
+        append(", Бирж: ")
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
             append(globalMarket?.markets.toString())
         }
-        append(", Рост рынка: 2% ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = percentageColor)) {
-            append(globalMarket?.marketCapChangePercentage24hUsd.toString() + "%")
+        append(", Рост рынка: ")
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+            append("$marketCap %")
         }
         appendInlineContent(iconId, "[icon]")
 

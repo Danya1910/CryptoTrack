@@ -1,11 +1,13 @@
 package com.example.cryptotrack.presentation.widgets
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +24,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +37,8 @@ import com.example.cryptotrack.domain.model.TrendCoins
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Red
+import kotlinx.serialization.StringFormat
 
 
 @Composable
@@ -88,12 +93,11 @@ fun TrendCoinsWidget(
             }
             Spacer(modifier = Modifier.height(10.dp))
 
-            trends?.coins?.forEach { coin->
+            trends?.coins?.take(3)?.forEach { coin ->
                 CoinIcon(
                     coin = coin
                 )
             }
-
         }
     }
 
@@ -157,10 +161,24 @@ private fun TrendCoinsWidgetPreview() {
 
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 private fun CoinIcon(
     coin: TrendCoin?
 ) {
+
+    val isPositive =
+        (coin?.data?.priceChangePercentage24h?.usd ?: 0.0) >= 0.0
+
+    val percentageColor =
+        if (isPositive) Green
+        else Red
+
+    val percentageUsd = String.format(
+        "%.1f",
+        kotlin.math.abs(coin?.data?.priceChangePercentage24h?.usd ?: 0.0)
+    )
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -181,52 +199,61 @@ private fun CoinIcon(
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 color = Color.Gray,
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            AsyncImage(
-                model = coin?.thumb,
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-            )
-//            Icon(
-//                painter = painterResource(R.drawable.bitcoin),
-//                contentDescription = null,
-//                tint = Color.Unspecified,
-//                modifier = Modifier.size(25.dp),
-//            )
-            Spacer(modifier = Modifier.width(15.dp))
-            Text(
-                text = coin?.name ?: "Unknown",
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-                letterSpacing = 1.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(0.3f)
             )
-            Text(
-                text = coin?.data?.priceChangePercentage24h.toString(),
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = Green,
-                letterSpacing = 0.5.sp,
-            )
-            Text(
-                text = "%",
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = Green,
-            )
-            Icon(
-                painter = painterResource(R.drawable.ic_up),
-                contentDescription = null,
-                tint = Green,
-                modifier = Modifier.size(15.dp),
-            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(2f)
+            ) {
+
+
+                AsyncImage(
+                    model = coin?.thumb,
+                    contentDescription = null,
+                    modifier = Modifier.size(25.dp),
+                )
+                Spacer(modifier = Modifier.width(15.dp))
+                Text(
+                    text = coin?.name ?: "Unknown",
+                    fontFamily = Inter,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    letterSpacing = 1.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(0.7f)
+            ) {
+                Text(
+                    text = "$percentageUsd %",
+                    fontFamily = Inter,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = percentageColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.width(3.dp))
+                Icon(
+                    painter = painterResource(
+                        if (isPositive) R.drawable.ic_up
+                        else R.drawable.ic_down
+                    ),
+                    contentDescription = null,
+                    tint = percentageColor,
+                )
+            }
             Spacer(modifier = Modifier.width(10.dp))
         }
     }

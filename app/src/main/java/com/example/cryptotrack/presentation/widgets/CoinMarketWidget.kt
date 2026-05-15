@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.widgets
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -99,7 +100,7 @@ fun CoinMarketHat(
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.Gray,
-            modifier = Modifier.weight(0.8f),
+            modifier = Modifier.weight(1f),
         )
         Text(
             text = "24 часа",
@@ -112,6 +113,7 @@ fun CoinMarketHat(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun CoinMarket(
     coin: MarketData?
@@ -124,6 +126,20 @@ fun CoinMarket(
         if (isPositive) Green
         else Red
 
+    val percentageUsd = String.format(
+        "%.1f",
+        kotlin.math.abs(coin?.priceChangePercentage24h ?: 0.0)
+    )
+
+    val currentPrice = coin?.currentPrice
+
+    val currentPriceUsd = when {
+        currentPrice!! < 0.01 -> String.format("%.6f", currentPrice)  // очень маленькие цены
+        currentPrice < 10.0 -> String.format("%.4f", currentPrice)   // меньше 1 - 4 знака
+        currentPrice < 100.0 -> String.format("%.2f", currentPrice)  // 1-10 - 2 знака
+        else -> String.format("%.1f", currentPrice)          // больше 10 - без знаков
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -135,16 +151,19 @@ fun CoinMarket(
             .fillMaxWidth(),
     ) {
         Text(
-            text = "1",
+            text = coin?.marketCapRank.toString(),
             fontFamily = Inter,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
             color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(0.3f),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
+                .padding(end = 10.dp)
                 .fillMaxHeight()
                 .weight(2f),
         ) {
@@ -153,12 +172,6 @@ fun CoinMarket(
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
-//            Icon(
-//                painter = painterResource(R.drawable.bitcoin),
-//                contentDescription = null,
-//                tint = Color.Unspecified,
-//                modifier = Modifier.size(30.dp)
-//            )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = coin?.name ?: "Unknown",
@@ -182,7 +195,7 @@ fun CoinMarket(
         }
         Text(
             textAlign = TextAlign.Left,
-            text = coin?.currentPrice.toString(),
+            text = "$currentPriceUsd $",
             fontFamily = Inter,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
@@ -190,7 +203,7 @@ fun CoinMarket(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .weight(0.8f)
+                .weight(1f)
                 .padding(end = 5.dp),
         )
         Row(
@@ -200,7 +213,7 @@ fun CoinMarket(
                 .weight(0.7f)
         ) {
             Text(
-                text = coin?.priceChangePercentage24h.toString() + "%",
+                text = "$percentageUsd %",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
@@ -209,8 +222,8 @@ fun CoinMarket(
             Spacer(modifier = Modifier.width(3.dp))
             Icon(
                 painter = painterResource(
-                    if(isPositive) R.drawable.ic_up
-                        else R.drawable.ic_down
+                    if (isPositive) R.drawable.ic_up
+                    else R.drawable.ic_down
                 ),
                 contentDescription = null,
                 tint = percentageColor,
