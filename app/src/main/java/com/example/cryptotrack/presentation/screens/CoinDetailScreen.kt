@@ -1,5 +1,7 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,11 +21,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,8 +37,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.CoinDetails
+import com.example.cryptotrack.domain.model.CoinsChartList
+import com.example.cryptotrack.domain.model.Image
+import com.example.cryptotrack.domain.model.Links
+import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
+import com.example.cryptotrack.presentation.widgets.Graph
 import com.example.cryptotrack.presentation.widgets.TopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
@@ -41,14 +54,9 @@ import com.example.cryptotrack.ui.theme.Inter
 
 @Composable
 fun CoinDetailsScreen(
-     coinId: String
+    viewModel: CoinGeckoViewModel,
+    coinId: String,
 ) {
-}
-
-@Composable
-@Preview(showBackground = true)
-private fun CoinDetailsScreenPreview() {
-
     Scaffold(
         topBar = {
             TopAppBar()
@@ -57,15 +65,50 @@ private fun CoinDetailsScreenPreview() {
             BottomBarPreview()
         }
     ) { paddingValues ->
-        Content(paddingValues = paddingValues)
+        Content(
+            paddingValues = paddingValues,
+            viewModel = viewModel,
+            coinId = coinId,
+        )
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun CoinDetailsScreenPreview() {
+
+//    Scaffold(
+//        topBar = {
+//            TopAppBar()
+//        },
+//        bottomBar = {
+//            BottomBarPreview()
+//        }
+////    ) { paddingValues ->
+////        Content(
+////            paddingValues = paddingValues,
+////        )
+//    }
 
 }
 
 @Composable
 private fun Content(
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    viewModel: CoinGeckoViewModel,
+    coinId: String,
 ) {
+
+
+    LaunchedEffect(Unit) {
+        viewModel.loadDetails(coinId = coinId)
+    }
+
+    val state by viewModel.detailsScreenState.collectAsState()
+
+    val details = state.details
+    val chart = state.chart
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,43 +118,46 @@ private fun Content(
             .padding(horizontal = 15.dp)
             .padding(paddingValues)
     ) {
-        CoinHat()
+        CoinHat(
+            details = details
+        )
         DailyPrice(
-            low24h = "1523.323",
-            high24h = "2343.12",
-            currentPrice = "2243.4435"
+            low24h = details?.marketData?.low24h?.usd,
+            high24h = details?.marketData?.high24h?.usd,
+            currentPrice = details?.marketData?.currentPrice?.usd
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        GraphWrapper(
+            chart = chart,
         )
         Spacer(modifier = Modifier.height(20.dp))
         CoinInfo()
         Spacer(modifier = Modifier.height(20.dp))
-        CommunityBlock()
+        CommunityBlock(
+            images = details?.image,
+            links = details?.links,
+        )
     }
 }
 
 @Composable
-private fun CoinHat() {
+private fun CoinHat(
+    details: CoinDetails?
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
     ) {
-
-//           AsyncImage(
-//                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
-//                contentDescription = null,
-//                modifier = Modifier.size(25.dp),
-//            )
-        Icon(
-            painter = painterResource(R.drawable.bitcoin),
+        AsyncImage(
+            model = details?.image?.thumb,
             contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier
-                .size(50.dp)
+            modifier = Modifier.size(25.dp),
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "Bitcoin",
+            text = details?.name.toString(),
             fontFamily = Inter,
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
@@ -123,7 +169,7 @@ private fun CoinHat() {
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
-            text = "Btc",
+            text = details?.symbol.toString(),
             fontFamily = Inter,
             fontSize = 20.sp,
             fontWeight = FontWeight.Light,
@@ -139,7 +185,7 @@ private fun CoinHat() {
 
             )
         Spacer(modifier = Modifier.width(10.dp))
-        CoinNumber(number = 123)
+        CoinNumber(number = details?.marketCapRank)
     }
     Spacer(modifier = Modifier.height(25.dp))
     Row(
@@ -149,7 +195,7 @@ private fun CoinHat() {
             .height(50.dp)
     ) {
         Text(
-            text = "75,987.70 $",
+            text = "${details?.marketData?.currentPrice?.usd} $",
             fontFamily = Inter,
             fontSize = 28.sp,
             fontWeight = FontWeight.SemiBold,
@@ -170,7 +216,7 @@ private fun CoinHat() {
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = "12.3% (24H)",
+                text = "hardcode% (24H)",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
@@ -183,18 +229,20 @@ private fun CoinHat() {
 
 @Composable
 private fun CoinNumber(
-    number: Int
+    number: Int?
 ) {
-    val displayNumber = if (number >= 1000000) {
-        "1M+"
-    } else if (number >= 100000) {
-        "100K+"
+    val displayNumber = number?.let {
+        if (it >= 1000000) {
+            "1M+"
+        } else if (number >= 100000) {
+            "100K+"
 
-    } else if (number >= 10000) {
-        "9999+"
+        } else if (number >= 10000) {
+            "9999+"
 
-    } else {
-        number.toString()
+        } else {
+            number.toString()
+        }
     }
 
     Box(
@@ -227,16 +275,19 @@ private fun CoinNumber(
 
 @Composable
 private fun DailyPrice(
-    low24h: String,
-    high24h: String,
-    currentPrice: String,
+    low24h: Double?,
+    high24h: Double?,
+    currentPrice: Double?,
 ) {
 
-    val low = low24h.toFloat()
-    val high = high24h.toFloat()
-    val current = currentPrice.toFloat()
+    val low = low24h?.toFloat() ?: 0f
+    val high = high24h?.toFloat() ?: 0f
+    val current = currentPrice?.toFloat() ?: 0f
 
-    val progress = ((current - low) / (high - low)).coerceIn(0f, 1f)
+    val range = (high - low).takeIf { it > 0f } ?: 1f
+
+    val progress = ((current - low) / range)
+        .coerceIn(0f, 1f)
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -308,6 +359,30 @@ private fun DailyPrice(
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+@Composable
+private fun GraphWrapper(
+    chart: CoinsChartList?,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                shape = RoundedCornerShape(30.dp),
+                elevation = 4.dp,
+                spotColor = Color.White,
+            )
+            .background(
+                color = BlackBackground,
+                shape = RoundedCornerShape(30.dp)
+            )
+            .padding(all = 10.dp)
+    ) {
+        Graph(
+            chart = chart,
+        )
     }
 }
 
@@ -509,7 +584,13 @@ private fun CoinInfo() {
 }
 
 @Composable
-private fun CommunityBlock() {
+private fun CommunityBlock(
+    images: Image?,
+    links: Links?,
+) {
+
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -517,20 +598,24 @@ private fun CommunityBlock() {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clickable {
-                    //вставить ссылку
+
+                    val url = links?.homepage?.firstOrNull()
+
+                    if (!url.isNullOrBlank()) {
+
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(url)
+                        )
+
+                        context.startActivity(intent)
+                    }
                 }
         ) {
-            //           AsyncImage(
-//                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
-//                contentDescription = null,
-//                modifier = Modifier.size(25.dp),
-//            )
-            Icon(
-                painter = painterResource(R.drawable.bitcoin),
+            AsyncImage(
+                model = images?.thumb,
                 contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier
-                    .size(30.dp)
+                modifier = Modifier.size(25.dp),
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
@@ -547,7 +632,17 @@ private fun CommunityBlock() {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clickable {
-                    //вставить ссылку
+                    val url = links?.subredditUrl
+
+                    if (!url.isNullOrBlank()) {
+
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(url)
+                        )
+
+                        context.startActivity(intent)
+                    }
                 }
         ) {
             Icon(

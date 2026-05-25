@@ -3,16 +3,20 @@ package com.example.cryptotrack.presentation.widgets
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -28,27 +32,41 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.MarketData
+import com.example.cryptotrack.domain.util.MarketOrder
+import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.Red
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 
 
 @Composable
 fun CoinMarketWidget(
-    coins: List<MarketData>?
+    order: MarketOrder,
+    coins: List<MarketData>?,
+    viewModel: CoinGeckoViewModel,
+    navController: NavController,
 ) {
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(bottom = 20.dp)
     ) {
-        CoinMarketHat()
+        CoinMarketHat(
+            order = order,
+            viewModel = viewModel
+        )
         CoinsMarketList(
-            coins = coins
+            coins = coins,
+            navController = navController
         )
     }
 }
@@ -70,6 +88,8 @@ private fun CoinMarketWidgetPreview() {
 
 @Composable
 fun CoinMarketHat(
+    order: MarketOrder,
+    viewModel: CoinGeckoViewModel
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -108,7 +128,21 @@ fun CoinMarketHat(
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.Gray,
-            modifier = Modifier.weight(0.7f),
+            modifier = Modifier
+                .weight(0.7f)
+                .clickable {
+                    when (order) {
+                        MarketOrder.DEFAULT -> {
+                            viewModel.changeOrder(order = MarketOrder.PRICE_CHANGE_DESC)
+                        }
+                        MarketOrder.PRICE_CHANGE_DESC -> {
+                            viewModel.changeOrder(order = MarketOrder.MARKET_CAP_ASC)
+                        }
+                        else -> {
+                            viewModel.changeOrder(order = MarketOrder.DEFAULT)
+                        }
+                    }
+                },
         )
     }
 }
@@ -116,7 +150,8 @@ fun CoinMarketHat(
 @SuppressLint("DefaultLocale")
 @Composable
 fun CoinMarket(
-    coin: MarketData?
+    coin: MarketData?,
+    navController: NavController,
 ) {
 
     val isPositive =
@@ -131,20 +166,22 @@ fun CoinMarket(
         kotlin.math.abs(coin?.priceChangePercentage24h ?: 0.0)
     )
 
-    val currentPrice = coin?.currentPrice
-
-    val currentPriceUsd = when {
-        currentPrice!! < 0.01 -> String.format("%.6f", currentPrice)  // очень маленькие цены
-        currentPrice < 10.0 -> String.format("%.4f", currentPrice)   // меньше 1 - 4 знака
-        currentPrice < 100.0 -> String.format("%.2f", currentPrice)  // 1-10 - 2 знака
-        else -> String.format("%.1f", currentPrice)          // больше 10 - без знаков
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
     }
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
+
+    val currentPriceFormatted = coin?.currentPrice.let {
+        formatter.format(it)
+    } ?: "0.00"
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clickable {
-                //переход на стариницу моенты
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
             }
             .padding(horizontal = 10.dp)
             .height(30.dp)
@@ -195,7 +232,7 @@ fun CoinMarket(
         }
         Text(
             textAlign = TextAlign.Left,
-            text = "$currentPriceUsd $",
+            text = "$currentPriceFormatted $",
             fontFamily = Inter,
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
@@ -235,7 +272,8 @@ fun CoinMarket(
 
 @Composable
 fun CoinsMarketList(
-    coins: List<MarketData>?
+    coins: List<MarketData>?,
+    navController: NavController,
 ) {
     Box(
         modifier = Modifier
@@ -251,14 +289,27 @@ fun CoinsMarketList(
             )
             .padding(
                 horizontal = 10.dp,
-                vertical = 15.dp
             )
     ) {
-        Column {
-            coins?.forEach { coin ->
-                CoinMarket(coin = coin)
-                Spacer(modifier = Modifier.height(10.dp))
+        if (!coins.isNullOrEmpty()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 15.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Правильный способ инициализации элементов в LazyColumn
+                items(
+                    count = coins.size,
+                    key = { index -> coins[index].id ?: index }
+                ) { index ->
+                    val coin = coins[index]
+                    CoinMarket(
+                        coin = coin,
+                        navController = navController,
+                    )
+                }
             }
         }
     }
+
 }

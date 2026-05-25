@@ -4,10 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -78,26 +81,27 @@ fun BottomBarPreview(
 
 
 
-    NavigationBar(
-        containerColor = BlackNavigation,
+    Surface(
+        color = BlackNavigation,
         modifier = Modifier
             .shadow(
                 elevation = 2.dp,
                 spotColor = Color.White,
             )
+            .height(65.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(65.dp)
+                .fillMaxSize()
         ) {
             items.forEach { item ->
                 Icon(
                     painter = painterResource(item.icon),
                     contentDescription = null,
-                    tint = Color.White
+                    tint = Color.White,
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }

@@ -8,6 +8,7 @@ data class CoinDetails(
     val links: Links,
     val image: Image,
     val marketData: MarketDetailData,
+    val marketCapRank: Int,
 )
 
 data class Image(
@@ -27,6 +28,7 @@ data class Links(
 
 data class MarketDetailData(
     val currentPrice: Price,
+    val priceChangePercentage24h: Double,
     val marketCap: Price,
     val circulatingSupply: Double?,
     val totalSupply: Double?,

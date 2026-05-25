@@ -9,6 +9,7 @@ data class CoinDetailsDto(
     val links: LinksDto,
     val image: ImageDto,
     val market_data: MarketDetailDataDto,
+    val market_cap_rank: Int,
 )
 
 data class ImageDto(
@@ -30,6 +31,7 @@ data class LinksDto(
 
 data class MarketDetailDataDto(
     val current_price: PriceDto,
+    val price_change_percentage_24h: Double,
     val market_cap: PriceDto,
     val circulating_supply: Double?,
     val total_supply: Double?,

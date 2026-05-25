@@ -21,7 +21,8 @@ fun CoinDetailsDto.toDomain() : CoinDetails {
         description = description.en ?: "",
         links = links.toDomain(),
         image = image.toDomain(),
-        marketData = market_data.toDomain()
+        marketData = market_data.toDomain(),
+        marketCapRank = market_cap_rank,
     )
 }
 
@@ -45,6 +46,7 @@ fun ImageDto.toDomain() : Image {
 fun MarketDetailDataDto.toDomain() : MarketDetailData {
     return MarketDetailData(
         currentPrice = current_price.toDomain(),
+        priceChangePercentage24h = price_change_percentage_24h,
         marketCap = market_cap.toDomain(),
         circulatingSupply = circulating_supply,
         totalSupply = total_supply,

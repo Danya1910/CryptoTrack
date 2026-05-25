@@ -55,7 +55,6 @@ fun TopAppBar(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.align(Alignment.Center)
         ) {
-
             Icon(
                 painter = painterResource(R.drawable.ic_reddit),
                 contentDescription = null,

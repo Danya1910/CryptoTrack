@@ -22,16 +22,24 @@ import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.navigation.NavController
 import com.example.cryptotrack.domain.model.GlobalMarket
+import com.example.cryptotrack.domain.util.MarketOrder
+import com.example.cryptotrack.presentation.widgets.TopAppBar
 
 
 @Composable
 fun MarketScreen(
-    viewModel: CoinGeckoViewModel
+    viewModel: CoinGeckoViewModel,
+    navController: NavController,
 ) {
 
     Scaffold(
-        topBar = {},
+        topBar = {
+        },
         containerColor = BlackBackground,
         bottomBar = {
             BottomBarPreview()
@@ -40,7 +48,8 @@ fun MarketScreen(
         Content(
             viewModel = viewModel,
             paddingValues = paddingValues,
-            )
+            navController = navController,
+        )
     }
 }
 
@@ -64,13 +73,19 @@ private fun MarketScreenPreview() {
 private fun Content(
     paddingValues: PaddingValues,
     viewModel: CoinGeckoViewModel,
+    navController: NavController,
 ) {
+
+    val order by viewModel.order.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadMarketScreen()
+        viewModel.loadMarket(order = MarketOrder.DEFAULT)
     }
 
+
     val screenState by viewModel.marketScreenState.collectAsState()
+    val marketData by viewModel.marketDataState.collectAsState()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -89,7 +104,11 @@ private fun Content(
         )
         Spacer(modifier = Modifier.height(20.dp))
         CoinMarketWidget(
-            coins = screenState.market
+            order = order,
+            coins = marketData.market,
+            viewModel = viewModel,
+            navController = navController,
         )
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }

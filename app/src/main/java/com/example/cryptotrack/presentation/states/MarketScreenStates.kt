@@ -7,6 +7,11 @@ import com.example.cryptotrack.domain.model.TrendCoins
 data class MarketScreenStates (
     val globalMarket:  GlobalMarket? = null,
     val trendCoins: TrendCoins? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null,
+)
+
+data class MarketDataState (
     val market: List<MarketData>? = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,

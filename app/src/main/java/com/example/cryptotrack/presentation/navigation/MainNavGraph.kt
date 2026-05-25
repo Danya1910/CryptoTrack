@@ -19,23 +19,24 @@ fun NavGraphBuilder.MainNavGraph(
     navController: NavController,
 ) {
 
-    composable(route = Screen.Market.route){backStackEntry ->
+    composable(route = Screen.Market.route) { backStackEntry ->
         val parentEntry = remember(backStackEntry) {
             navController.getBackStackEntry("main_graph")
         }
         val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
 
         MarketScreen(
-            viewModel = viewModel
+            viewModel = viewModel,
+            navController = navController,
         )
     }
 
     composable(
         route = Screen.CoinDetails.route,
         arguments = listOf(
-            navArgument("id") {type = NavType.StringType}
+            navArgument("id") { type = NavType.StringType }
         )
-    ) {backStackEntry ->
+    ) { backStackEntry ->
 
         val parentEntry = remember(backStackEntry) {
             navController.getBackStackEntry("main_graph")
@@ -43,7 +44,10 @@ fun NavGraphBuilder.MainNavGraph(
         val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
         val id = backStackEntry.arguments?.getString("id") ?: ""
 
-        CoinDetailsScreen(coinId = id)
+        CoinDetailsScreen(
+            coinId = id,
+            viewModel = viewModel
+        )
     }
 
 }

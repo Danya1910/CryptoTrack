@@ -6,12 +6,13 @@ import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.TrendCoins
+import com.example.cryptotrack.domain.util.MarketOrder
 
 interface CoinGeckoRepository {
 
     suspend fun getGlobalMarket() : GlobalMarket
 
-    suspend fun getMarket() : List<MarketData>
+    suspend fun getMarket(order: MarketOrder = MarketOrder.DEFAULT) : List<MarketData>
 
     suspend fun getCoinDetails(id: String) : CoinDetails
 

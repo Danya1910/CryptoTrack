@@ -13,12 +13,14 @@ import retrofit2.http.Query
 interface CoinGeckoApi {
 
     @GET(value = "global")
-    suspend fun getGlobalMarket() : GlobalMarketResponseDto
+    suspend fun getGlobalMarket(
+    ) : GlobalMarketResponseDto
 
 
     @GET(value = "coins/markets")
     suspend fun getMarket(
-        @Query("vs_currency") vsCurrency: String = "usd"
+        @Query("vs_currency") vsCurrency: String = "usd",
+        @Query("order") order: String? = null
     ) : List<MarketDataDto>
 
     @GET(value = "coins/{id}")

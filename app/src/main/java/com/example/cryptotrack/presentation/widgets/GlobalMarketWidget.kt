@@ -31,6 +31,9 @@ import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Red
+import okhttp3.internal.format
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 
 
 @SuppressLint("DefaultLocale")
@@ -38,6 +41,22 @@ import com.example.cryptotrack.ui.theme.Red
 fun GlobalMarketWidget(
     globalMarket: GlobalMarket?,
 ) {
+
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
+
+    val totalVolume = globalMarket?.totalVolume?.usd?.let {
+        formatter.format(it)
+    } ?: "0.00"
+
+    val totalMarketCap = globalMarket?.totalMarketCap?.usd?.let {
+        formatter.format(it)
+    } ?: "0.00"
+
     val isPositive =
         globalMarket?.marketCapChangePercentage24hUsd?.let {
             if(it >= 0) true
@@ -55,26 +74,26 @@ fun GlobalMarketWidget(
 
     val annotatedString = buildAnnotatedString {
         append("Монет: ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = Color.White)) {
             append(globalMarket?.activeCryptocurrencies.toString())
         }
         append(", Бирж: ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = Color.White)) {
             append(globalMarket?.markets.toString())
         }
         append(", Рост рынка: ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = Color.White)) {
             append("$marketCap %")
         }
         appendInlineContent(iconId, "[icon]")
 
         append(", Объем торговли: ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
-            append(globalMarket?.totalVolume?.usd.toString())
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = Color.White)) {
+            append("$totalVolume $")
         }
         append(", Капитализация: ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.White)) {
-            append(globalMarket?.totalMarketCap?.usd.toString())
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Normal, color = Color.White)) {
+            append("$totalMarketCap $")
         }
     }
 

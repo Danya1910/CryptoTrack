@@ -11,8 +11,8 @@ class GetCoinChartUseCase @Inject constructor(
 
     suspend operator fun invoke(
         id: String,
-        vsCurrency: String,
-        days: Int
+        vsCurrency: String = "usd",
+        days: Int = 1
     ) : CoinsChartList {
         return repository.getCoinChart(id = id, vsCurrency = vsCurrency, days = days)
     }
