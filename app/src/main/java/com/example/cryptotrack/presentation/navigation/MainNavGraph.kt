@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import com.example.cryptotrack.presentation.screens.CoinDetailsScreen
 import com.example.cryptotrack.presentation.screens.MarketScreen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -24,10 +25,12 @@ fun NavGraphBuilder.MainNavGraph(
             navController.getBackStackEntry("main_graph")
         }
         val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
+        val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
 
         MarketScreen(
             viewModel = viewModel,
             navController = navController,
+            coinViewModel = coinViewModel
         )
     }
 

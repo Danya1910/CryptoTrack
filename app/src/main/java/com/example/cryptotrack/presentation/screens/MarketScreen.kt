@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,6 +29,7 @@ import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.navigation.NavController
 import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.util.MarketOrder
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.TopAppBar
 
 
@@ -35,6 +37,7 @@ import com.example.cryptotrack.presentation.widgets.TopAppBar
 fun MarketScreen(
     viewModel: CoinGeckoViewModel,
     navController: NavController,
+    coinViewModel: CoinViewModel,
 ) {
 
     Scaffold(
@@ -49,6 +52,7 @@ fun MarketScreen(
             viewModel = viewModel,
             paddingValues = paddingValues,
             navController = navController,
+            coinViewModel = coinViewModel,
         )
     }
 }
@@ -74,6 +78,7 @@ private fun Content(
     paddingValues: PaddingValues,
     viewModel: CoinGeckoViewModel,
     navController: NavController,
+    coinViewModel: CoinViewModel,
 ) {
 
     val order by viewModel.order.collectAsState()
@@ -81,6 +86,7 @@ private fun Content(
     LaunchedEffect(Unit) {
         viewModel.loadMarketScreen()
         viewModel.loadMarket(order = MarketOrder.DEFAULT)
+        Log.d("MarketScreen", "${coinViewModel.coins}")
     }
 
 
@@ -102,6 +108,7 @@ private fun Content(
         TrendCoinsWidget(
             trends = screenState.trendCoins,
             navController = navController,
+            visibleCoins = 3,
         )
         Spacer(modifier = Modifier.height(20.dp))
         CoinMarketWidget(
@@ -109,6 +116,7 @@ private fun Content(
             coins = marketData.market,
             viewModel = viewModel,
             navController = navController,
+            coinViewModel = coinViewModel,
         )
         Spacer(modifier = Modifier.height(20.dp))
     }

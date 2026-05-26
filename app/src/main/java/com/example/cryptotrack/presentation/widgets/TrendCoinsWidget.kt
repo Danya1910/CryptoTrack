@@ -47,6 +47,7 @@ import kotlinx.serialization.StringFormat
 fun TrendCoinsWidget(
     trends: TrendCoins?,
     navController: NavController,
+    visibleCoins: Int,
 ) {
 
     Box(
@@ -96,7 +97,7 @@ fun TrendCoinsWidget(
             }
             Spacer(modifier = Modifier.height(10.dp))
 
-            trends?.coins?.take(3)?.forEach { coin ->
+            trends?.coins?.take(visibleCoins)?.forEach { coin ->
                 CoinIcon(
                     coin = coin,
                     navController = navController,
