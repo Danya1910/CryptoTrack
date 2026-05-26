@@ -29,10 +29,12 @@ data class Links(
 data class MarketDetailData(
     val currentPrice: Price,
     val priceChangePercentage24h: Double,
-    val marketCap: Price,
-    val circulatingSupply: Double?,
-    val totalSupply: Double?,
-    val maxSupply: Double?,
+    val marketCap: Price, // рыночная капитализация
+    val circulatingSupply: Double?, // количество в обращении
+    val totalSupply: Double?, // общее предложение
+    val maxSupply: Double?, // максмиальное предложение
+    val fullyDilutedValuation: Price, // полностью разбавленная оценка
+    val totalVolume: Price, // объем торгов
     val ath: Price,
     val athChangePercentage: Price,
     val athDate: PriceDate,

@@ -51,6 +51,8 @@ fun MarketDetailDataDto.toDomain() : MarketDetailData {
         circulatingSupply = circulating_supply,
         totalSupply = total_supply,
         maxSupply = max_supply,
+        fullyDilutedValuation = fully_diluted_valuation.toDomain(),
+        totalVolume = total_volume.toDomain(),
         ath = ath.toDomain(),
         athChangePercentage = ath_change_percentage.toDomain(),
         athDate = ath_date.toDomain(),

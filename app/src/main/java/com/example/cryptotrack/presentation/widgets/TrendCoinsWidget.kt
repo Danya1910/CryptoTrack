@@ -30,10 +30,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.TrendCoin
 import com.example.cryptotrack.domain.model.TrendCoins
+import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
@@ -43,7 +45,8 @@ import kotlinx.serialization.StringFormat
 
 @Composable
 fun TrendCoinsWidget(
-    trends: TrendCoins?
+    trends: TrendCoins?,
+    navController: NavController,
 ) {
 
     Box(
@@ -95,7 +98,8 @@ fun TrendCoinsWidget(
 
             trends?.coins?.take(3)?.forEach { coin ->
                 CoinIcon(
-                    coin = coin
+                    coin = coin,
+                    navController = navController,
                 )
             }
         }
@@ -164,7 +168,8 @@ private fun TrendCoinsWidgetPreview() {
 @SuppressLint("DefaultLocale")
 @Composable
 private fun CoinIcon(
-    coin: TrendCoin?
+    coin: TrendCoin?,
+    navController: NavController,
 ) {
 
     val isPositive =
@@ -185,7 +190,7 @@ private fun CoinIcon(
             .fillMaxWidth()
             .height(40.dp)
             .clickable {
-                //Навишация на подпобное описание монеты
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
             }
     ) {
         Row(

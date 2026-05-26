@@ -27,6 +27,7 @@ import com.example.cryptotrack.domain.model.GraphData
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Red
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -38,6 +39,11 @@ fun Graph(
 ) {
 
     val chartData = chart?.list ?: return
+
+    val graphColor =
+        if (chartData[0].price < chartData[chartData.size - 1].price) {
+            Green
+        } else Red
 
 
     val formatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -76,11 +82,11 @@ fun Graph(
             bottomY = graphData.bottomY
         )
 
-        drawGraphArea(areaPath)
+        drawGraphArea(areaPath, graphColor)
 
-        drawDots(areaPath)
+        drawDots(areaPath, graphColor)
 
-        drawGraphLine(graphPath)
+        drawGraphLine(graphPath, graphColor)
 
         drawTimeLabels(
             chartData = chartData,
@@ -156,6 +162,33 @@ private fun calculateGraphData(
 }
 
 @SuppressLint("DefaultLocale")
+private fun formatPrice(price: Double): String {
+
+    return when {
+
+        price >= 1_000_000 -> {
+            String.format("%.1fm", price / 1_000_000)
+        }
+
+        price >= 1_000 -> {
+            String.format("%.1fk", price / 1_000)
+        }
+
+        price >= 1 -> {
+            String.format("%.2f", price)
+        }
+
+        price >= 0.01 -> {
+            String.format("%.4f", price)
+        }
+
+        else -> {
+            String.format("%.8f", price)
+        }
+    }
+}
+
+@SuppressLint("DefaultLocale")
 private fun calculatePriceLabelWidth(
     minPrice: Double,
     maxPrice: Double,
@@ -172,20 +205,7 @@ private fun calculatePriceLabelWidth(
 
         val currentPrice = minPrice + i * priceStep
 
-        val priceText = when {
-
-            currentPrice >= 1_000_000 -> {
-                String.format("%.1fm", currentPrice / 1_000_000)
-            }
-
-            currentPrice >= 1_000 -> {
-                String.format("%.1fk", currentPrice / 1_000)
-            }
-
-            else -> {
-                String.format("%.0f", currentPrice)
-            }
-        }
+        val priceText = formatPrice(currentPrice)
 
         val textLayout = textMeasurer.measure(
             text = priceText,
@@ -234,31 +254,34 @@ private fun createAreaPath(
 }
 
 private fun DrawScope.drawGraphLine(
-    graphPath: Path
+    graphPath: Path,
+    graphColor: Color,
 ) {
     drawPath(
         path = graphPath,
-        color = Green,
+        color = graphColor,
         style = Stroke(width = 5f)
     )
 }
 
 private fun DrawScope.drawGraphArea(
-    areaPath: Path
+    areaPath: Path,
+    graphColor: Color,
 ) {
     drawPath(
         path = areaPath,
         brush = Brush.verticalGradient(
             listOf(
-                Green.copy(alpha = 0.7f),
-                Green.copy(alpha = 0.1f)
+                graphColor.copy(alpha = 0.7f),
+                graphColor.copy(alpha = 0.1f)
             )
         )
     )
 }
 
 private fun DrawScope.drawDots(
-   arePath: Path
+    arePath: Path,
+    graphColor: Color,
 ) {
     clipPath(arePath) {
         val dotSpacing = 20f
@@ -270,7 +293,7 @@ private fun DrawScope.drawDots(
             var x = 0f
             while (x < size.width) {
                 drawCircle(
-                    color = Green.copy(alpha = 0.5f),
+                    color = graphColor.copy(alpha = 0.5f),
                     radius = dotRadius,
                     center = Offset(x, y)
                 )
@@ -289,7 +312,7 @@ private fun DrawScope.drawTimeLabels(
 ) {
     val timeSteps = 5
 
-    for(i in 0..timeSteps) {
+    for (i in 0..timeSteps) {
         val index = i * (chartData.size - 1) / timeSteps
         val point = chartData[index]
         val text = Instant
@@ -334,20 +357,7 @@ private fun DrawScope.drawPriceLabels(
         val y = graphData.topPadding +
                 graphData.graphHeight * (1f - i / steps.toFloat())
 
-        val priceText = when {
-
-            currentPrice >= 1_000_000 -> {
-                String.format("%.1fm", currentPrice / 1_000_000)
-            }
-
-            currentPrice >= 1_000 -> {
-                String.format("%.1fk", currentPrice / 1_000)
-            }
-
-            else -> {
-                String.format("%.0f", currentPrice)
-            }
-        }
+        val priceText = formatPrice(currentPrice)
 
         val textLayout = textMeasurer.measure(
             text = priceText,
@@ -381,5 +391,5 @@ fun labelStyle(): TextStyle {
         fontFamily = Inter,
         fontWeight = FontWeight.Medium,
 
-    )
+        )
 }

@@ -1,5 +1,7 @@
 package com.example.cryptotrack.data.dto
 
+import com.example.cryptotrack.domain.model.Price
+
 
 data class CoinDetailsDto(
     val id: String,
@@ -36,6 +38,8 @@ data class MarketDetailDataDto(
     val circulating_supply: Double?,
     val total_supply: Double?,
     val max_supply: Double?,
+    val fully_diluted_valuation: PriceDto,
+    val total_volume: PriceDto,
     val ath: PriceDto,
     val ath_change_percentage: PriceDto,
     val ath_date: DateDto,

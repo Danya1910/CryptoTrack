@@ -100,7 +100,8 @@ private fun Content(
         )
         Spacer(modifier = Modifier.height(20.dp))
         TrendCoinsWidget(
-            trends = screenState.trendCoins
+            trends = screenState.trendCoins,
+            navController = navController,
         )
         Spacer(modifier = Modifier.height(20.dp))
         CoinMarketWidget(

@@ -1,9 +1,11 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,6 +54,9 @@ import com.example.cryptotrack.presentation.widgets.TopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Red
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 
 
 @Composable
@@ -115,6 +122,7 @@ private fun Content(
             .background(
                 color = BlackBackground
             )
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 15.dp)
             .padding(paddingValues)
     ) {
@@ -131,7 +139,9 @@ private fun Content(
             chart = chart,
         )
         Spacer(modifier = Modifier.height(20.dp))
-        CoinInfo()
+        CoinInfo(
+            details = details
+        )
         Spacer(modifier = Modifier.height(20.dp))
         CommunityBlock(
             images = details?.image,
@@ -140,10 +150,24 @@ private fun Content(
     }
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 private fun CoinHat(
     details: CoinDetails?
 ) {
+
+    val isPositive =
+        (details?.marketData?.priceChangePercentage24h ?: 0.0) >= 0
+
+    val percentageColor =
+        if (isPositive) Green
+        else Red
+
+    val percentageUsd = String.format(
+        "%.1f",
+        kotlin.math.abs(details?.marketData?.priceChangePercentage24h ?: 0.0)
+    )
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -153,7 +177,7 @@ private fun CoinHat(
         AsyncImage(
             model = details?.image?.thumb,
             contentDescription = null,
-            modifier = Modifier.size(25.dp),
+            modifier = Modifier.size(40.dp),
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
@@ -209,18 +233,20 @@ private fun CoinHat(
                 .padding(bottom = 10.dp)
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_up),
+                painter = painterResource(
+                    if (isPositive) R.drawable.ic_up
+                    else R.drawable.ic_down
+                ),
                 contentDescription = null,
-                modifier = Modifier.size(15.dp),
-                tint = Green,
+                tint = percentageColor,
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = "hardcode% (24H)",
+                text = "$percentageUsd % (24H)",
                 fontFamily = Inter,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Green,
+                color = percentageColor,
                 letterSpacing = 1.sp,
             )
         }
@@ -387,7 +413,45 @@ private fun GraphWrapper(
 }
 
 @Composable
-private fun CoinInfo() {
+private fun CoinInfo(
+    details: CoinDetails?,
+) {
+
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val formatterInteger = DecimalFormat("#,##0", symbols)
+
+    val totalVolume = details?.marketData?.totalVolume?.usd?.let {
+        formatterInteger.format(it)
+    } ?: "0.00"
+
+    val totalSupply = details?.marketData?.totalSupply?.let {
+        formatterInteger.format(it)
+    } ?: "0.00"
+
+    val marketCap = details?.marketData?.marketCap?.usd?.let {
+        formatterInteger.format(it)
+    } ?: "0.00"
+
+    val circulatingSupply = formatCompactNumber(number = details?.marketData?.circulatingSupply)
+
+    val maxSupply = details?.marketData?.maxSupply?.let {
+        formatterInteger.format(it)
+    } ?: "0.00"
+
+    val fullyDilutedValuation = details?.marketData?.fullyDilutedValuation?.usd?.let {
+        formatterInteger.format(it)
+    } ?: "0.00"
+
+
+
+
+
+
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -443,7 +507,6 @@ private fun CoinInfo() {
                         fontWeight = FontWeight.Normal,
                         color = Color.White,
                         modifier = Modifier.weight(1f)
-
                     )
                 }
                 Row(
@@ -452,7 +515,7 @@ private fun CoinInfo() {
                         .padding(top = 3.dp)
                 ) {
                     Text(
-                        text = "0,00 $",
+                        text = "$marketCap $",
                         textAlign = TextAlign.Start,
                         fontFamily = Inter,
                         fontSize = 13.sp,
@@ -462,14 +525,13 @@ private fun CoinInfo() {
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = "0",
+                        text = circulatingSupply,
                         textAlign = TextAlign.Start,
                         fontFamily = Inter,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         color = Color.White,
                         modifier = Modifier.weight(1f)
-
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
@@ -496,7 +558,6 @@ private fun CoinInfo() {
                         fontWeight = FontWeight.Normal,
                         color = Color.White,
                         modifier = Modifier.weight(1f)
-
                     )
                 }
                 Row(
@@ -505,7 +566,7 @@ private fun CoinInfo() {
                         .padding(top = 3.dp)
                 ) {
                     Text(
-                        text = "1 490,64 $",
+                        text = "$fullyDilutedValuation $",
                         textAlign = TextAlign.Start,
                         fontFamily = Inter,
                         fontSize = 13.sp,
@@ -515,7 +576,7 @@ private fun CoinInfo() {
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = "0.000000000014 $",
+                        text = "$totalSupply $",
                         textAlign = TextAlign.Start,
                         fontFamily = Inter,
                         fontSize = 13.sp,
@@ -549,7 +610,6 @@ private fun CoinInfo() {
                         fontWeight = FontWeight.Normal,
                         color = Color.White,
                         modifier = Modifier.weight(1f)
-
                     )
                 }
                 Row(
@@ -558,7 +618,7 @@ private fun CoinInfo() {
                         .padding(top = 3.dp)
                 ) {
                     Text(
-                        text = "?",
+                        text = "$maxSupply $",
                         textAlign = TextAlign.Start,
                         fontFamily = Inter,
                         fontSize = 13.sp,
@@ -568,7 +628,7 @@ private fun CoinInfo() {
                     )
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = "0,00 $",
+                        text = "$totalVolume $",
                         textAlign = TextAlign.Start,
                         fontFamily = Inter,
                         fontSize = 13.sp,
@@ -581,6 +641,38 @@ private fun CoinInfo() {
             }
         }
     }
+}
+
+@SuppressLint("DefaultLocale")
+fun formatCompactNumber(
+    number: Double?
+): String {
+
+    if (number != null) {
+        return when {
+
+            number >= 1_000_000_000_000 -> {
+                String.format("%.1fT+", number / 1_000_000_000_000)
+            }
+
+            number >= 1_000_000_000 -> {
+                String.format("%.1fB+", number / 1_000_000_000)
+            }
+
+            number >= 1_000_000 -> {
+                String.format("%.1fM+", number / 1_000_000)
+            }
+
+            number >= 1_000 -> {
+                String.format("%.1fK+", number / 1_000)
+            }
+
+            else -> {
+                number.toInt().toString()
+            }
+        }
+    }
+    return number.toString()
 }
 
 @Composable
