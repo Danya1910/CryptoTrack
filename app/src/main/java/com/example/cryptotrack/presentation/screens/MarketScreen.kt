@@ -23,14 +23,9 @@ import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.navigation.NavController
-import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
-import com.example.cryptotrack.presentation.widgets.TopAppBar
 
 
 @Composable
@@ -84,7 +79,8 @@ private fun Content(
     val order by viewModel.order.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadMarketScreen()
+        viewModel.loadGlobalMarket()
+        viewModel.loadTrends()
         viewModel.loadMarket(order = MarketOrder.DEFAULT)
         Log.d("MarketScreen", "${coinViewModel.coins}")
     }
@@ -92,6 +88,7 @@ private fun Content(
 
     val screenState by viewModel.marketScreenState.collectAsState()
     val marketData by viewModel.marketDataState.collectAsState()
+    val trendCoins by viewModel.trendState.collectAsState()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -106,7 +103,7 @@ private fun Content(
         )
         Spacer(modifier = Modifier.height(20.dp))
         TrendCoinsWidget(
-            trends = screenState.trendCoins,
+            trends = trendCoins.trendCoins,
             navController = navController,
             visibleCoins = 3,
         )

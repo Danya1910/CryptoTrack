@@ -16,4 +16,8 @@ sealed interface Screen {
         }
     }
 
+    data object Search: Screen {
+        override val route = "Search"
+    }
+
 }

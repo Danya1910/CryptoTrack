@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,6 +23,17 @@ class CoinViewModel @Inject constructor(
 
     val coins = getCoinsUseCase()
 
+    init {
+
+        viewModelScope.launch {
+
+            coins.collect { list ->
+
+                Log.d("CoinVM", "coins = $list")
+            }
+        }
+    }
+
     fun insertCoin(
         id: String,
         name: String,
@@ -35,10 +47,16 @@ class CoinViewModel @Inject constructor(
                     path = "",
                 )
             )
+            Log.d("CoinVM", "insertCoin called")
         }
     }
 
-
-
-
+    fun deleteCoin(
+        id: String
+    ) {
+        viewModelScope.launch {
+            deleteCoin(id = id)
+            Log.d("CoinVM", "deleteCoin called")
+        }
+    }
 }

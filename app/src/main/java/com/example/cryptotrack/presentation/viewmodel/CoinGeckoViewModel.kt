@@ -2,15 +2,20 @@ package com.example.cryptotrack.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cryptotrack.domain.model.Search
+import com.example.cryptotrack.domain.model.SearchCoin
 import com.example.cryptotrack.domain.usecase.GetCoinChartUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinDetailsUseCase
 import com.example.cryptotrack.domain.usecase.GetGlobalMarketUseCase
 import com.example.cryptotrack.domain.usecase.GetMarketUseCase
 import com.example.cryptotrack.domain.usecase.GetTrendCoinsUseCase
+import com.example.cryptotrack.domain.usecase.SearchCoinsUseCase
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.states.DetailsScreenStates
+import com.example.cryptotrack.presentation.states.GlobalMarketState
 import com.example.cryptotrack.presentation.states.MarketDataState
-import com.example.cryptotrack.presentation.states.MarketScreenStates
+import com.example.cryptotrack.presentation.states.SearchState
+import com.example.cryptotrack.presentation.states.TrendState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -19,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import retrofit2.http.Query
 import javax.inject.Inject
 
 
@@ -29,27 +35,31 @@ class CoinGeckoViewModel @Inject constructor(
     private val getTrendCoinsUseCase: GetTrendCoinsUseCase,
     private val getCoinDetailsUseCase: GetCoinDetailsUseCase,
     private val getCoinChartUseCase: GetCoinChartUseCase,
+    private val searchCoinsUseCase: SearchCoinsUseCase,
 ) : ViewModel() {
 
     private val _order = MutableStateFlow(MarketOrder.DEFAULT)
     var order = _order.asStateFlow()
 
-    private val _marketScreenState = MutableStateFlow(MarketScreenStates())
+    private val _globalMarketState = MutableStateFlow(GlobalMarketState())
     private val _marketDataState = MutableStateFlow(MarketDataState())
     private val _detailScreenState = MutableStateFlow(DetailsScreenStates())
-    val marketScreenState = _marketScreenState.asStateFlow()
+    private val _trendState = MutableStateFlow(TrendState())
+    private val _searchState = MutableStateFlow(SearchState())
+    val marketScreenState = _globalMarketState.asStateFlow()
     val marketDataState = _marketDataState.asStateFlow()
     val detailsScreenState = _detailScreenState.asStateFlow()
+    val trendState = _trendState.asStateFlow()
+    val searchState = _searchState.asStateFlow()
 
 
     init {
-        loadMarketScreen()
         loadMarket(order = MarketOrder.DEFAULT)
     }
 
-    fun loadMarketScreen() {
+    fun loadGlobalMarket() {
         viewModelScope.launch {
-            _marketScreenState.update {
+            _globalMarketState.update {
                 it.copy(
                     isLoading = true,
                     error = null,
@@ -58,25 +68,13 @@ class CoinGeckoViewModel @Inject constructor(
             runCatching {
                 coroutineScope {
 
-                    val globalMarket = async {
-                        getGlobalMarketUseCase()
-                    }
+                    getGlobalMarketUseCase()
 
-
-                    val trend = async {
-                        getTrendCoinsUseCase()
-                    }
-
-                    Pair(
-                        globalMarket.await(),
-                        trend.await(),
-                    )
                 }
-            }.onSuccess { (global, trend) ->
-                _marketScreenState.update {
+            }.onSuccess { globalMarket ->
+                _globalMarketState.update {
                     it.copy(
-                        globalMarket = global,
-                        trendCoins = trend,
+                        globalMarket = globalMarket,
                         isLoading = false,
                         error = null,
                     )
@@ -87,7 +85,37 @@ class CoinGeckoViewModel @Inject constructor(
                     throw throwable
                 }
 
-                _marketScreenState.update {
+                _globalMarketState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = throwable.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadTrends() {
+        viewModelScope.launch {
+            _trendState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+            runCatching {
+                getTrendCoinsUseCase()
+            }.onSuccess { trend->
+                _trendState.update {
+                    it.copy(
+                        isLoading = false,
+                        trendCoins = trend
+                    )
+                }
+            }.onFailure { throwable ->
+                if(throwable is CancellationException) {
+                    throw throwable
+                }
+                _trendState.update {
                     it.copy(
                         isLoading = false,
                         error = throwable.message
@@ -183,6 +211,48 @@ class CoinGeckoViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun search(
+        query: String
+    ) {
+        viewModelScope.launch {
+            _searchState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
+            runCatching {
+                searchCoinsUseCase(query = query)
+            }.onSuccess { suggestions->
+                _searchState.update {
+                    it.copy(
+                        isLoading = false,
+                        suggestions = suggestions,
+                    )
+                }
+            }.onFailure { throwable ->
+                if(throwable is CancellationException){
+                    throw throwable
+                }
+                _searchState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = throwable.message,
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearSuggestionsList() {
+        _searchState.update {
+            it.copy(
+                suggestions = Search(
+                    coins = emptyList()
+                )
+            )
         }
     }
 

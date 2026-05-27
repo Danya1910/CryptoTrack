@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.view.inputmethod.InlineSuggestion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,24 +22,36 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.room.Query
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.Search
+import com.example.cryptotrack.domain.model.SearchCoin
+import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
@@ -53,6 +66,7 @@ import com.example.cryptotrack.ui.theme.SearchBarColor
 fun SearchScreen(
     navController: NavController,
     viewModel: CoinGeckoViewModel,
+    coinViewModel: CoinViewModel,
 ) {
     Scaffold(
         contentColor = BlackBackground,
@@ -65,6 +79,7 @@ fun SearchScreen(
             paddingValues = paddingValues,
             navController = navController,
             viewModel = viewModel,
+            coinViewModel = coinViewModel,
         )
     }
 }
@@ -89,7 +104,25 @@ private fun Content(
     paddingValues: PaddingValues,
     navController: NavController,
     viewModel: CoinGeckoViewModel,
+    coinViewModel: CoinViewModel,
 ) {
+
+    var query by remember { mutableStateOf("") }
+    val suggestions by viewModel.searchState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadTrends()
+    }
+
+    LaunchedEffect(query) {
+        if (query.isNotEmpty())
+            viewModel.search(query = query)
+        else
+            viewModel.clearSuggestionsList()
+    }
+
+
+
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -97,9 +130,18 @@ private fun Content(
             .background(color = BlackBackground)
             .padding(horizontal = 15.dp)
     ) {
-        SearchField()
+        SearchField(
+            query = query,
+            onQueryChange = {
+                query = it
+            },
+        )
         Spacer(modifier = Modifier.height(20.dp))
-        SuggestionList()
+        SuggestionList(
+            suggestions = suggestions.suggestions,
+            navController = navController,
+            coinViewModel = coinViewModel,
+        )
         Spacer(modifier = Modifier.height(20.dp))
         TrendCoinsWidget(
             trends = null,
@@ -110,8 +152,10 @@ private fun Content(
 }
 
 @Composable
-fun SearchField() {
-    val text = remember { mutableStateOf("") }
+fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -136,8 +180,8 @@ fun SearchField() {
             )
             Spacer(modifier = Modifier.width(15.dp))
             BasicTextField(
-                value = text.value,
-                onValueChange = { text.value = it },
+                value = query,
+                onValueChange = onQueryChange,
                 modifier = Modifier
                     .weight(1f),
                 maxLines = 1,
@@ -153,7 +197,7 @@ fun SearchField() {
                         contentAlignment = Alignment.CenterStart,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        if (text.value.isNullOrEmpty()) {
+                        if (query.isNullOrEmpty()) {
                             Text(
                                 text = "Search coin",
                                 fontSize = 16.sp,
@@ -167,7 +211,7 @@ fun SearchField() {
                 }
             )
             Spacer(modifier = Modifier.width(10.dp))
-            if (!text.value.isNullOrEmpty()) {
+            if (!query.isNullOrEmpty()) {
                 Icon(
                     painter = painterResource(R.drawable.ic_circle_cross),
                     contentDescription = null,
@@ -180,7 +224,11 @@ fun SearchField() {
 }
 
 @Composable
-fun SuggestionList() {
+fun SuggestionList(
+    suggestions: Search?,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,43 +241,58 @@ fun SuggestionList() {
                 color = BlackBackground,
                 shape = RoundedCornerShape(30.dp)
             )
-
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp, vertical = 15.dp)
         ) {
-            Suggestion()
-            Spacer(modifier = Modifier.height(10.dp))
-            Suggestion()
-            Spacer(modifier = Modifier.height(10.dp))
-            Suggestion()
+            suggestions?.coins?.take(5)?.forEach { coin ->
+                Suggestion(
+                    coin = coin,
+                    navController = navController,
+                    coinViewModel = coinViewModel,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
         }
     }
 }
 
 
 @Composable
-fun Suggestion() {
+fun Suggestion(
+    coin: SearchCoin,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .height(40.dp)
+            .padding(horizontal = 5.dp)
             .fillMaxWidth()
+            .clickable {
+                coinViewModel.insertCoin(id = coin.id, name = coin.name)
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
+            }
     ) {
-//                AsyncImage(
-//                model = "https://assets.coingecko.com/coins/images/28470/standard/MTLOGO.png?1696527464",
-//                contentDescription = null,
-//                modifier = Modifier.size(30.dp),
-//            )
-        Icon(
-            painter = painterResource(R.drawable.bitcoin),
+        Text(
+            textAlign = TextAlign.Center,
+            text = "${coin.marketCapRank}",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = Inter,
+            color = Color.Gray,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.2f)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        AsyncImage(
+            model = coin.thumb,
             contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier
-                .weight(0.3f)
-                .size(30.dp),
+            modifier = Modifier.size(30.dp),
         )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
@@ -237,7 +300,7 @@ fun Suggestion() {
             modifier = Modifier.weight(2f)
         ) {
             Text(
-                text = "BTC",
+                text = coin.symbol,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = Inter,
@@ -246,7 +309,7 @@ fun Suggestion() {
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = "Bitcoin",
+                text = coin.name,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = Inter,
@@ -255,40 +318,7 @@ fun Suggestion() {
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Column(
-            verticalArrangement = Arrangement.SpaceAround,
-            horizontalAlignment = Alignment.End,
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 15.dp)
-        ) {
-            Text(
-                text = "$126,080",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = Inter,
-                color = Color.White,
-                maxLines = 1,
-            )
-            Row() {
-                Text(
-                    text = "2.1%",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = Inter,
-                    color = Green,
-                    maxLines = 1,
-                )
-                Icon(
-                    painter = painterResource(R.drawable.ic_up),
-                    contentDescription = null,
-                    tint = Green,
-                    modifier = Modifier
-                        .size(15.dp)
-                        .padding(start = 3.dp)
-                )
-            }
-        }
+
     }
 }
 
@@ -313,7 +343,7 @@ private fun SearchedCoin() {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .clickable{
+                    .clickable {
                         // navigate to detail screen by id
                     }
             ) {
