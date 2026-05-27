@@ -3,6 +3,7 @@ package com.example.cryptotrack.presentation.screens
 import android.view.inputmethod.InlineSuggestion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,8 +17,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -109,6 +113,7 @@ private fun Content(
 
     var query by remember { mutableStateOf("") }
     val suggestions by viewModel.searchState.collectAsState()
+    val trends by viewModel.trendState.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadTrends()
@@ -135,26 +140,46 @@ private fun Content(
             onQueryChange = {
                 query = it
             },
+            onQueryClear = {
+                query = ""
+            }
         )
         Spacer(modifier = Modifier.height(20.dp))
-        SuggestionList(
-            suggestions = suggestions.suggestions,
-            navController = navController,
-            coinViewModel = coinViewModel,
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        TrendCoinsWidget(
-            trends = null,
-            navController = navController,
-            visibleCoins = 5,
-        )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize()
+        ) {
+
+            item {
+
+                SuggestionList(
+                    suggestions = suggestions.suggestions,
+                    navController = navController,
+                    coinViewModel = coinViewModel,
+                )
+            }
+
+            item {
+
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            item {
+
+                TrendCoinsWidget(
+                    trends = trends.trendCoins,
+                    navController = navController,
+                    visibleCoins = 5,
+                )
+            }
+        }
     }
 }
 
 @Composable
 fun SearchField(
     query: String,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    onQueryClear: () -> Unit,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -216,7 +241,11 @@ fun SearchField(
                     painter = painterResource(R.drawable.ic_circle_cross),
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(25.dp),
+                    modifier = Modifier
+                        .size(25.dp)
+                        .clickable {
+                            onQueryClear()
+                        },
                 )
             }
         }
@@ -229,31 +258,82 @@ fun SuggestionList(
     navController: NavController,
     coinViewModel: CoinViewModel,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                spotColor = Color.White,
-                shape = RoundedCornerShape(30.dp)
-            )
-            .background(
-                color = BlackBackground,
-                shape = RoundedCornerShape(30.dp)
-            )
-    ) {
+
+    var isExpanded by remember { mutableStateOf(false) }
+
+    if (!suggestions?.coins.isNullOrEmpty()) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 15.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
-            suggestions?.coins?.take(5)?.forEach { coin ->
-                Suggestion(
-                    coin = coin,
-                    navController = navController,
-                    coinViewModel = coinViewModel,
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 4.dp,
+                        spotColor = Color.White,
+                        shape = RoundedCornerShape(30.dp)
+                    )
+                    .background(
+                        color = BlackBackground,
+                        shape = RoundedCornerShape(30.dp)
+                    )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp)
+                        .padding(top = 15.dp, bottom = 5.dp)
+                ) {
+
+                    if(!isExpanded) {
+                        suggestions.coins.take(5).forEach { coin ->
+                            Suggestion(
+                                coin = coin,
+                                navController = navController,
+                                coinViewModel = coinViewModel,
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
+                    else
+                    {
+                        suggestions.coins.forEach { coin ->
+                            Suggestion(
+                                coin = coin,
+                                navController = navController,
+                                coinViewModel = coinViewModel,
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(15.dp))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .height(50.dp)
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 4.dp,
+                        spotColor = Color.White,
+                        shape = RoundedCornerShape(30.dp)
+                    )
+                    .background(
+                        color = BlackBackground,
+                        shape = RoundedCornerShape(30.dp)
+                    )
+                    .clickable{
+                        isExpanded = !isExpanded
+                    }
+            ) {
+                Text(
+                    text = "Показать еще",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = Inter,
+                    color = Color.White
                 )
-                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }
