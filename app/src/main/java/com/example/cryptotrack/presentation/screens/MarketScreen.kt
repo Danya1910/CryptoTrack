@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.widgets.BottomBar
 
 
 @Composable
@@ -40,7 +41,7 @@ fun MarketScreen(
         },
         containerColor = BlackBackground,
         bottomBar = {
-            BottomBarPreview()
+            BottomBar(navController = navController)
         }
     ) { paddingValues ->
         Content(

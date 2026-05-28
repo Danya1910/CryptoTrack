@@ -58,6 +58,7 @@ import com.example.cryptotrack.domain.model.SearchCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
@@ -79,7 +80,7 @@ fun SearchScreen(
         contentColor = BlackBackground,
         topBar = {},
         bottomBar = {
-            BottomBarPreview()
+            BottomBar(navController = navController)
         }
     ) { paddingValues ->
         Content(

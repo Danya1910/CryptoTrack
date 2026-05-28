@@ -47,6 +47,7 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.compose.ui.test)
     val roomVersion = "2.8.4"
 
     implementation("androidx.room:room-runtime:$roomVersion")

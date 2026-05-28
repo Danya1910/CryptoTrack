@@ -48,6 +48,7 @@ import com.example.cryptotrack.domain.model.CoinsChartList
 import com.example.cryptotrack.domain.model.Image
 import com.example.cryptotrack.domain.model.Links
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
+import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.Graph
 import com.example.cryptotrack.presentation.widgets.TopAppBar
@@ -68,9 +69,7 @@ fun CoinDetailsScreen(
         topBar = {
             TopAppBar()
         },
-        bottomBar = {
-            BottomBarPreview()
-        }
+        bottomBar = {}
     ) { paddingValues ->
         Content(
             paddingValues = paddingValues,
