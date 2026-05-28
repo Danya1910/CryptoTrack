@@ -91,7 +91,8 @@ fun TrendCoinsWidget(
                     fontWeight = FontWeight.Medium,
                     color = Color.Gray,
                     textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable {}
+                    modifier = Modifier.clickable {
+                    }
                 )
                 Spacer(modifier = Modifier.width(20.dp))
             }

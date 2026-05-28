@@ -55,7 +55,7 @@ class CoinViewModel @Inject constructor(
         id: String
     ) {
         viewModelScope.launch {
-            deleteCoin(id = id)
+            deleteCoinUseCase(id = id)
             Log.d("CoinVM", "deleteCoin called")
         }
     }

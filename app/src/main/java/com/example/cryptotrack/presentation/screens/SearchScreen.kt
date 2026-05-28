@@ -4,6 +4,7 @@ import android.view.inputmethod.InlineSuggestion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import androidx.navigation.NavController
 import androidx.room.Query
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.SearchCoin
 import com.example.cryptotrack.presentation.navigation.Screen
@@ -64,6 +66,7 @@ import com.example.cryptotrack.ui.theme.GreyCrossColor
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.SearchBarColor
+import kotlinx.coroutines.flow.Flow
 
 
 @Composable
@@ -126,6 +129,8 @@ private fun Content(
             viewModel.clearSuggestionsList()
     }
 
+    val coinsList by coinViewModel.coins.collectAsState(initial = emptyList())
+
 
 
     Column(
@@ -148,6 +153,17 @@ private fun Content(
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
+
+            if(coinsList.isNotEmpty()) {
+                item {
+                    SearchedCoinsList(
+                        coins = coinsList,
+                        navController = navController,
+                        viewModel = viewModel,
+                        coinViewModel = coinViewModel,
+                    )
+                }
+            }
 
             item {
 
@@ -285,7 +301,7 @@ fun SuggestionList(
                         .padding(top = 15.dp, bottom = 5.dp)
                 ) {
 
-                    if(!isExpanded) {
+                    if (!isExpanded) {
                         suggestions.coins.take(5).forEach { coin ->
                             Suggestion(
                                 coin = coin,
@@ -294,9 +310,7 @@ fun SuggestionList(
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                         }
-                    }
-                    else
-                    {
+                    } else {
                         suggestions.coins.forEach { coin ->
                             Suggestion(
                                 coin = coin,
@@ -312,7 +326,7 @@ fun SuggestionList(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .height(50.dp)
+                    .height(40.dp)
                     .fillMaxWidth()
                     .shadow(
                         elevation = 4.dp,
@@ -320,16 +334,16 @@ fun SuggestionList(
                         shape = RoundedCornerShape(30.dp)
                     )
                     .background(
-                        color = BlackBackground,
+                        color = if (isExpanded) BlackNavigation else SearchBarColor,
                         shape = RoundedCornerShape(30.dp)
                     )
-                    .clickable{
+                    .clickable {
                         isExpanded = !isExpanded
                     }
             ) {
                 Text(
                     text = "Показать еще",
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = Inter,
                     color = Color.White
@@ -404,7 +418,12 @@ fun Suggestion(
 
 
 @Composable
-private fun SearchedCoin() {
+private fun SearchedCoin(
+    coin: RoomCoin,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+    viewModel: CoinGeckoViewModel, // возможно подгружать картинку отсюда
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -417,14 +436,14 @@ private fun SearchedCoin() {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(start = 6.dp, end = 10.dp)
+                .padding(start = 6.dp)
                 .fillMaxHeight()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clickable {
-                        // navigate to detail screen by id
+                        navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
                     }
             ) {
                 AsyncImage(
@@ -434,19 +453,55 @@ private fun SearchedCoin() {
                 )
                 Spacer(modifier = Modifier.width(5.dp))
                 Text(
-                    text = "Bitcoin",
+                    text = coin.name,
                     fontSize = 14.sp,
                     color = Color.White,
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                 )
-                Spacer(modifier = Modifier.width(11.dp))
             }
-            Icon(
-                painter = painterResource(R.drawable.ic_cross),
-                contentDescription = null,
-                modifier = Modifier.size(6.dp),
-                tint = GreyCrossColor,
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(27.dp)
+                    .clickable {
+                        coinViewModel.deleteCoin(id = coin.id)
+                    },
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_cross),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(6.dp),
+                    tint = GreyCrossColor,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchedCoinsList(
+    coins: List<RoomCoin>,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+    viewModel: CoinGeckoViewModel,
+) {
+
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+    ) {
+        coins.forEach { coin->
+            SearchedCoin(
+                coin = coin,
+                navController = navController,
+                coinViewModel = coinViewModel,
+                viewModel = viewModel
             )
         }
     }

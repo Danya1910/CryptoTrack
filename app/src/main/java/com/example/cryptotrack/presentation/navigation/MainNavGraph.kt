@@ -66,7 +66,7 @@ fun NavGraphBuilder.MainNavGraph(
             viewModel = viewModel,
             coinViewModel = coinViewModel,
         )
-
     }
+
 
 }

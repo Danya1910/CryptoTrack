@@ -90,7 +90,7 @@ private fun CoinMarketWidgetPreview() {
 }
 
 @Composable
-fun CoinMarketHat(
+private fun CoinMarketHat(
     order: MarketOrder,
     viewModel: CoinGeckoViewModel
 ) {
@@ -152,7 +152,7 @@ fun CoinMarketHat(
 
 @SuppressLint("DefaultLocale")
 @Composable
-fun CoinMarket(
+private fun CoinMarket(
     coin: MarketData?,
     navController: NavController,
     coinViewModel: CoinViewModel,
@@ -276,7 +276,7 @@ fun CoinMarket(
 
 
 @Composable
-fun CoinsMarketList(
+private fun CoinsMarketList(
     coins: List<MarketData>?,
     navController: NavController,
     coinViewModel: CoinViewModel,
