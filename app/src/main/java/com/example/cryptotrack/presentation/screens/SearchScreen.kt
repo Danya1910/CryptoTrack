@@ -1,9 +1,7 @@
 package com.example.cryptotrack.presentation.screens
 
-import android.view.inputmethod.InlineSuggestion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,13 +20,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +44,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.room.Query
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.RoomCoin
@@ -59,15 +53,12 @@ import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
-import com.example.cryptotrack.presentation.widgets.BottomBarPreview
-import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
+import com.example.cryptotrack.presentation.widgets.TrendWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.BlackNavigation
 import com.example.cryptotrack.ui.theme.GreyCrossColor
-import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.SearchBarColor
-import kotlinx.coroutines.flow.Flow
 
 
 @Composable
@@ -182,10 +173,9 @@ private fun Content(
 
             item {
 
-                TrendCoinsWidget(
+                TrendWidget(
                     trends = trends.trendCoins,
                     navController = navController,
-                    visibleCoins = 5,
                 )
             }
         }

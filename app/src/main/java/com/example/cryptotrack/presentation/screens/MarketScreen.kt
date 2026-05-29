@@ -19,7 +19,6 @@ import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.CoinMarketWidget
 import com.example.cryptotrack.presentation.widgets.GlobalMarketWidget
-import com.example.cryptotrack.presentation.widgets.TrendCoinsWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
+import com.example.cryptotrack.presentation.widgets.TrendWidget
 
 
 @Composable
@@ -80,8 +80,8 @@ private fun Content(
     val order by viewModel.order.collectAsState()
 
     LaunchedEffect(Unit) {
-        //viewModel.loadGlobalMarket()
-        //viewModel.loadTrends()
+        viewModel.loadGlobalMarket()
+        viewModel.loadTrends()
         viewModel.loadMarket(order = MarketOrder.DEFAULT)
         Log.d("MarketScreen", "${coinViewModel.coins}")
     }
@@ -103,10 +103,9 @@ private fun Content(
             globalMarket = screenState.globalMarket
         )
         Spacer(modifier = Modifier.height(20.dp))
-        TrendCoinsWidget(
+        TrendWidget(
             trends = trendCoins.trendCoins,
             navController = navController,
-            visibleCoins = 3,
         )
         Spacer(modifier = Modifier.height(20.dp))
         CoinMarketWidget(
