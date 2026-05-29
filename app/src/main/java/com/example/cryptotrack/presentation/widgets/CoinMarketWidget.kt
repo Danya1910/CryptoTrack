@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,11 +42,14 @@ import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 
 @Composable
@@ -99,15 +103,15 @@ private fun CoinMarketHat(
         modifier = Modifier
             .height(25.dp)
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 10.dp)
     ) {
         Text(
-            text = "№",
+            text = "#",
             fontFamily = Inter,
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.Gray,
-            modifier = Modifier.weight(0.3f),
+            modifier = Modifier.weight(0.2f),
         )
         Text(
             text = "Название",
@@ -115,7 +119,7 @@ private fun CoinMarketHat(
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.Gray,
-            modifier = Modifier.weight(2f),
+            modifier = Modifier.weight(1f),
         )
         Text(
             text = "Цена",
@@ -123,7 +127,7 @@ private fun CoinMarketHat(
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
             color = Color.Gray,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(0.8f),
         )
         Text(
             text = "24 часа",
@@ -132,21 +136,33 @@ private fun CoinMarketHat(
             fontWeight = FontWeight.Light,
             color = Color.Gray,
             modifier = Modifier
-                .weight(0.7f)
+                .weight(0.6f)
                 .clickable {
                     when (order) {
                         MarketOrder.DEFAULT -> {
                             viewModel.changeOrder(order = MarketOrder.PRICE_CHANGE_DESC)
                         }
+
                         MarketOrder.PRICE_CHANGE_DESC -> {
                             viewModel.changeOrder(order = MarketOrder.MARKET_CAP_ASC)
                         }
+
                         else -> {
                             viewModel.changeOrder(order = MarketOrder.DEFAULT)
                         }
                     }
                 },
         )
+        Text(
+            text = "Market Cap",
+            fontFamily = Inter,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Light,
+            color = Color.Gray,
+            modifier = Modifier
+                .weight(0.8f)
+        )
+        //Spacer(modifier = Modifier.weight(0.2f))
     }
 }
 
@@ -181,6 +197,30 @@ private fun CoinMarket(
         formatter.format(it)
     } ?: "0.00"
 
+    val marketCapValue = coin?.marketCap ?: 0.0
+
+    val marketCap = when {
+        marketCapValue >= 1_000_000_000_000 -> {
+            String.format(Locale.US, "%.2fT", marketCapValue / 1_000_000_000_000)
+        }
+
+        marketCapValue >= 1_000_000_000 -> {
+            String.format(Locale.US, "%.2fB", marketCapValue / 1_000_000_000)
+        }
+
+        marketCapValue >= 1_000_000 -> {
+            String.format(Locale.US, "%.2fM", marketCapValue / 1_000_000)
+        }
+
+        marketCapValue >= 1_000 -> {
+            String.format(Locale.US, "%.2fK", marketCapValue / 1_000)
+        }
+
+        else -> {
+            String.format(Locale.US, "%.0f", marketCapValue)
+        }
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -189,88 +229,115 @@ private fun CoinMarket(
                 coinViewModel.insertCoin(id = coin?.id ?: "", name = coin?.name ?: "")
             }
             .padding(horizontal = 10.dp)
-            .height(30.dp)
-            .fillMaxWidth(),
+            .height(36.dp)
+            .fillMaxWidth()
+            .background(color = DarkBlue),
     ) {
         Text(
             text = coin?.marketCapRank.toString(),
             fontFamily = Inter,
-            fontSize = 14.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Normal,
             color = Color.White,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(0.3f),
+            modifier = Modifier.weight(0.2f),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .padding(end = 10.dp)
                 .fillMaxHeight()
-                .weight(2f),
+                .weight(1f),
         ) {
             AsyncImage(
                 model = coin?.image,
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = coin?.name ?: "Unknown",
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = coin?.symbol ?: "Unk",
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Light,
-                color = Color.Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = coin?.name ?: "Unknown",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = coin?.symbol ?: "Unk",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         Text(
             textAlign = TextAlign.Left,
-            text = "$currentPriceFormatted $",
+            text = "$$currentPriceFormatted",
             fontFamily = Inter,
-            fontSize = 14.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Normal,
             color = Color.White,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .weight(1f)
+                .weight(0.8f)
                 .padding(end = 5.dp),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(0.7f)
+                .weight(0.6f)
         ) {
-            Text(
-                text = "$percentageUsd %",
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = percentageColor,
-            )
-            Spacer(modifier = Modifier.width(3.dp))
             Icon(
                 painter = painterResource(
                     if (isPositive) R.drawable.ic_up
                     else R.drawable.ic_down
                 ),
+                modifier = Modifier.size(7.dp),
                 contentDescription = null,
                 tint = percentageColor,
             )
+            Spacer(modifier = Modifier.width(3.dp))
+            Text(
+                text = "$percentageUsd %",
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                color = percentageColor,
+            )
         }
+        Text(
+            textAlign = TextAlign.Center,
+            text = marketCap,
+            fontFamily = Inter,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.6f)
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_star),
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier
+                .size(10.dp)
+                .weight(0.2f)
+        )
+
     }
 }
 
@@ -284,29 +351,20 @@ private fun CoinsMarketList(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                shape = RoundedCornerShape(30.dp),
-                elevation = 4.dp,
-                spotColor = Color.White,
-            )
             .background(
-                color = BlackBackground,
-                shape = RoundedCornerShape(30.dp)
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
             )
-            .padding(
-                horizontal = 10.dp,
-            )
+
     ) {
         if (!coins.isNullOrEmpty()) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 15.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Правильный способ инициализации элементов в LazyColumn
                 items(
                     count = coins.size,
-                    key = { index -> coins[index].id ?: index }
+                    key = { index -> coins[index].id }
                 ) { index ->
                     val coin = coins[index]
                     CoinMarket(
@@ -314,6 +372,16 @@ private fun CoinsMarketList(
                         navController = navController,
                         coinViewModel = coinViewModel
                     )
+                    if (index != coins.size) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(
+                                    color = OutlineGray
+                                )
+                        )
+                    }
                 }
             }
         }

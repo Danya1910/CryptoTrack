@@ -23,3 +23,7 @@ val SearchBarColor = Color(0xFF353535)
 val GreyCrossColor = Color(0xFF666666)
 
 val Orange = Color(0xFFF8A43F)
+
+val DarkBlue = Color(0xFF12181B)
+
+val OutlineGray = Color(0xFF222A2E)

@@ -448,7 +448,7 @@ private fun SearchedCoin(
                     }
             ) {
                 AsyncImage(
-                    model = "",
+                    model = "", // загружать картинку
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
@@ -504,6 +504,7 @@ private fun SearchedCoinsList(
                 coinViewModel = coinViewModel,
                 viewModel = viewModel
             )
+            Spacer(modifier = Modifier.width(10.dp))
         }
     }
 }

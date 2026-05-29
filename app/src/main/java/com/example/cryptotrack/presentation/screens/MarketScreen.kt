@@ -80,8 +80,8 @@ private fun Content(
     val order by viewModel.order.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.loadGlobalMarket()
-        viewModel.loadTrends()
+        //viewModel.loadGlobalMarket()
+        //viewModel.loadTrends()
         viewModel.loadMarket(order = MarketOrder.DEFAULT)
         Log.d("MarketScreen", "${coinViewModel.coins}")
     }
