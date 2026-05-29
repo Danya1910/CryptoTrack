@@ -2,6 +2,7 @@ package com.example.cryptotrack.presentation.util.price
 
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 fun formatPrice(value: Double?): String {
     val v = value ?: return "0"
@@ -20,4 +21,23 @@ fun formatPrice(value: Double?): String {
     }
 
     return DecimalFormat(pattern, symbols).format(v)
+}
+
+fun Double.toCompactUsd(): String {
+    return when {
+        this >= 1_000_000_000_000 ->
+            "$" + String.format(Locale.US, "%.2fT", this / 1_000_000_000_000)
+
+        this >= 1_000_000_000 ->
+            "$" + String.format(Locale.US, "%.2fB", this / 1_000_000_000)
+
+        this >= 1_000_000 ->
+            "$" + String.format(Locale.US, "%.2fM", this / 1_000_000)
+
+        this >= 1_000 ->
+            "$" + String.format(Locale.US, "%.2fK", this / 1_000)
+
+        else ->
+            "$" + String.format(Locale.US, "%.2f", this)
+    }
 }

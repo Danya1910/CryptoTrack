@@ -8,7 +8,9 @@ fun GlobalMarketDto.toDomain() : GlobalMarket {
         activeCryptocurrencies = active_cryptocurrencies,
         markets = markets,
         marketCapChangePercentage24hUsd = market_cap_change_percentage_24h_usd,
+        volumeChangePercentage24Usd = volume_change_percentage_24h_usd,
         totalMarketCap = total_market_cap.toDomain(),
-        totalVolume = total_volume.toDomain()
+        totalVolume = total_volume.toDomain(),
+        marketCapPercentage = market_cap_percentage.toDomain(),
     )
 }

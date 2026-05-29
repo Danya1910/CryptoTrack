@@ -100,7 +100,7 @@ private fun Content(
             .background(color = BlackBackground)
     ) {
         GlobalMarketWidget(
-            globalMarket = screenState.globalMarket
+            market = screenState.globalMarket
         )
         Spacer(modifier = Modifier.height(20.dp))
         TrendWidget(
