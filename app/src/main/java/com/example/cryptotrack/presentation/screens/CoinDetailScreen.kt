@@ -4,21 +4,27 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -30,9 +36,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,21 +56,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.CoinChart
 import com.example.cryptotrack.domain.model.CoinDetails
 import com.example.cryptotrack.domain.model.CoinsChartList
 import com.example.cryptotrack.domain.model.Image
 import com.example.cryptotrack.domain.model.Links
+import com.example.cryptotrack.domain.model.MarketDetailData
+import com.example.cryptotrack.domain.model.Price
+import com.example.cryptotrack.domain.model.PriceDate
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.Graph
 import com.example.cryptotrack.presentation.widgets.TopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
+import com.example.cryptotrack.ui.theme.Yellow
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.util.stream.IntStream
 
 
 @Composable
@@ -65,18 +86,18 @@ fun CoinDetailsScreen(
     viewModel: CoinGeckoViewModel,
     coinId: String,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar()
-        },
-        bottomBar = {}
-    ) { paddingValues ->
-        Content(
-            paddingValues = paddingValues,
-            viewModel = viewModel,
-            coinId = coinId,
-        )
-    }
+//    Scaffold(
+//        topBar = {
+//            TopAppBar()
+//        },
+//        bottomBar = {}
+//    ) { paddingValues ->
+//        Content(
+//            paddingValues = paddingValues,
+//            viewModel = viewModel,
+//            coinId = coinId,
+//        )
+//    }
 }
 
 @Composable
@@ -99,21 +120,112 @@ private fun CoinDetailsScreenPreview() {
 }
 
 @Composable
+//@Preview(showBackground = true)
 private fun Content(
-    paddingValues: PaddingValues,
-    viewModel: CoinGeckoViewModel,
-    coinId: String,
+//    paddingValues: PaddingValues,
+//    viewModel: CoinGeckoViewModel,
+//    coinId: String,
 ) {
 
 
-    LaunchedEffect(Unit) {
-        viewModel.loadDetails(coinId = coinId)
-    }
+//    LaunchedEffect(Unit) {
+//        viewModel.loadDetails(coinId = coinId)
+//    }
+//
+//    val state by viewModel.detailsScreenState.collectAsState()
+//
+//    val details = state.details
+//    val chart = state.chart
 
-    val state by viewModel.detailsScreenState.collectAsState()
+    val details = CoinDetails(
+        id = "bitcoin",
+        symbol = "btc",
+        name = "Bitcoin",
+        description = "Bitcoin is the first decentralized cryptocurrency.",
+        links = Links(
+            homepage = listOf("https://bitcoin.org"),
+            blockchainSite = listOf("https://www.blockchain.com/explorer"),
+            officialForumUrl = listOf("https://bitcointalk.org"),
+            subredditUrl = "https://reddit.com/r/bitcoin"
+        ),
+        image = Image(
+            thumb = "https://coin-images.coingecko.com/coins/images/1/thumb/bitcoin.png",
+            small = "https://coin-images.coingecko.com/coins/images/1/small/bitcoin.png",
+            large = "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png"
+        ),
+        marketData = MarketDetailData(
+            currentPrice = Price(
+                usd = 68435.21,
+                rub = 5_800_000.0
+            ),
+            priceChangePercentage24h = 2.45,
+            marketCap = Price(
+                usd = 1_350_000_000_000.0,
+                rub = 114_000_000_000_000.0
+            ),
+            circulatingSupply = 19_650_000.0,
+            totalSupply = 19_650_000.0,
+            maxSupply = 21_000_000.0,
+            fullyDilutedValuation = Price(
+                usd = 1_450_000_000_000.0,
+                rub = 122_000_000_000_000.0
+            ),
+            totalVolume = Price(
+                usd = 32_500_000_000.0,
+                rub = 2_750_000_000_000.0
+            ),
+            ath = Price(
+                usd = 73750.0,
+                rub = 6_200_000.0
+            ),
+            athChangePercentage = Price(
+                usd = -7.2,
+                rub = -7.2
+            ),
+            athDate = PriceDate(
+                usd = "2024-03-14T00:00:00.000Z",
+                rub = "2024-03-14T00:00:00.000Z"
+            ),
+            atl = Price(
+                usd = 67.81,
+                rub = 5600.0
+            ),
+            atlChangePercentage = Price(
+                usd = 100850.0,
+                rub = 100850.0
+            ),
+            atlDate = PriceDate(
+                usd = "2013-07-06T00:00:00.000Z",
+                rub = "2013-07-06T00:00:00.000Z"
+            ),
+            high24h = Price(
+                usd = 68911.24,
+                rub = 5_850_000.0
+            ),
+            low24h = Price(
+                usd = 65210.50,
+                rub = 5_540_000.0
+            )
+        ),
+        marketCapRank = 1
+    )
 
-    val details = state.details
-    val chart = state.chart
+    val chart = CoinsChartList(
+        list = listOf(
+            CoinChart(1, 66100.0),
+            CoinChart(2, 66350.0),
+            CoinChart(3, 65900.0),
+            CoinChart(4, 66500.0),
+            CoinChart(5, 67000.0),
+            CoinChart(6, 66850.0),
+            CoinChart(7, 67300.0),
+            CoinChart(8, 67800.0),
+            CoinChart(9, 68200.0),
+            CoinChart(10, 68435.21)
+        )
+    )
+
+
 
     Column(
         modifier = Modifier
@@ -123,11 +235,12 @@ private fun Content(
             )
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 15.dp)
-            .padding(paddingValues)
+        //.padding(paddingValues)
     ) {
         CoinHat(
             details = details
         )
+        Spacer(modifier = Modifier.height(20.dp))
         DailyPrice(
             low24h = details?.marketData?.low24h?.usd,
             high24h = details?.marketData?.high24h?.usd,
@@ -171,19 +284,18 @@ private fun CoinHat(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
     ) {
         AsyncImage(
             model = details?.image?.thumb,
             contentDescription = null,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier.size(45.dp),
         )
         Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = details?.name.toString(),
             fontFamily = Inter,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
             color = Color.White,
             letterSpacing = 1.sp,
             maxLines = 1,
@@ -194,60 +306,45 @@ private fun CoinHat(
         Text(
             text = details?.symbol.toString(),
             fontFamily = Inter,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Light,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Normal,
             color = Color.Gray,
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = "Price",
-            fontFamily = Inter,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Light,
-            color = Color.Gray,
-
-            )
         Spacer(modifier = Modifier.width(10.dp))
         CoinNumber(number = details?.marketCapRank)
-    }
-    Spacer(modifier = Modifier.height(25.dp))
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-    ) {
-        Text(
-            text = "${details?.marketData?.currentPrice?.usd} $",
-            fontFamily = Inter,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
-            letterSpacing = 1.sp,
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(bottom = 10.dp)
+        Spacer(modifier = Modifier.weight(1f))
+        Column(
+            horizontalAlignment = Alignment.End
         ) {
-            Icon(
-                painter = painterResource(
-                    if (isPositive) R.drawable.ic_up
-                    else R.drawable.ic_down
-                ),
-                contentDescription = null,
-                tint = percentageColor,
-            )
-            Spacer(modifier = Modifier.width(5.dp))
             Text(
-                text = "$percentageUsd % (24H)",
+                text = "$${details?.marketData?.currentPrice?.usd}",
                 fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = percentageColor,
-                letterSpacing = 1.sp,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
             )
+            Spacer(modifier = Modifier.height(5.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (isPositive) R.drawable.ic_up
+                        else R.drawable.ic_down
+                    ),
+                    contentDescription = null,
+                    tint = percentageColor,
+                    modifier = Modifier.size(7.dp)
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "$percentageUsd% (24H)",
+                    fontFamily = Inter,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = percentageColor,
+                )
+            }
         }
     }
 }
@@ -275,13 +372,13 @@ private fun CoinNumber(
         modifier = Modifier
             .height(22.dp)
             .background(
-                color = Color.White,
-                shape = RoundedCornerShape(12.dp),
+                color = DarkBlue,
+                shape = RoundedCornerShape(5.dp),
             )
-            .shadow(
-                elevation = 8.dp,
-                spotColor = Color.White,
-                shape = RoundedCornerShape(12.dp),
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(5.dp)
             )
             .padding(
                 horizontal = 7.dp,
@@ -289,15 +386,16 @@ private fun CoinNumber(
             )
     ) {
         Text(
-            text = "№ $displayNumber",
+            text = "# $displayNumber",
             fontFamily = Inter,
-            fontSize = 12.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Light,
-            color = Color.Black,
+            color = Color.White,
         )
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 private fun DailyPrice(
     low24h: Double?,
@@ -314,74 +412,136 @@ private fun DailyPrice(
     val progress = ((current - low) / range)
         .coerceIn(0f, 1f)
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
     ) {
-        Box(
-            contentAlignment = Alignment.CenterStart,
-            modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .height(8.dp)
-                .background(
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF373737)
-                )
-                .fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .height(8.dp)
-                    .background(
-                        shape = RoundedCornerShape(10.dp),
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color(0xFFEEFF00),
-                                Color(0xFF00FF51),
-                            )
-                        )
-                    )
-                    .fillMaxWidth(progress)
-            )
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 15.dp)
-                .fillMaxWidth()
+
+        Column(
+            verticalArrangement = Arrangement.Top
         ) {
             Text(
                 text = "$$low24h",
                 fontFamily = Inter,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Light,
+                fontWeight = FontWeight.Normal,
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Start,
-                modifier = Modifier.weight(1f),
             )
+            Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = "24h",
+                text = "24H Low",
                 fontFamily = Inter,
-                fontSize = 12.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Light,
-                color = Color.White,
+                color = Color.Gray,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Start,
             )
+        }
+        Column(
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier.weight(1f)
+        ) {
+
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
+            ) {
+
+                val barWidth = maxWidth - 20.dp
+                val knobOffset = barWidth * progress
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth()
+                        .height(5.dp)
+                        .align(Alignment.CenterStart)
+                        .background(
+                            Color(0xFF373737),
+                            RoundedCornerShape(10.dp)
+                        )
+                )
+
+                Box(
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .width(barWidth * progress)
+                        .height(5.dp)
+                        .align(Alignment.CenterStart)
+                        .background(
+                            brush = Brush.linearGradient(
+                                listOf(
+                                    Red,
+                                    Yellow,
+                                    Green,
+                                )
+                            ),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                )
+
+                Box(
+                    modifier = Modifier
+                        .offset(x = 10.dp + knobOffset - 6.dp)
+                        .align(Alignment.CenterStart)
+                        .size(12.dp)
+                        .background(
+                            Color.White,
+                            CircleShape
+                        )
+                )
+            }
+            Spacer(modifier = Modifier.height(13.dp))
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .fillMaxWidth()
+                    .drawBehind {
+                        drawLine(
+                            color = Color.Gray,
+                            start = Offset(0f, size.height / 2),
+                            end = Offset(size.width, size.height / 2),
+                            strokeWidth = 1.dp.toPx(),
+                            pathEffect = PathEffect.dashPathEffect(
+                                intervals = floatArrayOf(
+                                    12f,
+                                    6f
+                                )
+                            )
+                        )
+                    }
+            )
+        }
+        Column(
+            verticalArrangement = Arrangement.Top,
+        ) {
             Text(
                 text = "$$high24h",
                 fontFamily = Inter,
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Light,
+                fontWeight = FontWeight.Normal,
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f),
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = "24H High",
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Light,
+                color = Color.Gray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
             )
         }
     }
@@ -456,9 +616,9 @@ private fun CoinInfo(
             .fillMaxWidth()
     ) {
         Text(
-            text = "Информация",
+            text = "Основные показатели",
             fontFamily = Inter,
-            fontSize = 16.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Normal,
             color = Color.White,
             modifier = Modifier
@@ -637,6 +797,112 @@ private fun CoinInfo(
 
                     )
                 }
+            }
+        }
+    }
+}
+
+@SuppressLint("DefaultLocale")
+@Composable
+@Preview(showBackground = true)
+private fun InfoItem(
+//    icon: Int,
+//    title: String,
+//    value: String,
+//    percentage: Double
+) {
+    val icon = R.drawable.ic_graph
+    val title = "Полностью разбавленная оценка"
+    val value = "$32.34B"
+    val percentage = 12.34
+
+    val isPositive =
+        percentage?.let {
+            if (it >= 0) true
+            else false
+        }
+
+    val percentageColor = if (isPositive == true) Green else Red
+
+    val formattedPercents = String.format(
+        "%.2f",
+        percentage,
+    )
+
+    Box(
+        modifier = Modifier
+            .height(89.dp)
+            .width(120.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(12.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    tint = Color.Red,
+                    modifier = Modifier.size(30.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    fontFamily = Inter,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                )
+            }
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = value,
+                fontFamily = Inter,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        if (isPositive == true) R.drawable.ic_up
+                        else R.drawable.ic_down
+                    ),
+                    contentDescription = null,
+                    tint = percentageColor,
+                    modifier = Modifier.size(7.dp)
+                )
+
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "$formattedPercents%",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = percentageColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
