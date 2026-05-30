@@ -79,6 +79,7 @@ import com.example.cryptotrack.ui.theme.Yellow
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.stream.IntStream
+import kotlin.math.abs
 
 
 @Composable
@@ -120,7 +121,7 @@ private fun CoinDetailsScreenPreview() {
 }
 
 @Composable
-//@Preview(showBackground = true)
+@Preview(showBackground = true)
 private fun Content(
 //    paddingValues: PaddingValues,
 //    viewModel: CoinGeckoViewModel,
@@ -277,7 +278,7 @@ private fun CoinHat(
 
     val percentageUsd = String.format(
         "%.1f",
-        kotlin.math.abs(details?.marketData?.priceChangePercentage24h ?: 0.0)
+        abs(details?.marketData?.priceChangePercentage24h ?: 0.0)
     )
 
     Row(
@@ -625,196 +626,30 @@ private fun CoinInfo(
                 .padding(horizontal = 20.dp)
         )
         Spacer(modifier = Modifier.height(10.dp))
-        Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(
-                    shape = RoundedCornerShape(30.dp),
-                    elevation = 4.dp,
-                    spotColor = Color.White,
-                )
-                .background(
-                    color = BlackBackground,
-                    shape = RoundedCornerShape(30.dp)
-                )
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(all = 15.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-
-                ) {
-                    Text(
-                        text = "Рыночная капитализация",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "Количество в обращении",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 3.dp)
-                ) {
-                    Text(
-                        text = "$marketCap $",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = circulatingSupply,
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-
-                ) {
-                    Text(
-                        text = "Полностью разбавленная оценка",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "Общее предложение",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 3.dp)
-                ) {
-                    Text(
-                        text = "$fullyDilutedValuation $",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "$totalSupply $",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-
-                ) {
-                    Text(
-                        text = "Максимальное предложение",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "Объем торгов",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 3.dp)
-                ) {
-                    Text(
-                        text = "$maxSupply $",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = "$totalVolume $",
-                        textAlign = TextAlign.Start,
-                        fontFamily = Inter,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White,
-                        modifier = Modifier.weight(1f)
-
-                    )
-                }
-            }
+            InfoItem(
+                icon = R.drawable.ic_market_cap,
+                title = "Рыночная капитализация",
+                value = "$1.35T",
+                percentage = 2.45
+            )
         }
     }
 }
 
 @SuppressLint("DefaultLocale")
 @Composable
-@Preview(showBackground = true)
 private fun InfoItem(
-//    icon: Int,
-//    title: String,
-//    value: String,
-//    percentage: Double
+    icon: Int,
+    title: String,
+    value: String,
+    percentage: Double
 ) {
-    val icon = R.drawable.ic_graph
-    val title = "Полностью разбавленная оценка"
-    val value = "$32.34B"
-    val percentage = 12.34
 
     val isPositive =
         percentage?.let {
@@ -857,7 +692,7 @@ private fun InfoItem(
                 Icon(
                     painter = painterResource(icon),
                     contentDescription = null,
-                    tint = Color.Red,
+                    tint = Color.Unspecified,
                     modifier = Modifier.size(30.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
