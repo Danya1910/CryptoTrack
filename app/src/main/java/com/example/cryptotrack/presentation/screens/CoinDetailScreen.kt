@@ -251,9 +251,9 @@ private fun Content(
             currentPrice = details?.marketData?.currentPrice?.usd
         )
         Spacer(modifier = Modifier.height(20.dp))
-        GraphWrapper(
-            chart = chart,
-        )
+//        GraphWrapper(
+//            chart = chart,
+//        )
         Spacer(modifier = Modifier.height(20.dp))
         CoinInfo(
             details = details
@@ -263,6 +263,25 @@ private fun Content(
             images = details?.image,
             links = details?.links,
         )
+        Spacer(modifier = Modifier.height(20.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            HistoricalGraphItem(
+                title = "ATL",
+                value = "$67.81",
+                date = "6 июл. 2013",
+                percentage = 100.85023,
+                modifier = Modifier.weight(1f)
+            )
+            HistoricalGraphItem(
+                title = "ATL",
+                value = "$67.81",
+                date = "6 июл. 2013",
+                percentage = 100.85023,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -788,6 +807,100 @@ fun formatCompactNumber(
         }
     }
     return number.toString()
+}
+
+@SuppressLint("DefaultLocale")
+@Composable
+private fun HistoricalGraphItem(
+    title: String,
+    value: String,
+    date: String,
+    percentage: Double,
+    modifier: Modifier
+) {
+
+
+    val percentageFormatted = String.format(
+        "%.2f",
+        abs(percentage ?: 0.0)
+    )
+
+    val percentageColor = if (percentage >= 0.0) Green else Red
+
+
+    val percentageText = if ((percentage ?: 0.0) >= 0) {
+        "+$percentageFormatted%"
+    } else {
+        "-$percentageFormatted%"
+    }
+
+    Box(
+        modifier = modifier
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                color = OutlineGray,
+                width = 1.dp,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(all = 10.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = value,
+                    fontFamily = Inter,
+                    fontSize = 12.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = date,
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Normal,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = percentageText,
+                    fontFamily = Inter,
+                    fontSize = 11.sp,
+                    color = percentageColor,
+                    fontWeight = FontWeight.Normal,
+                )
+            }
+            Spacer(modifier = Modifier.width(15.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(top = 10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 60.dp, height = 50.dp)
+                        .background(Color.White)
+                )
+            }
+        }
+    }
 }
 
 @Composable
