@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -584,60 +587,135 @@ private fun CoinInfo(
 
     val formatterInteger = DecimalFormat("#,##0", symbols)
 
-    val totalVolume = details?.marketData?.totalVolume?.usd?.let {
-        formatterInteger.format(it)
-    } ?: "0.00"
 
-    val totalSupply = details?.marketData?.totalSupply?.let {
-        formatterInteger.format(it)
-    } ?: "0.00"
+    val marketCap = formatCompactNumber(number = details?.marketData?.marketCap?.usd)
 
-    val marketCap = details?.marketData?.marketCap?.usd?.let {
-        formatterInteger.format(it)
-    } ?: "0.00"
+    val fullyDilutedValuation =
+        formatCompactNumber(number = details?.marketData?.fullyDilutedValuation?.usd)
+
+    val totalVolume = formatCompactNumber(number = details?.marketData?.totalVolume?.usd)
 
     val circulatingSupply = formatCompactNumber(number = details?.marketData?.circulatingSupply)
 
-    val maxSupply = details?.marketData?.maxSupply?.let {
-        formatterInteger.format(it)
-    } ?: "0.00"
+    val totalSupply = formatCompactNumber(number = details?.marketData?.totalSupply)
 
-    val fullyDilutedValuation = details?.marketData?.fullyDilutedValuation?.usd?.let {
-        formatterInteger.format(it)
-    } ?: "0.00"
+    val maxSupply = formatCompactNumber(number = details?.marketData?.maxSupply)
 
-
-
-
-
-
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                color = OutlineGray,
+                width = 1.dp,
+                shape = RoundedCornerShape(10.dp)
+            )
     ) {
-        Text(
-            text = "Основные показатели",
-            fontFamily = Inter,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color.White,
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(vertical = 15.dp)
         ) {
-            InfoItem(
-                icon = R.drawable.ic_market_cap,
-                title = "Рыночная капитализация",
-                value = "$1.35T",
-                percentage = 2.45
+            Text(
+                text = "Основные показатели",
+                fontFamily = Inter,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
             )
+            Spacer(modifier = Modifier.height(15.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .height(IntrinsicSize.Min),
+            ) {
+                InfoItem(
+                    icon = R.drawable.ic_market_cap,
+                    title = "Market Cap",
+                    value = "$$marketCap",
+                    modifier = Modifier.weight(1f),
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                InfoItem(
+                    icon = R.drawable.ic_stack,
+                    title = "Fully Diluted Valuation",
+                    value = "$$fullyDilutedValuation",
+                    modifier = Modifier.weight(1f),
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                InfoItem(
+                    icon = R.drawable.ic_planet,
+                    title = "Volume (24h)",
+                    value = "$$totalVolume",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
+                    .height(1.dp)
+                    .background(color = OutlineGray)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .height(IntrinsicSize.Min),
+            ) {
+                InfoItem(
+                    icon = R.drawable.ic_market_cap,
+                    title = "Circulating Supply",
+                    value = "$circulatingSupply ${details?.symbol?.uppercase()}",
+                    modifier = Modifier.weight(1f),
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                InfoItem(
+                    icon = R.drawable.ic_stack,
+                    title = "Total supply",
+                    value = "$totalSupply ${details?.symbol?.uppercase()}",
+                    modifier = Modifier.weight(1f),
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                InfoItem(
+                    icon = R.drawable.ic_planet,
+                    title = "Max Supply",
+                    value = "$maxSupply ${details?.symbol?.uppercase()}",
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
 }
@@ -648,98 +726,35 @@ private fun InfoItem(
     icon: Int,
     title: String,
     value: String,
-    percentage: Double
+    modifier: Modifier,
 ) {
 
-    val isPositive =
-        percentage?.let {
-            if (it >= 0) true
-            else false
-        }
-
-    val percentageColor = if (isPositive == true) Green else Red
-
-    val formattedPercents = String.format(
-        "%.2f",
-        percentage,
-    )
-
-    Box(
-        modifier = Modifier
-            .height(89.dp)
-            .width(120.dp)
-            .background(
-                color = DarkBlue,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = OutlineGray,
-                shape = RoundedCornerShape(12.dp)
-            )
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 10.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(30.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = title,
-                    fontFamily = Inter,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.Gray,
-                )
-            }
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = value,
-                fontFamily = Inter,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        if (isPositive == true) R.drawable.ic_up
-                        else R.drawable.ic_down
-                    ),
-                    contentDescription = null,
-                    tint = percentageColor,
-                    modifier = Modifier.size(7.dp)
-                )
-
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = "$formattedPercents%",
-                    fontFamily = Inter,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = percentageColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = title,
+            fontFamily = Inter,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Gray,
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = value,
+            fontFamily = Inter,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+        )
     }
 }
 
@@ -781,78 +796,178 @@ private fun CommunityBlock(
     links: Links?,
 ) {
 
+
+    Box(
+
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            LinkRow(
+                path = images?.thumb,
+                title = "Оффициальный сайт",
+                link = links?.homepage?.firstOrNull(),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(color = OutlineGray)
+            )
+            LinkRow(
+                image = R.drawable.ic_reddit,
+                title = "Reddit",
+                link = links?.subredditUrl
+            )
+        }
+    }
+
+//    Column(
+//        modifier = Modifier.fillMaxWidth()
+//    ) {
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//            modifier = Modifier
+//                .clickable {
+//
+//                    val url = links?.homepage?.firstOrNull()
+//
+//                    if (!url.isNullOrBlank()) {
+//
+//                        val intent = Intent(
+//                            Intent.ACTION_VIEW,
+//                            Uri.parse(url)
+//                        )
+//
+//                        context.startActivity(intent)
+//                    }
+//                }
+//        ) {
+//            AsyncImage(
+//                model = images?.thumb,
+//                contentDescription = null,
+//                modifier = Modifier.size(25.dp),
+//            )
+//            Spacer(modifier = Modifier.width(4.dp))
+//            Text(
+//                text = "Официальный сайт",
+//                textAlign = TextAlign.Start,
+//                fontFamily = Inter,
+//                fontSize = 12.sp,
+//                fontWeight = FontWeight.Normal,
+//                color = Color.White,
+//            )
+//        }
+//        Spacer(modifier = Modifier.height(10.dp))
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//            modifier = Modifier
+//                .clickable {
+//                    val url = links?.subredditUrl
+//
+//                    if (!url.isNullOrBlank()) {
+//
+//                        val intent = Intent(
+//                            Intent.ACTION_VIEW,
+//                            Uri.parse(url)
+//                        )
+//
+//                        context.startActivity(intent)
+//                    }
+//                }
+//        ) {
+//            Icon(
+//                painter = painterResource(R.drawable.ic_reddit),
+//                contentDescription = null,
+//                tint = Color.Unspecified,
+//                modifier = Modifier
+//                    .size(30.dp)
+//            )
+//            Spacer(modifier = Modifier.width(4.dp))
+//            Text(
+//                text = "Reddit",
+//                textAlign = TextAlign.Start,
+//                fontFamily = Inter,
+//                fontSize = 12.sp,
+//                fontWeight = FontWeight.Normal,
+//                color = Color.White,
+//            )
+//        }
+//    }
+}
+
+@Composable
+private fun LinkRow(
+    image: Int? = null,
+    path: String? = null,
+    title: String,
+    link: String?,
+) {
+
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
 
-                    val url = links?.homepage?.firstOrNull()
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .height(40.dp)
+            .fillMaxWidth()
+            .clickable {
+                if (!link.isNullOrEmpty()) {
 
-                    if (!url.isNullOrBlank()) {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(link)
+                    )
 
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(url)
-                        )
-
-                        context.startActivity(intent)
-                    }
+                    context.startActivity(intent)
                 }
-        ) {
+            }
+            .padding(horizontal = 10.dp)
+    ) {
+        if (image == null) {
             AsyncImage(
-                model = images?.thumb,
+                model = path,
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Официальный сайт",
-                textAlign = TextAlign.Start,
-                fontFamily = Inter,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-            )
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
-                    val url = links?.subredditUrl
-
-                    if (!url.isNullOrBlank()) {
-
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(url)
-                        )
-
-                        context.startActivity(intent)
-                    }
-                }
-        ) {
+        } else {
             Icon(
-                painter = painterResource(R.drawable.ic_reddit),
+                painter = painterResource(id = image),
                 contentDescription = null,
                 tint = Color.Unspecified,
                 modifier = Modifier
-                    .size(30.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Reddit",
-                textAlign = TextAlign.Start,
-                fontFamily = Inter,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
+                    .size(25.dp)
             )
         }
+        Spacer(modifier = Modifier.width(15.dp))
+        Text(
+            text = title,
+            textAlign = TextAlign.Start,
+            fontFamily = Inter,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            painter = painterResource(id = R.drawable.ic_link),
+            contentDescription = null,
+            tint = Green,
+            modifier = Modifier
+                .size(15.dp)
+        )
     }
 }
