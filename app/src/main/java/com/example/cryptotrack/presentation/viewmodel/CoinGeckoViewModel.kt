@@ -126,7 +126,8 @@ class CoinGeckoViewModel @Inject constructor(
     }
 
     fun loadDetails(
-        coinId: String
+        coinId: String,
+        days: Int,
     ) {
         viewModelScope.launch {
             _detailScreenState.update {
@@ -141,7 +142,7 @@ class CoinGeckoViewModel @Inject constructor(
                         getCoinDetailsUseCase(id = coinId)
                     }
                     val chart = async {
-                        getCoinChartUseCase(id = coinId)
+                        getCoinChartUseCase(id = coinId, days = days)
                     }
                     Pair(
                         first = details.await(),
