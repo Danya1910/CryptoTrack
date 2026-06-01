@@ -3,14 +3,18 @@ package com.example.cryptotrack.presentation.widgets
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -25,6 +29,7 @@ import com.example.cryptotrack.domain.model.CoinChart
 import com.example.cryptotrack.domain.model.CoinsChartList
 import com.example.cryptotrack.domain.model.GraphData
 import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.Red
@@ -53,8 +58,8 @@ fun Graph(
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
-            .height(400.dp)
-            .background(BlackBackground)
+            .height(300.dp)
+            .background(DarkBlue)
     ) {
 
         val minPrice = chartData.minOf { it.price }
@@ -376,9 +381,16 @@ private fun DrawScope.drawPriceLabels(
         )
 
         drawLine(
-            color = Color.White,
+            color = Color.Gray,
             start = Offset(0f, y),
-            end = Offset(textX - 10f, y)
+            end = Offset(textX - 10f, y),
+            strokeWidth = 1.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(
+                intervals = floatArrayOf(
+                    12f,
+                    6f
+                )
+            )
         )
     }
 }
@@ -386,10 +398,9 @@ private fun DrawScope.drawPriceLabels(
 fun labelStyle(): TextStyle {
 
     return TextStyle(
-        color = Color.White,
-        fontSize = 12.sp,
+        color = Color.Gray,
+        fontSize = 11.sp,
         fontFamily = Inter,
-        fontWeight = FontWeight.Medium,
-
-        )
+        fontWeight = FontWeight.Normal,
+    )
 }

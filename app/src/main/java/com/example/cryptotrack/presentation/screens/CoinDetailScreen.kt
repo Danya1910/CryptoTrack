@@ -71,6 +71,7 @@ import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.Graph
+import com.example.cryptotrack.presentation.widgets.HistoryGraph
 import com.example.cryptotrack.presentation.widgets.TopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
@@ -81,6 +82,10 @@ import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.Yellow
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.stream.IntStream
 import kotlin.math.abs
 
@@ -229,6 +234,26 @@ private fun Content(
         )
     )
 
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
+
+    val athValue = details?.marketData?.ath?.usd?.let {
+        "$" + formatter.format(it)
+    } ?: "0.00"
+
+    val atlValue = details?.marketData?.atl?.usd?.let {
+        "$" + formatter.format(it)
+    } ?: "0.00"
+    
+    val athDate = formatDate(date = details?.marketData?.athDate?.usd)
+    val atlDate = formatDate(date = details?.marketData?.atlDate?.usd)
+
+
+
 
 
     Column(
@@ -251,37 +276,42 @@ private fun Content(
             currentPrice = details?.marketData?.currentPrice?.usd
         )
         Spacer(modifier = Modifier.height(20.dp))
-//        GraphWrapper(
-//            chart = chart,
-//        )
-        Spacer(modifier = Modifier.height(20.dp))
+        GraphWrapper(
+            chart = chart,
+        )
+        Spacer(modifier = Modifier.height(10.dp))
         CoinInfo(
             details = details
         )
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            HistoricalGraphItem(
+                title = "ATH",
+                value = athValue,
+                date = athDate,
+                percentage = details?.marketData?.athChangePercentage?.usd,
+                chart = chart,
+                modifier = Modifier.weight(1f)
+            )
+            HistoricalGraphItem(
+                title = "ATL",
+                value = atlValue,
+                date = atlDate,
+                percentage = details?.marketData?.atlChangePercentage?.usd,
+                chart = chart,
+                modifier = Modifier.weight(1f)
+            )
+
+        }
+        Spacer(modifier = Modifier.height(10.dp))
         CommunityBlock(
             images = details?.image,
             links = details?.links,
         )
-        Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            HistoricalGraphItem(
-                title = "ATL",
-                value = "$67.81",
-                date = "6 июл. 2013",
-                percentage = 100.85023,
-                modifier = Modifier.weight(1f)
-            )
-            HistoricalGraphItem(
-                title = "ATL",
-                value = "$67.81",
-                date = "6 июл. 2013",
-                percentage = 100.85023,
-                modifier = Modifier.weight(1f)
-            )
-        }
+
     }
 }
 
@@ -577,14 +607,14 @@ private fun GraphWrapper(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                shape = RoundedCornerShape(30.dp),
-                elevation = 4.dp,
-                spotColor = Color.White,
-            )
             .background(
-                color = BlackBackground,
-                shape = RoundedCornerShape(30.dp)
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                color = OutlineGray,
+                width = 1.dp,
+                shape = RoundedCornerShape(10.dp)
             )
             .padding(all = 10.dp)
     ) {
@@ -809,13 +839,29 @@ fun formatCompactNumber(
     return number.toString()
 }
 
+fun formatDate(date: String?): String {
+    if (date == null) return ""
+
+    val instant = Instant.parse(date)
+
+    val formatter = DateTimeFormatter.ofPattern(
+        "d MMM yyyy",
+        Locale("ru")
+    )
+
+    return formatter.format(
+        instant.atZone(ZoneId.systemDefault())
+    )
+}
+
 @SuppressLint("DefaultLocale")
 @Composable
 private fun HistoricalGraphItem(
     title: String,
     value: String,
     date: String,
-    percentage: Double,
+    percentage: Double?,
+    chart: CoinsChartList?,
     modifier: Modifier
 ) {
 
@@ -825,7 +871,7 @@ private fun HistoricalGraphItem(
         abs(percentage ?: 0.0)
     )
 
-    val percentageColor = if (percentage >= 0.0) Green else Red
+    val percentageColor = percentage?.let { if (it >= 0.0) Green else Red }
 
 
     val percentageText = if ((percentage ?: 0.0) >= 0) {
@@ -883,7 +929,7 @@ private fun HistoricalGraphItem(
                     text = percentageText,
                     fontFamily = Inter,
                     fontSize = 11.sp,
-                    color = percentageColor,
+                    color = percentageColor!!,
                     fontWeight = FontWeight.Normal,
                 )
             }
@@ -896,11 +942,81 @@ private fun HistoricalGraphItem(
                 Box(
                     modifier = Modifier
                         .size(width = 60.dp, height = 50.dp)
-                        .background(Color.White)
-                )
+                ) {
+                    HistoryGraph(chart = chart)
+                }
             }
         }
     }
+}
+
+@SuppressLint("DefaultLocale")
+@Composable
+private fun SimpleHistoricalItem(
+    title: String,
+    percentage: Double,
+    subtitle: String,
+    modifier: Modifier
+) {
+
+    val percentageFormatted = String.format(
+        "%.2f",
+        abs(percentage ?: 0.0)
+    )
+
+    val percentageColor = if (percentage >= 0.0) Green else Red
+
+
+    val percentageText = if ((percentage ?: 0.0) >= 0) {
+        "+$percentageFormatted%"
+    } else {
+        "-$percentageFormatted%"
+    }
+
+    Box(
+        modifier = modifier
+            .height(70.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                color = OutlineGray,
+                width = 1.dp,
+                shape = RoundedCornerShape(10.dp)
+            ),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(vertical = 15.dp, horizontal = 10.dp)
+                .fillMaxHeight()
+        ) {
+            Text(
+                text = title,
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Normal,
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = percentageText,
+                fontFamily = Inter,
+                fontSize = 11.sp,
+                color = percentageColor,
+                fontWeight = FontWeight.Normal,
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(
+                text = subtitle,
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                color = Color.Gray,
+                fontWeight = FontWeight.Normal,
+            )
+        }
+    }
+
 }
 
 @Composable
