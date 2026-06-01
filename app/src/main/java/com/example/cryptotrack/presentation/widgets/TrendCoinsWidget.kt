@@ -88,7 +88,7 @@ fun TrendWidget(
                     navController = navController,
                 )
                 if(index != coins.lastIndex){
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(5.dp))
                 }
             }
         }

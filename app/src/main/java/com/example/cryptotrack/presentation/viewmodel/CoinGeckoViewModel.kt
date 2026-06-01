@@ -127,27 +127,22 @@ class CoinGeckoViewModel @Inject constructor(
 
     fun loadDetails(
         coinId: String,
-        days: Int,
+        days: Int = 1,
     ) {
         viewModelScope.launch {
             _detailScreenState.update {
                 it.copy(
                     isLoading = true,
                     error = null,
+                    details = null,
+                    chart = null
                 )
             }
             runCatching {
                 coroutineScope {
-                    val details = async {
-                        getCoinDetailsUseCase(id = coinId)
-                    }
-                    val chart = async {
-                        getCoinChartUseCase(id = coinId, days = days)
-                    }
-                    Pair(
-                        first = details.await(),
-                        second = chart.await()
-                    )
+                    val details = getCoinDetailsUseCase(id = coinId)
+                    val chart = getCoinChartUseCase(id = coinId, days = days)
+                    details to chart
                 }
             }.onSuccess { (details, chart) ->
                 _detailScreenState.update {
@@ -253,6 +248,16 @@ class CoinGeckoViewModel @Inject constructor(
                 suggestions = Search(
                     coins = emptyList()
                 )
+            )
+        }
+    }
+
+    fun clearDetails() {
+        _detailScreenState.update {
+            it.copy(
+                details = null,
+                chart = null,
+                error = null,
             )
         }
     }

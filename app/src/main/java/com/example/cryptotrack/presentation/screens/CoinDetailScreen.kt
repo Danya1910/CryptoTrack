@@ -33,9 +33,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -95,18 +99,16 @@ fun CoinDetailsScreen(
     viewModel: CoinGeckoViewModel,
     coinId: String,
 ) {
-//    Scaffold(
-//        topBar = {
-//            TopAppBar()
-//        },
-//        bottomBar = {}
-//    ) { paddingValues ->
-//        Content(
-//            paddingValues = paddingValues,
-//            viewModel = viewModel,
-//            coinId = coinId,
-//        )
-//    }
+    Scaffold(
+        topBar = {},
+        bottomBar = {}
+    ) { paddingValues ->
+        Content(
+            paddingValues = paddingValues,
+            viewModel = viewModel,
+            coinId = coinId,
+        )
+    }
 }
 
 @Composable
@@ -129,110 +131,33 @@ private fun CoinDetailsScreenPreview() {
 }
 
 @Composable
-@Preview(showBackground = true)
 private fun Content(
-//    paddingValues: PaddingValues,
-//    viewModel: CoinGeckoViewModel,
-//    coinId: String,
+    paddingValues: PaddingValues,
+    viewModel: CoinGeckoViewModel,
+    coinId: String,
 ) {
 
+    var currentDaysSelected by remember {
+        mutableStateOf("24H")
+    }
 
-//    LaunchedEffect(Unit) {
-//        viewModel.loadDetails(coinId = coinId)
-//    }
-//
-//    val state by viewModel.detailsScreenState.collectAsState()
-//
-//    val details = state.details
-//    val chart = state.chart
+    val days = when (currentDaysSelected) {
+        "24H" -> 1
+        "7D" -> 7
+        "1M" -> 30
+        "3M" -> 90
+        "1Y" -> 365
+        else -> 1
+    }
 
-    val details = CoinDetails(
-        id = "bitcoin",
-        symbol = "btc",
-        name = "Bitcoin",
-        description = "Bitcoin is the first decentralized cryptocurrency.",
-        links = Links(
-            homepage = listOf("https://bitcoin.org"),
-            blockchainSite = listOf("https://www.blockchain.com/explorer"),
-            officialForumUrl = listOf("https://bitcointalk.org"),
-            subredditUrl = "https://reddit.com/r/bitcoin"
-        ),
-        image = Image(
-            thumb = "https://coin-images.coingecko.com/coins/images/1/thumb/bitcoin.png",
-            small = "https://coin-images.coingecko.com/coins/images/1/small/bitcoin.png",
-            large = "https://coin-images.coingecko.com/coins/images/1/large/bitcoin.png"
-        ),
-        marketData = MarketDetailData(
-            currentPrice = Price(
-                usd = 68435.21,
-                rub = 5_800_000.0
-            ),
-            priceChangePercentage24h = 2.45,
-            marketCap = Price(
-                usd = 1_350_000_000_000.0,
-                rub = 114_000_000_000_000.0
-            ),
-            circulatingSupply = 19_650_000.0,
-            totalSupply = 19_650_000.0,
-            maxSupply = 21_000_000.0,
-            fullyDilutedValuation = Price(
-                usd = 1_450_000_000_000.0,
-                rub = 122_000_000_000_000.0
-            ),
-            totalVolume = Price(
-                usd = 32_500_000_000.0,
-                rub = 2_750_000_000_000.0
-            ),
-            ath = Price(
-                usd = 73750.0,
-                rub = 6_200_000.0
-            ),
-            athChangePercentage = Price(
-                usd = -7.2,
-                rub = -7.2
-            ),
-            athDate = PriceDate(
-                usd = "2024-03-14T00:00:00.000Z",
-                rub = "2024-03-14T00:00:00.000Z"
-            ),
-            atl = Price(
-                usd = 67.81,
-                rub = 5600.0
-            ),
-            atlChangePercentage = Price(
-                usd = 100850.0,
-                rub = 100850.0
-            ),
-            atlDate = PriceDate(
-                usd = "2013-07-06T00:00:00.000Z",
-                rub = "2013-07-06T00:00:00.000Z"
-            ),
-            high24h = Price(
-                usd = 68911.24,
-                rub = 5_850_000.0
-            ),
-            low24h = Price(
-                usd = 65210.50,
-                rub = 5_540_000.0
-            )
-        ),
-        marketCapRank = 1
-    )
+    LaunchedEffect(days) {
+        viewModel.loadDetails(coinId = coinId, days = days)
+    }
 
-    val chart = CoinsChartList(
-        list = listOf(
-            CoinChart(1, 66100.0),
-            CoinChart(2, 66350.0),
-            CoinChart(3, 65900.0),
-            CoinChart(4, 66500.0),
-            CoinChart(5, 67000.0),
-            CoinChart(6, 66850.0),
-            CoinChart(7, 67300.0),
-            CoinChart(8, 67800.0),
-            CoinChart(9, 68200.0),
-            CoinChart(10, 68435.21)
-        )
-    )
+    val state by viewModel.detailsScreenState.collectAsState()
+
+    val details = state.details
+    val chart = state.chart
 
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
@@ -248,13 +173,9 @@ private fun Content(
     val atlValue = details?.marketData?.atl?.usd?.let {
         "$" + formatter.format(it)
     } ?: "0.00"
-    
+
     val athDate = formatDate(date = details?.marketData?.athDate?.usd)
     val atlDate = formatDate(date = details?.marketData?.atlDate?.usd)
-
-
-
-
 
     Column(
         modifier = Modifier
@@ -264,7 +185,7 @@ private fun Content(
             )
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 15.dp)
-        //.padding(paddingValues)
+            .padding(paddingValues)
     ) {
         CoinHat(
             details = details
@@ -277,7 +198,11 @@ private fun Content(
         )
         Spacer(modifier = Modifier.height(20.dp))
         GraphWrapper(
+            currentDaysSelected = currentDaysSelected,
             chart = chart,
+            onDaySelected = {
+                currentDaysSelected = it
+            }
         )
         Spacer(modifier = Modifier.height(10.dp))
         CoinInfo(
@@ -525,7 +450,7 @@ private fun DailyPrice(
                 Box(
                     modifier = Modifier
                         .padding(start = 10.dp)
-                        .width(barWidth * progress)
+                        .fillMaxWidth()
                         .height(5.dp)
                         .align(Alignment.CenterStart)
                         .background(
@@ -603,6 +528,8 @@ private fun DailyPrice(
 @Composable
 private fun GraphWrapper(
     chart: CoinsChartList?,
+    currentDaysSelected: String,
+    onDaySelected: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -618,8 +545,76 @@ private fun GraphWrapper(
             )
             .padding(all = 10.dp)
     ) {
-        Graph(
-            chart = chart,
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            DaysSelectionWidget(
+                currentDaysSelected = currentDaysSelected,
+                onDaySelected = onDaySelected,
+            )
+            Graph(
+                chart = chart,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DaysSelectionWidget(
+    currentDaysSelected: String,
+    onDaySelected: (String) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceAround,
+        modifier = Modifier
+            .height(20.dp)
+            .fillMaxWidth()
+    ) {
+        listOf("24H", "7D", "1M", "3M", "1Y").forEach { day ->
+
+            DayItem(
+                title = day,
+                currentDaysSelected = currentDaysSelected,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    onDaySelected(day)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DayItem(
+    modifier: Modifier,
+    title: String,
+    onClick: () -> Unit,
+    currentDaysSelected: String,
+) {
+    val isSelected = currentDaysSelected == title
+
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(horizontal = 10.dp)
+            .background(
+                color = if (isSelected) Green.copy(alpha = 0.4f) else Color.Transparent,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Text(
+            text = title,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (isSelected) Green else Color.Gray,
+            fontFamily = Inter,
+            modifier = Modifier
+                .clickable {
+                    onClick()
+                }
         )
     }
 }
@@ -628,14 +623,6 @@ private fun GraphWrapper(
 private fun CoinInfo(
     details: CoinDetails?,
 ) {
-
-    val symbols = DecimalFormatSymbols().apply {
-        groupingSeparator = ' '
-        decimalSeparator = '.'
-    }
-
-    val formatterInteger = DecimalFormat("#,##0", symbols)
-
 
     val marketCap = formatCompactNumber(number = details?.marketData?.marketCap?.usd)
 
@@ -871,7 +858,7 @@ private fun HistoricalGraphItem(
         abs(percentage ?: 0.0)
     )
 
-    val percentageColor = percentage?.let { if (it >= 0.0) Green else Red }
+    val percentageColor = if (percentage ?: 0.0 >= 0.0) Green else Red
 
 
     val percentageText = if ((percentage ?: 0.0) >= 0) {
@@ -929,7 +916,7 @@ private fun HistoricalGraphItem(
                     text = percentageText,
                     fontFamily = Inter,
                     fontSize = 11.sp,
-                    color = percentageColor!!,
+                    color = percentageColor ?: Color.Gray,
                     fontWeight = FontWeight.Normal,
                 )
             }
@@ -948,75 +935,6 @@ private fun HistoricalGraphItem(
             }
         }
     }
-}
-
-@SuppressLint("DefaultLocale")
-@Composable
-private fun SimpleHistoricalItem(
-    title: String,
-    percentage: Double,
-    subtitle: String,
-    modifier: Modifier
-) {
-
-    val percentageFormatted = String.format(
-        "%.2f",
-        abs(percentage ?: 0.0)
-    )
-
-    val percentageColor = if (percentage >= 0.0) Green else Red
-
-
-    val percentageText = if ((percentage ?: 0.0) >= 0) {
-        "+$percentageFormatted%"
-    } else {
-        "-$percentageFormatted%"
-    }
-
-    Box(
-        modifier = modifier
-            .height(70.dp)
-            .background(
-                color = DarkBlue,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .border(
-                color = OutlineGray,
-                width = 1.dp,
-                shape = RoundedCornerShape(10.dp)
-            ),
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 15.dp, horizontal = 10.dp)
-                .fillMaxHeight()
-        ) {
-            Text(
-                text = title,
-                fontFamily = Inter,
-                fontSize = 10.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Normal,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = percentageText,
-                fontFamily = Inter,
-                fontSize = 11.sp,
-                color = percentageColor,
-                fontWeight = FontWeight.Normal,
-            )
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = subtitle,
-                fontFamily = Inter,
-                fontSize = 10.sp,
-                color = Color.Gray,
-                fontWeight = FontWeight.Normal,
-            )
-        }
-    }
-
 }
 
 @Composable
@@ -1062,79 +980,6 @@ private fun CommunityBlock(
             )
         }
     }
-
-//    Column(
-//        modifier = Modifier.fillMaxWidth()
-//    ) {
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-//            modifier = Modifier
-//                .clickable {
-//
-//                    val url = links?.homepage?.firstOrNull()
-//
-//                    if (!url.isNullOrBlank()) {
-//
-//                        val intent = Intent(
-//                            Intent.ACTION_VIEW,
-//                            Uri.parse(url)
-//                        )
-//
-//                        context.startActivity(intent)
-//                    }
-//                }
-//        ) {
-//            AsyncImage(
-//                model = images?.thumb,
-//                contentDescription = null,
-//                modifier = Modifier.size(25.dp),
-//            )
-//            Spacer(modifier = Modifier.width(4.dp))
-//            Text(
-//                text = "Официальный сайт",
-//                textAlign = TextAlign.Start,
-//                fontFamily = Inter,
-//                fontSize = 12.sp,
-//                fontWeight = FontWeight.Normal,
-//                color = Color.White,
-//            )
-//        }
-//        Spacer(modifier = Modifier.height(10.dp))
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically,
-//            modifier = Modifier
-//                .clickable {
-//                    val url = links?.subredditUrl
-//
-//                    if (!url.isNullOrBlank()) {
-//
-//                        val intent = Intent(
-//                            Intent.ACTION_VIEW,
-//                            Uri.parse(url)
-//                        )
-//
-//                        context.startActivity(intent)
-//                    }
-//                }
-//        ) {
-//            Icon(
-//                painter = painterResource(R.drawable.ic_reddit),
-//                contentDescription = null,
-//                tint = Color.Unspecified,
-//                modifier = Modifier
-//                    .size(30.dp)
-//            )
-//            Spacer(modifier = Modifier.width(4.dp))
-//            Text(
-//                text = "Reddit",
-//                textAlign = TextAlign.Start,
-//                fontFamily = Inter,
-//                fontSize = 12.sp,
-//                fontWeight = FontWeight.Normal,
-//                color = Color.White,
-//            )
-//        }
-//    }
 }
 
 @Composable
