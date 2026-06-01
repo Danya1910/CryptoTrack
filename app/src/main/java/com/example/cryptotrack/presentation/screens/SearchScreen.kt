@@ -32,13 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,8 +55,10 @@ import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.TrendWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.BlackNavigation
+import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.GreyCrossColor
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.SearchBarColor
 
 
@@ -155,6 +156,10 @@ private fun Content(
                         coinViewModel = coinViewModel,
                     )
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
             }
 
             item {
@@ -266,79 +271,33 @@ fun SuggestionList(
     coinViewModel: CoinViewModel,
 ) {
 
-    var isExpanded by remember { mutableStateOf(false) }
+    val coins = suggestions?.coins
 
-    if (!suggestions?.coins.isNullOrEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(
-                        elevation = 4.dp,
-                        spotColor = Color.White,
-                        shape = RoundedCornerShape(30.dp)
-                    )
-                    .background(
-                        color = BlackBackground,
-                        shape = RoundedCornerShape(30.dp)
-                    )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp)
-                        .padding(top = 15.dp, bottom = 5.dp)
-                ) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
 
-                    if (!isExpanded) {
-                        suggestions.coins.take(5).forEach { coin ->
-                            Suggestion(
-                                coin = coin,
-                                navController = navController,
-                                coinViewModel = coinViewModel,
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                    } else {
-                        suggestions.coins.forEach { coin ->
-                            Suggestion(
-                                coin = coin,
-                                navController = navController,
-                                coinViewModel = coinViewModel,
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                    }
+    ) {
+        if (!coins.isNullOrEmpty()) {
+            Column {
+                coins.forEach { coin ->
+                    Suggestion(
+                        coin = coin,
+                        navController = navController,
+                        coinViewModel = coinViewModel
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(OutlineGray)
+                    )
                 }
-            }
-            Spacer(modifier = Modifier.height(15.dp))
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .height(40.dp)
-                    .fillMaxWidth()
-                    .shadow(
-                        elevation = 4.dp,
-                        spotColor = Color.White,
-                        shape = RoundedCornerShape(30.dp)
-                    )
-                    .background(
-                        color = if (isExpanded) BlackNavigation else SearchBarColor,
-                        shape = RoundedCornerShape(30.dp)
-                    )
-                    .clickable {
-                        isExpanded = !isExpanded
-                    }
-            ) {
-                Text(
-                    text = "Показать еще",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = Inter,
-                    color = Color.White
-                )
             }
         }
     }
@@ -354,54 +313,62 @@ fun Suggestion(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .height(40.dp)
-            .padding(horizontal = 5.dp)
-            .fillMaxWidth()
             .clickable {
-                coinViewModel.insertCoin(id = coin.id, name = coin.name)
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+                coinViewModel.insertCoin(id = coin?.id ?: "", name = coin?.name ?: "")
             }
+            .padding(horizontal = 10.dp)
+            .height(36.dp)
+            .fillMaxWidth()
+            .background(color = DarkBlue),
     ) {
         Text(
-            textAlign = TextAlign.Center,
-            text = "${coin.marketCapRank}",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Normal,
+            text = coin.marketCapRank.toString(),
             fontFamily = Inter,
-            color = Color.Gray,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(0.2f)
+            modifier = Modifier.weight(0.2f),
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        AsyncImage(
-            model = coin.thumb,
-            contentDescription = null,
-            modifier = Modifier.size(30.dp),
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column(
-            verticalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.weight(2f)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .fillMaxHeight()
+                .weight(1f),
         ) {
-            Text(
-                text = coin.symbol,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = Inter,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            AsyncImage(
+                model = coin?.thumb,
+                contentDescription = null,
+                modifier = Modifier.size(25.dp),
             )
-            Text(
-                text = coin.name,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = Inter,
-                color = Color.Gray,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = coin?.name ?: "Unknown",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = coin?.symbol ?: "Unk",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
 
     }
