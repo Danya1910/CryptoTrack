@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -33,9 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,40 +40,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
-import com.example.cryptotrack.domain.model.CoinChart
 import com.example.cryptotrack.domain.model.CoinDetails
 import com.example.cryptotrack.domain.model.CoinsChartList
 import com.example.cryptotrack.domain.model.Image
 import com.example.cryptotrack.domain.model.Links
-import com.example.cryptotrack.domain.model.MarketDetailData
-import com.example.cryptotrack.domain.model.Price
-import com.example.cryptotrack.domain.model.PriceDate
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
-import com.example.cryptotrack.presentation.widgets.BottomBar
-import com.example.cryptotrack.presentation.widgets.BottomBarPreview
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.widgets.DetailsTopAppBar
 import com.example.cryptotrack.presentation.widgets.Graph
 import com.example.cryptotrack.presentation.widgets.HistoryGraph
-import com.example.cryptotrack.presentation.widgets.TopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -90,7 +78,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import java.util.stream.IntStream
 import kotlin.math.abs
 
 
@@ -98,9 +85,16 @@ import kotlin.math.abs
 fun CoinDetailsScreen(
     viewModel: CoinGeckoViewModel,
     coinId: String,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
 ) {
     Scaffold(
-        topBar = {},
+        topBar = {
+            DetailsTopAppBar(
+                navController = navController,
+                coinViewModel = coinViewModel,
+            )
+        },
         bottomBar = {}
     ) { paddingValues ->
         Content(

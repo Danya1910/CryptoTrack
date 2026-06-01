@@ -1,6 +1,7 @@
 package com.example.cryptotrack.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -111,6 +113,8 @@ private fun Content(
     val suggestions by viewModel.searchState.collectAsState()
     val trends by viewModel.trendState.collectAsState()
 
+    var isExpanded by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.loadTrends()
     }
@@ -118,8 +122,10 @@ private fun Content(
     LaunchedEffect(query) {
         if (query.isNotEmpty())
             viewModel.search(query = query)
-        else
+        else {
             viewModel.clearSuggestionsList()
+            isExpanded = false
+        }
     }
 
     val coinsList by coinViewModel.coins.collectAsState(initial = emptyList())
@@ -142,12 +148,12 @@ private fun Content(
                 query = ""
             }
         )
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(15.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            if(coinsList.isNotEmpty()) {
+            if (coinsList.isNotEmpty()) {
                 item {
                     SearchedCoinsList(
                         coins = coinsList,
@@ -159,7 +165,7 @@ private fun Content(
             }
 
             item {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(15.dp))
             }
 
             item {
@@ -168,12 +174,16 @@ private fun Content(
                     suggestions = suggestions.suggestions,
                     navController = navController,
                     coinViewModel = coinViewModel,
+                    isExpanded = isExpanded,
+                    onExpandedChange = {
+                        isExpanded = it
+                    }
                 )
             }
 
             item {
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(15.dp))
             }
 
             item {
@@ -269,34 +279,99 @@ fun SuggestionList(
     suggestions: Search?,
     navController: NavController,
     coinViewModel: CoinViewModel,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
 ) {
 
     val coins = suggestions?.coins
 
-    Box(
+
+    val visibleCoins = if (isExpanded) {
+        coins.orEmpty()
+    } else {
+        coins.orEmpty().take(7)
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = DarkBlue,
-                shape = RoundedCornerShape(10.dp)
-            )
-
     ) {
-        if (!coins.isNullOrEmpty()) {
-            Column {
-                coins.forEach { coin ->
-                    Suggestion(
-                        coin = coin,
-                        navController = navController,
-                        coinViewModel = coinViewModel
-                    )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
 
-                    Box(
+        ) {
+            if (!coins.isNullOrEmpty()) {
+                Column {
+                    visibleCoins.forEachIndexed { index, coin ->
+                        Suggestion(
+                            coin = coin,
+                            navController = navController,
+                            coinViewModel = coinViewModel
+                        )
+
+                        if (index != visibleCoins.lastIndex) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(OutlineGray)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (!coins.isNullOrEmpty()) {
+            if ((coins?.size ?: 0) > 7) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp)
+                        .background(
+                            color = DarkBlue,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = OutlineGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clickable {
+                            onExpandedChange(!isExpanded)
+                        }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(OutlineGray)
-                    )
+                            .fillMaxSize()
+                    ) {
+                        Text(
+                            text = if (isExpanded) "Скрыть" else "Показать ещё",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            color = Color.White,
+                            fontSize = 12.sp
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Icon(
+                            painter = painterResource(
+                                if (isExpanded) R.drawable.ic_arrow_up
+                                else R.drawable.ic_arrow_down
+                            ),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(9.dp)
+                        )
+                    }
                 }
             }
         }
@@ -454,7 +529,7 @@ private fun SearchedCoinsList(
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
     ) {
-        coins.forEach { coin->
+        coins.forEach { coin ->
             SearchedCoin(
                 coin = coin,
                 navController = navController,

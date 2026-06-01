@@ -16,7 +16,7 @@ val Yellow = Color(0xFFEEFE2A)
 
 val Red = Color(0xFFFF0000)
 
-val BlackBackground = Color(0xFF292929)
+val BlackBackground = Color(0xFF090B0D)
 
 val BlackNavigation = Color(0xFF232323)
 

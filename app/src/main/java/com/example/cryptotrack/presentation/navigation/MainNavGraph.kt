@@ -46,11 +46,14 @@ fun NavGraphBuilder.MainNavGraph(
             navController.getBackStackEntry("main_graph")
         }
         val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
+        val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
         val id = backStackEntry.arguments?.getString("id") ?: ""
 
         CoinDetailsScreen(
             coinId = id,
-            viewModel = viewModel
+            viewModel = viewModel,
+            navController = navController,
+            coinViewModel = coinViewModel,
         )
     }
 
