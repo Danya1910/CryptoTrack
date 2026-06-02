@@ -3,6 +3,7 @@ package com.example.cryptotrack.data.repository
 import com.example.cryptotrack.data.local.dao.CoinDao
 import com.example.cryptotrack.data.mapper.toDomain
 import com.example.cryptotrack.data.mapper.toEntity
+import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.repository.CoinRepository
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,22 @@ class CoinRepositoryImpl @Inject constructor(
 
     override suspend fun deleteCoin(id: String) {
         dao.deleteCoin(id = id)
+    }
+
+    override suspend fun insertCoinToHistoryOfViewing(coin: HistoryOfViewingCoin) {
+        val entity = coin.toEntity().copy(
+            timestamp = System.currentTimeMillis()
+        )
+
+        dao.insertHistoryWithLimit(entity)
+    }
+
+    override fun getCoinsFromHistoryOfViewing(): Flow<List<HistoryOfViewingCoin>> {
+        return dao.getCoinsFromHistoryOfViewing().map { list->
+            list.map { entity ->
+                entity.toDomain()
+            }
+        }
     }
 
 }

@@ -132,6 +132,7 @@ private fun Content(
 
 
 
+
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -148,12 +149,14 @@ private fun Content(
                 query = ""
             }
         )
-        Spacer(modifier = Modifier.height(15.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {
 
             if (coinsList.isNotEmpty()) {
+                item{
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
                 item {
                     SearchedCoinsList(
                         coins = coinsList,
@@ -390,7 +393,7 @@ fun Suggestion(
         modifier = Modifier
             .clickable {
                 navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
-                coinViewModel.insertCoin(id = coin?.id ?: "", name = coin?.name ?: "")
+                coinViewModel.insertCoin(id = coin?.id ?: "", name = coin?.name ?: "", path = coin?.thumb ?: "")
             }
             .padding(horizontal = 10.dp)
             .height(36.dp)
@@ -480,7 +483,7 @@ private fun SearchedCoin(
                     }
             ) {
                 AsyncImage(
-                    model = "", // загружать картинку
+                    model = coin.path,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                 )
@@ -529,7 +532,7 @@ private fun SearchedCoinsList(
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
     ) {
-        coins.forEach { coin ->
+        coins.asReversed().forEach { coin ->
             SearchedCoin(
                 coin = coin,
                 navController = navController,

@@ -1,10 +1,13 @@
 package com.example.cryptotrack.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,8 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -33,43 +39,65 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
+import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
 
 
 @Composable
-fun ProfileScreen() {
-
+fun ProfileScreen(
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+) {
+    Scaffold(
+        topBar = {},
+        bottomBar = {
+            BottomBar(
+                navController = navController,
+            )
+        },
+    ) {paddingValues ->
+        Content(
+            paddingValues = paddingValues,
+            coinViewModel = coinViewModel,
+            navController = navController,
+        )
+    }
 }
 
 
 @Composable
-@Preview(showBackground = true)
-private fun Content() {
+private fun Content(
+    paddingValues: PaddingValues,
+    coinViewModel: CoinViewModel,
+    navController: NavController,
+) {
 
-    val coins = listOf(
-        RoomCoin(id = "bitcoin", name = "Bitcoin", path = ""),
-        RoomCoin(id = "ethereum", name = "Ethereum", path = ""),
-        RoomCoin(id = "solana", name = "Solana", path = ""),
-        RoomCoin(id = "cardano", name = "Cardano", path = ""),
-        RoomCoin(id = "dogecoin", name = "Dogecoin", path = "")
-    )
+    val historyOfViewingList by coinViewModel.historyOfViewingCoins.collectAsState(initial = emptyList())
+
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(color = BlackBackground)
             .padding(horizontal = 15.dp)
+            .padding(paddingValues)
     ) {
         UserInfo()
         UserStatsWidget()
-        RecentlyViewed(coins = coins)
+        RecentlyViewed(coins = historyOfViewingList, navController = navController)
         FavoriteItem()
     }
 
@@ -252,7 +280,8 @@ private fun StatsItem(
 
 @Composable
 private fun RecentlyViewed(
-    coins: List<RoomCoin>,
+    coins: List<HistoryOfViewingCoin>,
+    navController: NavController,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -271,9 +300,10 @@ private fun RecentlyViewed(
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
         ) {
-            coins.forEach { coin ->
+            coins.asReversed().forEach { coin ->
                 RecentlyViewedItem(
-                    coin = coin
+                    coin = coin,
+                    navController = navController,
                 )
                 Spacer(modifier = Modifier.width(10.dp))
             }
@@ -283,16 +313,25 @@ private fun RecentlyViewed(
 
 @Composable
 private fun RecentlyViewedItem(
-    coin: RoomCoin
+    coin: HistoryOfViewingCoin,
+    navController: NavController,
 ) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .height(50.dp)
             .background(
-                color = SearchBarColor,
+                color = DarkBlue,
                 shape = RoundedCornerShape(10.dp)
             )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable{
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+            }
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Row(
@@ -300,7 +339,7 @@ private fun RecentlyViewedItem(
                 .fillMaxHeight()
         ) {
             AsyncImage(
-                model = "", // подгружать
+                model = coin.imageUrl, // подгружать
                 contentDescription = null,
                 modifier = Modifier.size(30.dp),
             )

@@ -40,7 +40,6 @@ import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
-import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -58,7 +57,6 @@ fun CoinMarketWidget(
     coins: List<MarketData>?,
     viewModel: CoinGeckoViewModel,
     navController: NavController,
-    coinViewModel: CoinViewModel,
 ) {
 
     Column(
@@ -73,7 +71,6 @@ fun CoinMarketWidget(
         CoinsMarketList(
             coins = coins,
             navController = navController,
-            coinViewModel = coinViewModel,
         )
     }
 }
@@ -171,7 +168,6 @@ private fun CoinMarketHat(
 private fun CoinMarket(
     coin: MarketData?,
     navController: NavController,
-    coinViewModel: CoinViewModel,
 ) {
 
     val isPositive =
@@ -226,7 +222,6 @@ private fun CoinMarket(
         modifier = Modifier
             .clickable {
                 navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
-                coinViewModel.insertCoin(id = coin?.id ?: "", name = coin?.name ?: "")
             }
             .padding(horizontal = 10.dp)
             .height(36.dp)
@@ -346,7 +341,6 @@ private fun CoinMarket(
 private fun CoinsMarketList(
     coins: List<MarketData>?,
     navController: NavController,
-    coinViewModel: CoinViewModel,
 ) {
     Box(
         modifier = Modifier
@@ -370,7 +364,6 @@ private fun CoinsMarketList(
                     CoinMarket(
                         coin = coin,
                         navController = navController,
-                        coinViewModel = coinViewModel
                     )
                     if (index != coins.size) {
                         Box(

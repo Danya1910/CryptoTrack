@@ -20,5 +20,9 @@ sealed interface Screen {
         override val route = "Search"
     }
 
+    data object Profile: Screen {
+        override val route = "Profile"
+    }
+
 
 }

@@ -113,7 +113,6 @@ private fun Content(
             coins = marketData.market,
             viewModel = viewModel,
             navController = navController,
-            coinViewModel = coinViewModel,
         )
         Spacer(modifier = Modifier.height(20.dp))
     }

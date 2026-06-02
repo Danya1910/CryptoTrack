@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.cryptotrack.data.local.dao.CoinDao
 import com.example.cryptotrack.data.local.database.AppDatabase
+import com.example.cryptotrack.data.local.database.MIGRATION_1_2
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,20 +21,19 @@ object DatabaseModule {
     fun provideDatabase(
         @ApplicationContext context: Context
     ): AppDatabase {
-
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "coins_db"
-        ).build()
+            "crypto_db"
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
     @Provides
-    @Singleton
     fun provideCoinDao(
         database: AppDatabase
     ): CoinDao {
-
         return database.coinDao()
     }
 }

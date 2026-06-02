@@ -100,6 +100,7 @@ fun CoinDetailsScreen(
         Content(
             paddingValues = paddingValues,
             viewModel = viewModel,
+            coinViewModel = coinViewModel,
             coinId = coinId,
         )
     }
@@ -128,6 +129,7 @@ private fun CoinDetailsScreenPreview() {
 private fun Content(
     paddingValues: PaddingValues,
     viewModel: CoinGeckoViewModel,
+    coinViewModel: CoinViewModel,
     coinId: String,
 ) {
 
@@ -152,6 +154,18 @@ private fun Content(
 
     val details = state.details
     val chart = state.chart
+
+    LaunchedEffect(details?.id) {
+        val d = details ?: return@LaunchedEffect
+
+        coinViewModel.insertCoinHistoryOfViewing(
+            id = d.id,
+            name = d.name,
+            symbol = d.symbol,
+            imageUrl = d.image.thumb,
+            timestamp = System.currentTimeMillis(),
+        )
+    }
 
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '

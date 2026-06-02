@@ -13,3 +13,13 @@ data class CoinEntity(
     val name: String,
     val path: String,
 )
+
+@Entity(tableName = "viewing_history")
+data class ViewingHistoryEntity(
+    @PrimaryKey
+    val id: String,
+    val name: String,
+    val symbol: String,
+    val imageUrl: String,
+    val timestamp: Long,
+)
