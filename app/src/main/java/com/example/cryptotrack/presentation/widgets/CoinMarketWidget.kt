@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -40,15 +42,18 @@ import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
+import com.example.cryptotrack.ui.theme.Yellow
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
+import kotlin.math.abs
 
 
 @Composable
@@ -56,6 +61,7 @@ fun CoinMarketWidget(
     order: MarketOrder,
     coins: List<MarketData>?,
     viewModel: CoinGeckoViewModel,
+    coinViewModel: CoinViewModel,
     navController: NavController,
 ) {
 
@@ -70,6 +76,7 @@ fun CoinMarketWidget(
         )
         CoinsMarketList(
             coins = coins,
+            coinViewModel = coinViewModel,
             navController = navController,
         )
     }
@@ -168,6 +175,7 @@ private fun CoinMarketHat(
 private fun CoinMarket(
     coin: MarketData?,
     navController: NavController,
+    coinViewModel: CoinViewModel,
 ) {
 
     val isPositive =
@@ -179,7 +187,7 @@ private fun CoinMarket(
 
     val percentageUsd = String.format(
         "%.1f",
-        kotlin.math.abs(coin?.priceChangePercentage24h ?: 0.0)
+        abs(coin?.priceChangePercentage24h ?: 0.0)
     )
 
     val symbols = DecimalFormatSymbols().apply {
@@ -216,6 +224,10 @@ private fun CoinMarket(
             String.format(Locale.US, "%.0f", marketCapValue)
         }
     }
+
+    val favoritesList by coinViewModel.favoriteCoins.collectAsState(initial = emptyList())
+
+    val isFavorite = favoritesList.any { it.id == coin?.id }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -325,12 +337,26 @@ private fun CoinMarket(
             modifier = Modifier.weight(0.6f)
         )
         Icon(
-            painter = painterResource(R.drawable.ic_star),
+            painter = painterResource(
+                if(isFavorite) R.drawable.ic_fill_star else R.drawable.ic_star),
             contentDescription = null,
-            tint = Color.White,
+            tint = if(isFavorite) Yellow else Color.White,
             modifier = Modifier
-                .size(10.dp)
+                .size(14.dp)
                 .weight(0.2f)
+                .clickable{
+                    if(isFavorite) {
+                        coinViewModel.deleteFavoriteCoin(id = coin?.id ?: "")
+                    }
+                    else {
+                        coinViewModel.insertFavoriteCoin(
+                            id = coin?.id ?: "",
+                            name = coin?.name ?: "",
+                            symbol = coin?.symbol ?: "",
+                            imageUrl = coin?.image ?: "",
+                        )
+                    }
+                }
         )
 
     }
@@ -341,6 +367,7 @@ private fun CoinMarket(
 private fun CoinsMarketList(
     coins: List<MarketData>?,
     navController: NavController,
+    coinViewModel: CoinViewModel,
 ) {
     Box(
         modifier = Modifier
@@ -363,6 +390,7 @@ private fun CoinsMarketList(
                     val coin = coins[index]
                     CoinMarket(
                         coin = coin,
+                        coinViewModel = coinViewModel,
                         navController = navController,
                     )
                     if (index != coins.size) {

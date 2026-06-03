@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.usecase.DeleteCoinUseCase
@@ -21,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CoinViewModel @Inject constructor(
-    private val insertCoinUseCase:InsertCoinUseCase,
+    private val insertCoinUseCase: InsertCoinUseCase,
     private val getCoinsUseCase: GetCoinsUseCase,
     private val deleteCoinUseCase: DeleteCoinUseCase,
     private val insertCoinToHistoryOfViewingUseCase: InsertCoinToHistoryOfViewingUseCase,
@@ -47,11 +48,11 @@ class CoinViewModel @Inject constructor(
                 Log.d("CoinVM", "coins = $list")
             }
 
-            historyOfViewingCoins.collect { list->
+            historyOfViewingCoins.collect { list ->
                 Log.d("CoinVM", "historyCoins = $list")
             }
 
-            favoriteCoins.collect { list->
+            favoriteCoins.collect { list ->
                 Log.d("CoinVM", "favoriteCoins = $list")
             }
         }
@@ -78,8 +79,8 @@ class CoinViewModel @Inject constructor(
 
     fun insertCoinHistoryOfViewing(
         id: String,
-        name:String,
-        symbol:String,
+        name: String,
+        symbol: String,
         imageUrl: String,
         timestamp: Long
     ) {
@@ -99,16 +100,18 @@ class CoinViewModel @Inject constructor(
 
     fun insertFavoriteCoin(
         id: String,
-        name:String,
-        symbol:String,
+        name: String,
+        symbol: String,
         imageUrl: String,
     ) {
         viewModelScope.launch {
-            insertFavoriteCoin(
-                id = id,
-                name = name,
-                symbol = symbol,
-                imageUrl = imageUrl,
+            insertFavoriteCoinUseCase(
+                FavoriteCoin(
+                    id = id,
+                    name = name,
+                    symbol = symbol,
+                    imageUrl = imageUrl,
+                )
             )
             Log.d("CoinVM", "insertFavoriteCoin")
         }
@@ -127,7 +130,7 @@ class CoinViewModel @Inject constructor(
         id: String
     ) {
         viewModelScope.launch {
-            deleteFavoriteCoin(id = id)
+            deleteFavoriteCoinUseCase(id = id)
             Log.d("CoinVM", "deleteFavoriteCoin called")
         }
     }
