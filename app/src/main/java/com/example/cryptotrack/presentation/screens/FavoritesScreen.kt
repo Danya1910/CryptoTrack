@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -37,6 +38,7 @@ import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.ui.theme.DarkBlue
+import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 
@@ -127,17 +129,24 @@ private fun Content(
         )
     )
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+    Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        items(favoriteCoins) { coin ->
-            CoinItem(
-                coin = coin,
-                modifier = Modifier.fillMaxWidth()
-            )
+        FavoriteHat()
+        Spacer(modifier = Modifier.height(15.dp))
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(favoriteCoins) { coin ->
+                CoinItem(
+                    coin = coin,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
+
 
 }
 
@@ -213,6 +222,74 @@ private fun CoinItem(
                     contentDescription = null,
                     tint = Color.Gray,
                     modifier = Modifier.size(14.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FavoriteHat() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .padding(all = 15.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = Color.Black,
+                        shape = CircleShape
+                    )
+                    .padding(all = 10.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_huge_star),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(60.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Text(
+                    text = "Избранные монеты",
+                    fontFamily = Inter,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                )
+                Text(
+                    text = "12 монет",
+                    fontFamily = Inter,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Green,
+                )
+                Text(
+                    text = "Ваш список любимых криптовалют. \nСледите за ними и не упускайте самое важное.",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
                 )
             }
         }
