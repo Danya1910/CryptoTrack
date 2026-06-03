@@ -339,7 +339,7 @@ private fun RecentlyViewedItem(
                 .fillMaxHeight()
         ) {
             AsyncImage(
-                model = coin.imageUrl, // подгружать
+                model = coin.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.size(30.dp),
             )

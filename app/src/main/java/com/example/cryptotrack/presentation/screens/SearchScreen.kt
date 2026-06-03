@@ -161,7 +161,6 @@ private fun Content(
                     SearchedCoinsList(
                         coins = coinsList,
                         navController = navController,
-                        viewModel = viewModel,
                         coinViewModel = coinViewModel,
                     )
                 }
@@ -458,7 +457,6 @@ private fun SearchedCoin(
     coin: RoomCoin,
     navController: NavController,
     coinViewModel: CoinViewModel,
-    viewModel: CoinGeckoViewModel, // возможно подгружать картинку отсюда
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -522,7 +520,6 @@ private fun SearchedCoinsList(
     coins: List<RoomCoin>,
     navController: NavController,
     coinViewModel: CoinViewModel,
-    viewModel: CoinGeckoViewModel,
 ) {
 
 
@@ -537,7 +534,6 @@ private fun SearchedCoinsList(
                 coin = coin,
                 navController = navController,
                 coinViewModel = coinViewModel,
-                viewModel = viewModel
             )
             Spacer(modifier = Modifier.width(10.dp))
         }

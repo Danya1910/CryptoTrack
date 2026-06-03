@@ -23,3 +23,12 @@ data class ViewingHistoryEntity(
     val imageUrl: String,
     val timestamp: Long,
 )
+
+@Entity(tableName = "favorites")
+data class FavoriteEntity(
+    @PrimaryKey
+    val id: String,
+    val name: String,
+    val symbol: String,
+    val imageUrl: String,
+)

@@ -3,6 +3,7 @@ package com.example.cryptotrack.data.repository
 import com.example.cryptotrack.data.local.dao.CoinDao
 import com.example.cryptotrack.data.mapper.toDomain
 import com.example.cryptotrack.data.mapper.toEntity
+import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.repository.CoinRepository
@@ -47,6 +48,23 @@ class CoinRepositoryImpl @Inject constructor(
                 entity.toDomain()
             }
         }
+    }
+
+    override suspend fun insertFavoriteCoin(coin: FavoriteCoin) {
+        dao.insetFavoriteCoin(coin.toEntity())
+    }
+
+
+    override fun getFavoriteCoins(): Flow<List<FavoriteCoin>> {
+        return dao.getFavoriteCoins().map { list->
+            list.map { entity ->
+                entity.toDomain()
+            }
+        }
+    }
+
+    override suspend fun deleteFavoriteCoin(id: String) {
+        dao.deleteFavoriteCoin(id = id)
     }
 
 }

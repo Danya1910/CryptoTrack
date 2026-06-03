@@ -1,5 +1,6 @@
 package com.example.cryptotrack.domain.repository
 
+import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import kotlinx.coroutines.flow.Flow
@@ -20,5 +21,11 @@ interface CoinRepository {
 
     fun getCoinsFromHistoryOfViewing() : Flow<List<HistoryOfViewingCoin>>
 
+    // Избранные
+    suspend fun insertFavoriteCoin(coin: FavoriteCoin)
+
+    fun getFavoriteCoins() : Flow<List<FavoriteCoin>>
+
+    suspend fun deleteFavoriteCoin(id: String)
 
 }

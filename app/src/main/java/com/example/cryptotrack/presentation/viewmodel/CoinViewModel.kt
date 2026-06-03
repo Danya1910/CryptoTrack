@@ -7,10 +7,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.usecase.DeleteCoinUseCase
+import com.example.cryptotrack.domain.usecase.DeleteFavoriteCoinUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinsFromHistoryOfViewingUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinsUseCase
+import com.example.cryptotrack.domain.usecase.GetFavoriteCoinsUseCase
 import com.example.cryptotrack.domain.usecase.InsertCoinToHistoryOfViewingUseCase
 import com.example.cryptotrack.domain.usecase.InsertCoinUseCase
+import com.example.cryptotrack.domain.usecase.InsertFavoriteCoinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,12 +26,17 @@ class CoinViewModel @Inject constructor(
     private val deleteCoinUseCase: DeleteCoinUseCase,
     private val insertCoinToHistoryOfViewingUseCase: InsertCoinToHistoryOfViewingUseCase,
     private val getCoinsFromHistoryOfViewingUseCase: GetCoinsFromHistoryOfViewingUseCase,
+    private val insertFavoriteCoinUseCase: InsertFavoriteCoinUseCase,
+    private val getFavoriteCoinsUseCase: GetFavoriteCoinsUseCase,
+    private val deleteFavoriteCoinUseCase: DeleteFavoriteCoinUseCase,
 ) : ViewModel() {
 
 
     val coins = getCoinsUseCase()
 
     val historyOfViewingCoins = getCoinsFromHistoryOfViewingUseCase()
+
+    val favoriteCoins = getFavoriteCoinsUseCase()
 
     init {
 
@@ -41,6 +49,10 @@ class CoinViewModel @Inject constructor(
 
             historyOfViewingCoins.collect { list->
                 Log.d("CoinVM", "historyCoins = $list")
+            }
+
+            favoriteCoins.collect { list->
+                Log.d("CoinVM", "favoriteCoins = $list")
             }
         }
     }
@@ -85,12 +97,38 @@ class CoinViewModel @Inject constructor(
         }
     }
 
+    fun insertFavoriteCoin(
+        id: String,
+        name:String,
+        symbol:String,
+        imageUrl: String,
+    ) {
+        viewModelScope.launch {
+            insertFavoriteCoin(
+                id = id,
+                name = name,
+                symbol = symbol,
+                imageUrl = imageUrl,
+            )
+            Log.d("CoinVM", "insertFavoriteCoin")
+        }
+    }
+
     fun deleteCoin(
         id: String
     ) {
         viewModelScope.launch {
             deleteCoinUseCase(id = id)
             Log.d("CoinVM", "deleteCoin called")
+        }
+    }
+
+    fun deleteFavoriteCoin(
+        id: String
+    ) {
+        viewModelScope.launch {
+            deleteFavoriteCoin(id = id)
+            Log.d("CoinVM", "deleteFavoriteCoin called")
         }
     }
 }

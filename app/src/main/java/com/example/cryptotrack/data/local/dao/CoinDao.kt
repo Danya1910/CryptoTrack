@@ -7,13 +7,16 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import com.example.cryptotrack.data.local.entity.CoinEntity
+import com.example.cryptotrack.data.local.entity.FavoriteEntity
 import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
+import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CoinDao {
 
+    // История поиска
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insetCoin(coin: CoinEntity)
 
@@ -23,6 +26,7 @@ interface CoinDao {
     @Query("DELETE FROM coins WHERE id = :id")
     suspend fun deleteCoin(id: String)
 
+    // История просмотра
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCoinToHistoryOfViewing(coin: ViewingHistoryEntity)
 
@@ -44,5 +48,16 @@ WHERE id IN (
         insertCoinToHistoryOfViewing(coin)
         trimHistory()
     }
+
+
+    // Избранные
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insetFavoriteCoin(coin: FavoriteEntity)
+
+    @Query("SELECT * FROM favorites")
+    fun getFavoriteCoins() : Flow<List<FavoriteEntity>>
+
+    @Query("DELETE FROM favorites WHERE id = :id")
+    suspend fun deleteFavoriteCoin(id: String)
 
 }

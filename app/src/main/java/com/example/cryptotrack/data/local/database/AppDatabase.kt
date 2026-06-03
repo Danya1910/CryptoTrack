@@ -6,6 +6,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.cryptotrack.data.local.dao.CoinDao
 import com.example.cryptotrack.data.local.entity.CoinEntity
+import com.example.cryptotrack.data.local.entity.FavoriteEntity
 import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
 
 
@@ -13,8 +14,9 @@ import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
     entities = [
         CoinEntity::class,
         ViewingHistoryEntity::class,
+        FavoriteEntity:: class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 
@@ -39,5 +41,21 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 """.trimIndent()
         )
 
+    }
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE favorites (
+                id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                symbol TEXT NOT NULL,
+                imageUrl TEXT NOT NULL,
+                PRIMARY KEY(id)
+            )
+            """.trimIndent()
+        )
     }
 }
