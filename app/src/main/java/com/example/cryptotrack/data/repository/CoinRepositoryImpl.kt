@@ -67,4 +67,8 @@ class CoinRepositoryImpl @Inject constructor(
         dao.deleteFavoriteCoin(id = id)
     }
 
+    override suspend fun deleteAllFavoriteCoins() {
+        dao.deleteAllFavoriteCoins()
+    }
+
 }

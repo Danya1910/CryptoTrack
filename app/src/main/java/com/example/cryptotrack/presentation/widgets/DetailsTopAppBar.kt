@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,17 +26,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.CoinDetails
+import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.Orange
+import com.example.cryptotrack.ui.theme.Yellow
 
 
 @Composable
 fun DetailsTopAppBar(
     navController: NavController,
     coinViewModel: CoinViewModel,
+    coinId: String,
+    details: CoinDetails?,
 ) {
+
+    val favoriteCoins by coinViewModel.favoriteCoins.collectAsState(initial = emptyList())
+
+    val isFavorite = favoriteCoins.any { it.id == coinId }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -64,10 +75,27 @@ fun DetailsTopAppBar(
             modifier = Modifier.weight(1f)
         )
         Icon(
-            painter = painterResource(R.drawable.ic_star),
+            painter = painterResource(
+                if (isFavorite) R.drawable.ic_fill_star else R.drawable.ic_star
+            ),
             contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(22.dp)
+            tint = if (isFavorite) Yellow else Color.White,
+            modifier = Modifier
+                .size(22.dp)
+                .clickable{
+                    if (isFavorite) {
+                        coinViewModel.deleteFavoriteCoin(coinId)
+                    } else {
+                        details?.let {
+                            coinViewModel.insertFavoriteCoin(
+                                id = it.id,
+                                name = it.name,
+                                symbol = it.symbol,
+                                imageUrl = it.image.thumb
+                            )
+                        }
+                    }
+                }
         )
     }
 }

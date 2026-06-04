@@ -88,11 +88,16 @@ fun CoinDetailsScreen(
     navController: NavController,
     coinViewModel: CoinViewModel,
 ) {
+    val state by viewModel.detailsScreenState.collectAsState()
+    val details = state.details
+
     Scaffold(
         topBar = {
             DetailsTopAppBar(
                 navController = navController,
                 coinViewModel = coinViewModel,
+                coinId = coinId,
+                details = details
             )
         },
         bottomBar = {}

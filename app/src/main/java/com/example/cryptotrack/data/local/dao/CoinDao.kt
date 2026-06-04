@@ -60,4 +60,7 @@ WHERE id IN (
     @Query("DELETE FROM favorites WHERE id = :id")
     suspend fun deleteFavoriteCoin(id: String)
 
+    @Query("DELETE FROM favorites")
+    suspend fun deleteAllFavoriteCoins()
+
 }

@@ -116,7 +116,8 @@ private fun TrendItem(
                 shape = RoundedCornerShape(10.dp)
             )
             .clickable{
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id.toString()))
+                //navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id.toString()))
+                navController.navigate(Screen.Favorites.route)
             }
             .padding(all = 8.dp)
     ) {

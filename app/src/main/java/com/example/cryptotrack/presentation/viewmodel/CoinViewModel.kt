@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.RoomCoin
+import com.example.cryptotrack.domain.usecase.DeleteAllFavoriteCoinsUseCase
 import com.example.cryptotrack.domain.usecase.DeleteCoinUseCase
 import com.example.cryptotrack.domain.usecase.DeleteFavoriteCoinUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinsFromHistoryOfViewingUseCase
@@ -30,6 +31,7 @@ class CoinViewModel @Inject constructor(
     private val insertFavoriteCoinUseCase: InsertFavoriteCoinUseCase,
     private val getFavoriteCoinsUseCase: GetFavoriteCoinsUseCase,
     private val deleteFavoriteCoinUseCase: DeleteFavoriteCoinUseCase,
+    private val deleteAllFavoriteCoinsUseCase: DeleteAllFavoriteCoinsUseCase,
 ) : ViewModel() {
 
 
@@ -132,6 +134,13 @@ class CoinViewModel @Inject constructor(
         viewModelScope.launch {
             deleteFavoriteCoinUseCase(id = id)
             Log.d("CoinVM", "deleteFavoriteCoin called")
+        }
+    }
+
+    fun deleteAllFavoriteCoins() {
+        viewModelScope.launch {
+            deleteAllFavoriteCoinsUseCase()
+            Log.d("CoinVM", "deleteAllFavoriteCoins called")
         }
     }
 }

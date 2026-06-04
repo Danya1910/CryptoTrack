@@ -3,6 +3,7 @@ package com.example.cryptotrack.presentation.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,8 +26,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -34,6 +38,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.presentation.navigation.Screen
@@ -98,22 +104,50 @@ private fun Content(
 
     val favoriteCoins by coinViewModel.favoriteCoins.collectAsState(initial = emptyList())
 
+    val removedIds = remember { mutableStateListOf<String>() }
+
+    val isFavoriteEmpty = favoriteCoins.isEmpty()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            removedIds.forEach { id ->
+                coinViewModel.deleteFavoriteCoin(id)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .background(color = BlackBackground)
             .padding(paddingValues = paddingValues)
+            .padding(horizontal = 15.dp)
             .fillMaxSize()
     ) {
-        HelpWidget()
+        if (isFavoriteEmpty) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                HelpWidget(
+                    navController = navController,
+                )
+            }
+
+        } else {
+            FavoriteHat(
+                favoriteCoins = favoriteCoins,
+                coinViewModel = coinViewModel,
+            )
+        }
         Spacer(modifier = Modifier.height(15.dp))
         CoinsList(
             navController = navController,
             favoriteCoins = favoriteCoins,
             coinViewModel = coinViewModel,
+            removedIds = removedIds,
         )
     }
-
-
 }
 
 @Composable
@@ -121,6 +155,7 @@ private fun CoinsList(
     favoriteCoins: List<FavoriteCoin>,
     navController: NavController,
     coinViewModel: CoinViewModel,
+    removedIds: MutableList<String>,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -132,6 +167,7 @@ private fun CoinsList(
                 coinViewModel = coinViewModel,
                 navController = navController,
                 modifier = Modifier.fillMaxWidth(),
+                removedIds = removedIds,
             )
         }
     }
@@ -143,11 +179,11 @@ private fun CoinItem(
     coin: FavoriteCoin,
     navController: NavController,
     coinViewModel: CoinViewModel,
+    removedIds: MutableList<String>,
 ) {
 
-    val favoritesList by coinViewModel.favoriteCoins.collectAsState(initial = emptyList())
+    val isFavorite = coin.id !in removedIds
 
-    val isFavorite = favoritesList.any { it.id == coin.id }
 
     Box(
         modifier = modifier
@@ -213,15 +249,10 @@ private fun CoinItem(
                     modifier = Modifier
                         .size(14.dp)
                         .clickable {
-                            if (isFavorite) {
-                                coinViewModel.deleteFavoriteCoin(id = coin?.id ?: "")
+                            if (coin.id in removedIds) {
+                                removedIds.remove(coin.id)
                             } else {
-                                coinViewModel.insertFavoriteCoin(
-                                    id = coin.id,
-                                    name = coin.name,
-                                    symbol = coin.symbol,
-                                    imageUrl = coin.imageUrl,
-                                )
+                                removedIds.add(coin.id)
                             }
                         }
                 )
@@ -237,7 +268,13 @@ private fun CoinItem(
 }
 
 @Composable
-private fun FavoriteHat() {
+private fun FavoriteHat(
+    favoriteCoins: List<FavoriteCoin>,
+    coinViewModel: CoinViewModel,
+) {
+
+    val countsOfCoins = getCoinsCountText(favoriteCoins.size)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -287,7 +324,7 @@ private fun FavoriteHat() {
                     color = Color.White,
                 )
                 Text(
-                    text = "12 монет",
+                    text = countsOfCoins,
                     fontFamily = Inter,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
@@ -322,7 +359,7 @@ private fun FavoriteHat() {
                             shape = RoundedCornerShape(12.dp),
                         )
                         .clickable {
-
+                            coinViewModel.deleteAllFavoriteCoins()
                         }
                         .padding(
                             horizontal = 10.dp,
@@ -355,9 +392,23 @@ private fun FavoriteHat() {
     }
 }
 
+private fun getCoinsCountText(count: Int): String {
+    val mod10 = count % 10
+    val mod100 = count % 100
+
+    return when {
+        mod100 in 11..14 -> "$count монет"
+        mod10 == 1 -> "$count монета"
+        mod10 in 2..4 -> "$count монеты"
+        else -> "$count монет"
+    }
+}
+
 
 @Composable
-private fun HelpWidget() {
+private fun HelpWidget(
+    navController: NavController,
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier

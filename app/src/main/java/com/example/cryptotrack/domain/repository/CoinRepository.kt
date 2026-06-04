@@ -28,4 +28,6 @@ interface CoinRepository {
 
     suspend fun deleteFavoriteCoin(id: String)
 
+    suspend fun deleteAllFavoriteCoins()
+
 }
