@@ -10,6 +10,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.cryptotrack.presentation.screens.CoinDetailsScreen
+import com.example.cryptotrack.presentation.screens.FavoritesScreen
 import com.example.cryptotrack.presentation.screens.MarketScreen
 import com.example.cryptotrack.presentation.screens.ProfileScreen
 import com.example.cryptotrack.presentation.screens.SearchScreen
@@ -79,6 +80,18 @@ fun NavGraphBuilder.MainNavGraph(
         val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
 
         ProfileScreen(
+            navController = navController,
+            coinViewModel = coinViewModel,
+        )
+    }
+
+    composable(route = Screen.Favorites.route) { backStackEntry->
+        val parentEntry = remember(backStackEntry) {
+            navController.getBackStackEntry("main_graph")
+        }
+        val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
+
+        FavoritesScreen(
             navController = navController,
             coinViewModel = coinViewModel,
         )

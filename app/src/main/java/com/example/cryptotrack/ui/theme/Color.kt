@@ -31,3 +31,5 @@ val DarkBlue = Color(0xFF12181B)
 val OutlineGray = Color(0xFF222A2E)
 
 val DarkGray = Color(0xFF1C2226)
+
+val HelpDarkBlue = Color(0xFF1C272C)

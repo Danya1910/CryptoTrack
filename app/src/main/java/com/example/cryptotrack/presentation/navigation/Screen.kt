@@ -24,5 +24,8 @@ sealed interface Screen {
         override val route = "Profile"
     }
 
+    data object Favorites: Screen {
+        override val route = "Favorites"
+    }
 
 }
