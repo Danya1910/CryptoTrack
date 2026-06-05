@@ -6,6 +6,7 @@ import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.data.mapper.toDomain
 import com.example.cryptotrack.domain.model.CoinDetails
 import com.example.cryptotrack.domain.model.CoinsChartList
+import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.TrendCoins
@@ -39,6 +40,10 @@ class CoinGeckoRepositoryImpl @Inject constructor(
 
     override suspend fun getTrendCoins() : TrendCoins {
         return api.getTrendCoins().toDomain()
+    }
+
+    override suspend fun getFavoriteCoinsDetails(ids: String): List<FavoriteCoinDetails> {
+        return api.getFavoriteCoinsDetails(ids = ids).map { it.toDomain() }
     }
 
 }

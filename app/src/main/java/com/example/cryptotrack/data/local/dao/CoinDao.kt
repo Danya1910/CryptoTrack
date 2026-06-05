@@ -54,7 +54,10 @@ WHERE id IN (
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insetFavoriteCoin(coin: FavoriteEntity)
 
-    @Query("SELECT * FROM favorites")
+    @Query("""
+        SELECT * FROM favorites
+        ORDER BY timestamp DESC
+    """)
     fun getFavoriteCoins() : Flow<List<FavoriteEntity>>
 
     @Query("DELETE FROM favorites WHERE id = :id")

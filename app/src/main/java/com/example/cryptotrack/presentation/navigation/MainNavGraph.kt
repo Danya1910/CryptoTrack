@@ -77,11 +77,13 @@ fun NavGraphBuilder.MainNavGraph(
         val parentEntry = remember(backStackEntry) {
             navController.getBackStackEntry("main_graph")
         }
+        val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
         val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
 
         ProfileScreen(
             navController = navController,
             coinViewModel = coinViewModel,
+            viewModel = viewModel,
         )
     }
 

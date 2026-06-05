@@ -4,6 +4,7 @@ import com.example.cryptotrack.data.dto.CoinDetailsDto
 import com.example.cryptotrack.data.dto.GlobalMarketResponseDto
 import com.example.cryptotrack.data.dto.MarketDataDto
 import com.example.cryptotrack.data.dto.CoinChartDto
+import com.example.cryptotrack.data.dto.FavoriteCoinDetailsDto
 import com.example.cryptotrack.data.dto.SearchDto
 import com.example.cryptotrack.data.dto.TrendCoinsDto
 import retrofit2.http.GET
@@ -40,5 +41,11 @@ interface CoinGeckoApi {
 
     @GET(value = "search/trending")
     suspend fun getTrendCoins() : TrendCoinsDto
+
+    @GET(value = "coins/markets")
+    suspend fun getFavoriteCoinsDetails(
+        @Query("vs_currency") vsCurrency: String = "usd",
+        @Query("ids") ids: String,
+    ) : List<FavoriteCoinDetailsDto>
 
 }

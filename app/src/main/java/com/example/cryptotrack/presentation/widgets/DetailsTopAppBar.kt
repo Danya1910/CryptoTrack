@@ -91,7 +91,8 @@ fun DetailsTopAppBar(
                                 id = it.id,
                                 name = it.name,
                                 symbol = it.symbol,
-                                imageUrl = it.image.thumb
+                                imageUrl = it.image.thumb,
+                                timestamp = System.currentTimeMillis()
                             )
                         }
                     }

@@ -105,6 +105,7 @@ class CoinViewModel @Inject constructor(
         name: String,
         symbol: String,
         imageUrl: String,
+        timestamp: Long
     ) {
         viewModelScope.launch {
             insertFavoriteCoinUseCase(
@@ -113,6 +114,7 @@ class CoinViewModel @Inject constructor(
                     name = name,
                     symbol = symbol,
                     imageUrl = imageUrl,
+                    timestamp = timestamp,
                 )
             )
             Log.d("CoinVM", "insertFavoriteCoin")

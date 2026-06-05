@@ -6,12 +6,14 @@ import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.SearchCoin
 import com.example.cryptotrack.domain.usecase.GetCoinChartUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinDetailsUseCase
+import com.example.cryptotrack.domain.usecase.GetFavoriteCoinsDetailsUseCase
 import com.example.cryptotrack.domain.usecase.GetGlobalMarketUseCase
 import com.example.cryptotrack.domain.usecase.GetMarketUseCase
 import com.example.cryptotrack.domain.usecase.GetTrendCoinsUseCase
 import com.example.cryptotrack.domain.usecase.SearchCoinsUseCase
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.states.DetailsScreenStates
+import com.example.cryptotrack.presentation.states.FavoriteCoinsDetailsState
 import com.example.cryptotrack.presentation.states.GlobalMarketState
 import com.example.cryptotrack.presentation.states.MarketDataState
 import com.example.cryptotrack.presentation.states.SearchState
@@ -36,6 +38,7 @@ class CoinGeckoViewModel @Inject constructor(
     private val getCoinDetailsUseCase: GetCoinDetailsUseCase,
     private val getCoinChartUseCase: GetCoinChartUseCase,
     private val searchCoinsUseCase: SearchCoinsUseCase,
+    private val getFavoriteCoinsDetailsUseCase: GetFavoriteCoinsDetailsUseCase,
 ) : ViewModel() {
 
     private val _order = MutableStateFlow(MarketOrder.DEFAULT)
@@ -46,11 +49,13 @@ class CoinGeckoViewModel @Inject constructor(
     private val _detailScreenState = MutableStateFlow(DetailsScreenStates())
     private val _trendState = MutableStateFlow(TrendState())
     private val _searchState = MutableStateFlow(SearchState())
+    private val _favoriteCoinsDetailsState = MutableStateFlow(FavoriteCoinsDetailsState())
     val marketScreenState = _globalMarketState.asStateFlow()
     val marketDataState = _marketDataState.asStateFlow()
     val detailsScreenState = _detailScreenState.asStateFlow()
     val trendState = _trendState.asStateFlow()
     val searchState = _searchState.asStateFlow()
+    val favoriteCoinsDetailsState = _favoriteCoinsDetailsState.asStateFlow()
 
 
     init {
@@ -238,6 +243,39 @@ class CoinGeckoViewModel @Inject constructor(
                         error = throwable.message,
                     )
                 }
+            }
+        }
+    }
+
+    fun getFavoriteCoinsDetails(
+        ids: String
+    ) {
+        viewModelScope.launch {
+            _favoriteCoinsDetailsState.update {
+                it.copy(
+                    isLoading = false
+                )
+            }
+            runCatching {
+                getFavoriteCoinsDetailsUseCase(ids = ids)
+            }.onSuccess { details->
+                _favoriteCoinsDetailsState.update {
+                    it.copy(
+                        isLoading = false,
+                        details = details,
+                    )
+                }
+            }.onFailure {throwable ->
+                if(throwable is CancellationException){
+                    throw throwable
+                }
+                _favoriteCoinsDetailsState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = throwable.message,
+                    )
+                }
+
             }
         }
     }

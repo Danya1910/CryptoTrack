@@ -49,6 +49,7 @@ fun FavoriteEntity.toDomain() : FavoriteCoin {
         name = name,
         symbol = symbol,
         imageUrl = imageUrl,
+        timestamp = timestamp,
     )
 }
 
@@ -58,5 +59,6 @@ fun FavoriteCoin.toEntity() : FavoriteEntity {
         name = name,
         symbol = symbol,
         imageUrl = imageUrl,
+        timestamp = timestamp,
     )
 }

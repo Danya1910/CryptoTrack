@@ -41,6 +41,7 @@ import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
@@ -197,9 +198,7 @@ private fun CoinMarket(
 
     val formatter = DecimalFormat("#,##0.00", symbols)
 
-    val currentPriceFormatted = coin?.currentPrice.let {
-        formatter.format(it)
-    } ?: "0.00"
+    val currentPriceFormatted = formatPrice(value = coin?.currentPrice)
 
     val marketCapValue = coin?.marketCap ?: 0.0
 
@@ -354,6 +353,7 @@ private fun CoinMarket(
                             name = coin?.name ?: "",
                             symbol = coin?.symbol ?: "",
                             imageUrl = coin?.image ?: "",
+                            timestamp = System.currentTimeMillis()
                         )
                     }
                 }

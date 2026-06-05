@@ -111,6 +111,7 @@ fun CoinDetailsScreen(
     }
 }
 
+
 @Composable
 @Preview(showBackground = true)
 private fun CoinDetailsScreenPreview() {

@@ -5,4 +5,5 @@ data class FavoriteCoin (
     val name: String,
     val symbol: String,
     val imageUrl: String,
+    val timestamp: Long,
 )

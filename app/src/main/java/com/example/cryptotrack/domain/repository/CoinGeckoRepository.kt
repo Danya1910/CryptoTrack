@@ -2,6 +2,7 @@ package com.example.cryptotrack.domain.repository
 
 import com.example.cryptotrack.domain.model.CoinDetails
 import com.example.cryptotrack.domain.model.CoinsChartList
+import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.model.MarketData
 import com.example.cryptotrack.domain.model.Search
@@ -21,5 +22,7 @@ interface CoinGeckoRepository {
     suspend fun getCoinChart(id: String, vsCurrency: String, days: Int) : CoinsChartList
 
     suspend fun getTrendCoins() : TrendCoins
+
+    suspend fun getFavoriteCoinsDetails(ids: String) : List<FavoriteCoinDetails>
 
 }
