@@ -253,7 +253,8 @@ class CoinGeckoViewModel @Inject constructor(
         viewModelScope.launch {
             _favoriteCoinsDetailsState.update {
                 it.copy(
-                    isLoading = false
+                    isLoading = false,
+                    details = emptyList()
                 )
             }
             runCatching {
@@ -277,6 +278,15 @@ class CoinGeckoViewModel @Inject constructor(
                 }
 
             }
+        }
+    }
+
+    fun clearFavoriteCoinsDetails() {
+        _favoriteCoinsDetailsState.update {
+            it.copy(
+                details = emptyList(),
+                error = null,
+            )
         }
     }
 

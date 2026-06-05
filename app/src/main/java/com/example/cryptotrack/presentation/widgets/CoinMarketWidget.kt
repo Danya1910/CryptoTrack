@@ -191,13 +191,6 @@ private fun CoinMarket(
         abs(coin?.priceChangePercentage24h ?: 0.0)
     )
 
-    val symbols = DecimalFormatSymbols().apply {
-        groupingSeparator = ' '
-        decimalSeparator = '.'
-    }
-
-    val formatter = DecimalFormat("#,##0.00", symbols)
-
     val currentPriceFormatted = formatPrice(value = coin?.currentPrice)
 
     val marketCapValue = coin?.marketCap ?: 0.0

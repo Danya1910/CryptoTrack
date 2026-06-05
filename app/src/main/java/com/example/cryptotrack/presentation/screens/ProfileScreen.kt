@@ -40,10 +40,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.uiModels.FavoriteUiItem
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
@@ -103,8 +105,12 @@ private fun Content(
     val favoriteCoinsDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
 
 
-    val details = remember(favoriteCoinsDetails.details) {
-        favoriteCoinsDetails.details?.reversed().orEmpty()
+    val details = favoriteCoinsDetails.details?.reversed().orEmpty()
+
+    val uiList: List<FavoriteUiItem> = if (favoriteCoinsDetails.details.isNullOrEmpty()) {
+        favoriteCoins.map { FavoriteUiItem.Basic(it) }
+    } else {
+        details.map { FavoriteUiItem.Full(it) }
     }
 
     Column(
@@ -118,7 +124,7 @@ private fun Content(
         UserStatsWidget()
         RecentlyViewed(coins = historyOfViewingList, navController = navController)
         FavoriteWidget(
-            details = details,
+            details = uiList,
             navController = navController
         )
     }
@@ -155,7 +161,7 @@ private fun UserInfo() {
 
 @Composable
 private fun FavoriteWidget(
-    details: List<FavoriteCoinDetails>?,
+    details: List<FavoriteUiItem>?,
     navController: NavController,
 ) {
 
@@ -183,7 +189,7 @@ private fun FavoriteWidget(
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier
-                    .clickable{
+                    .clickable {
                         navController.navigate(Screen.Favorites.route)
                     }
             )
@@ -209,12 +215,24 @@ private fun FavoriteWidget(
             ) {
                 val coins = details?.take(4).orEmpty()
 
-                coins.forEachIndexed { index, coinDetails ->
+                coins.forEachIndexed { index, item ->
 
-                    FavoriteItem(
-                        coin = coinDetails,
-                        navController = navController,
-                    )
+                    when (item) {
+
+                        is FavoriteUiItem.Full -> {
+                            FavoriteItemFull(
+                                coin = item.data,
+                                navController = navController
+                            )
+                        }
+
+                        is FavoriteUiItem.Basic -> {
+                            FavoriteItemBasic(
+                                coin = item.data,
+                                navController = navController
+                            )
+                        }
+                    }
 
                     if (index != coins.lastIndex) {
                         Box(
@@ -229,13 +247,10 @@ private fun FavoriteWidget(
         }
 
     }
-
-
-
 }
 
 @Composable
-private fun FavoriteItem(
+private fun FavoriteItemFull(
     coin: FavoriteCoinDetails,
     navController: NavController,
 ) {
@@ -264,7 +279,7 @@ private fun FavoriteItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(36.dp)
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
             }
             .padding(horizontal = 10.dp)
@@ -329,6 +344,63 @@ private fun FavoriteItem(
             modifier = Modifier.weight(0.3f)
         )
 
+    }
+}
+
+@Composable
+private fun FavoriteItemBasic(
+    coin: FavoriteCoin,
+    navController: NavController,
+) {
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(36.dp)
+            .clickable {
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+            }
+            .padding(horizontal = 10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .fillMaxHeight()
+                .weight(1f),
+        ) {
+            AsyncImage(
+                model = coin?.imageUrl,
+                contentDescription = null,
+                modifier = Modifier.size(25.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = coin?.name ?: "Unknown",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = coin?.symbol ?: "Unk",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
     }
 }
 
