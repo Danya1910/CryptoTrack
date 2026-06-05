@@ -32,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,6 +115,11 @@ private fun Content(
         details.map { FavoriteUiItem.Full(it) }
     }
 
+
+    val favoritesCount = favoriteCoins.size
+    val recentlyViewedCount = historyOfViewingList.size
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -121,14 +128,20 @@ private fun Content(
             .padding(paddingValues)
     ) {
         UserInfo()
-        UserStatsWidget()
-        RecentlyViewed(coins = historyOfViewingList, navController = navController)
+        UserStatsWidget(
+            favoritesCount = favoritesCount,
+            recentlyViewedCount = recentlyViewedCount,
+
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+
         FavoriteWidget(
             details = uiList,
             navController = navController
         )
+        Spacer(modifier = Modifier.height(10.dp))
+        RecentlyViewed(coins = historyOfViewingList, navController = navController)
     }
-
 }
 
 @Composable
@@ -187,6 +200,7 @@ private fun FavoriteWidget(
                 fontFamily = Inter,
                 color = Green,
                 fontSize = 12.sp,
+                textDecoration = TextDecoration.Underline,
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier
                     .clickable {
@@ -405,7 +419,10 @@ private fun FavoriteItemBasic(
 }
 
 @Composable
-private fun UserStatsWidget() {
+private fun UserStatsWidget(
+    favoritesCount: Int,
+    recentlyViewedCount: Int,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround,
@@ -416,7 +433,7 @@ private fun UserStatsWidget() {
         StatsItem(
             icon = R.drawable.ic_star,
             title = "Избранные",
-            value = 12,
+            value = favoritesCount,
         )
         StatsItem(
             icon = R.drawable.ic_graph_up,
@@ -426,7 +443,7 @@ private fun UserStatsWidget() {
         StatsItem(
             icon = R.drawable.ic_history,
             title = "Просмотрено",
-            value = 24,
+            value = recentlyViewedCount,
         )
     }
 }
@@ -487,12 +504,11 @@ private fun RecentlyViewed(
         Text(
             text = "Недавно просмотренные",
             fontFamily = Inter,
-            fontSize = 14.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Normal,
             color = Color.White,
-            modifier = Modifier.padding(horizontal = 20.dp)
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(5.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -503,7 +519,7 @@ private fun RecentlyViewed(
                     coin = coin,
                     navController = navController,
                 )
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(5.dp))
             }
         }
     }

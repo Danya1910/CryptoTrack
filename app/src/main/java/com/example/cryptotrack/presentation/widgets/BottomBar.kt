@@ -3,6 +3,7 @@ package com.example.cryptotrack.presentation.widgets
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ModalDrawer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Surface
@@ -27,21 +27,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.test.isSelected
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.cryptotrack.ui.theme.BlackNavigation
+import com.example.cryptotrack.ui.theme.DarkBlue
+import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Lavender
 import com.example.cryptotrack.ui.theme.Orange
+import com.example.cryptotrack.ui.theme.OutlineGray
+import com.example.cryptotrack.ui.theme.Pink40
+import com.example.cryptotrack.ui.theme.Purple
 
 
 @Composable
@@ -52,6 +58,7 @@ fun BottomBar(
     val items = listOf(
         BottomNavComponents.Market,
         BottomNavComponents.Search,
+        BottomNavComponents.Favorite,
         BottomNavComponents.Profile
     )
 
@@ -60,32 +67,30 @@ fun BottomBar(
 
 
 
-    NavigationBar(
-        containerColor = BlackNavigation,
+    Box(
         modifier = Modifier
-            .shadow(
-                elevation = 2.dp,
-                spotColor = Color.White,
+            .padding(bottom = 20.dp)
+            .padding(horizontal = 15.dp)
+            .height(60.dp)
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(12.dp)
             )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 11.dp)
-                .height(65.dp)
+                .fillMaxSize()
         ) {
             items.forEach { item ->
                 val isSelected = currentRoute == item.route
-                val scale by animateFloatAsState(
-                    targetValue = if (isSelected) 1.2f else 1f,
-                    label = "",
-                )
-                val tint by animateColorAsState(
-                    targetValue = if (isSelected) Orange else Color.White,
-                    label = "",
-                )
 
                 Box(
                     contentAlignment = Alignment.Center,
@@ -98,35 +103,11 @@ fun BottomBar(
                             navController.navigate(item.route)
                         }
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        Icon(
-                            painter = painterResource(item.icon),
-                            contentDescription = null,
-                            tint = tint,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .scale(scale = scale)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .padding(top = 10.dp)
-                                .width(40.dp)
-                                .height(2.dp)
-                                .shadow(
-                                    elevation = 1.dp,
-                                    spotColor = if(isSelected) Color.White else Color.Transparent,
-                                )
-                                .background(
-                                    color = if(isSelected)Orange else Color.Transparent,
-                                    shape = RoundedCornerShape(10.dp)
-                                )
-                        )
-                    }
+                    BottomItem(
+                        path = item.icon,
+                        title = item.title,
+                        isSelected = isSelected
+                    )
                 }
             }
         }
@@ -141,19 +122,24 @@ fun BottomBarPreview(
     val items = listOf(
         BottomNavComponents.Market,
         BottomNavComponents.Search,
+        BottomNavComponents.Favorite,
         BottomNavComponents.Profile
     )
 
 
-
-    Surface(
-        color = BlackNavigation,
+    Box(
         modifier = Modifier
-            .shadow(
-                elevation = 2.dp,
-                spotColor = Color.White,
+            .height(50.dp)
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(12.dp)
             )
-            .height(65.dp)
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(12.dp)
+            )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -162,18 +148,88 @@ fun BottomBarPreview(
                 .fillMaxSize()
         ) {
             items.forEach { item ->
-                Icon(
-                    painter = painterResource(item.icon),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                BottomItem(
+                    path = item.icon,
+                    title = item.title,
+                    isSelected = false,
                 )
             }
         }
     }
-    Text(
-        text = "Preview!!!",
-        fontSize = 15.sp,
-        color = Color.White
-    )
+
+//    Surface(
+//        color = BlackNavigation,
+//        modifier = Modifier
+//            .shadow(
+//                elevation = 2.dp,
+//                spotColor = Color.White,
+//            )
+//            .height(65.dp)
+//    ) {
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.SpaceAround,
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            items.forEach { item ->
+//                Icon(
+//                    painter = painterResource(item.icon),
+//                    contentDescription = null,
+//                    tint = Color.White,
+//                    modifier = Modifier.size(32.dp)
+//                )
+//            }
+//        }
+//    }
+//    Text(
+//        text = "Preview!!!",
+//        fontSize = 15.sp,
+//        color = Color.White
+//    )
+}
+
+@Composable
+private fun BottomItem(
+    path: Int,
+    title: String,
+    isSelected: Boolean,
+) {
+
+    val tint = if(isSelected) Lavender else Color.Gray
+
+    val textColor = if(isSelected) Lavender else Color.Gray
+
+    val backgroundColor = if(isSelected) Purple else Color.Transparent
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .width(55.dp)
+                .height(30.dp)
+                .background(
+                    color = backgroundColor,
+                    shape = RoundedCornerShape(16.dp)
+                )
+        ) {
+            Icon(
+                painter = painterResource(path),
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(25.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = title,
+            fontFamily = Inter,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            color = textColor,
+        )
+    }
+
 }

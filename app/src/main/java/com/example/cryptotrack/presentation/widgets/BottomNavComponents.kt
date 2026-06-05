@@ -15,7 +15,12 @@ sealed class BottomNavComponents (
     data object Search: BottomNavComponents(
         route = "Search",
         title = "Search",
-        icon = R.drawable.ic_search
+        icon = R.drawable.ic_search_navigation
+    )
+    data object Favorite: BottomNavComponents(
+        route = "Favorites",
+        title = "Favorite",
+        icon = R.drawable.ic_star
     )
     data object Profile: BottomNavComponents(
         route = "Profile",
