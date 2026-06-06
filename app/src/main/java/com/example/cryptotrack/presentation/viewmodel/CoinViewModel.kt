@@ -6,18 +6,23 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
+import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.usecase.DeleteAllFavoriteCoinsUseCase
 import com.example.cryptotrack.domain.usecase.DeleteCoinUseCase
 import com.example.cryptotrack.domain.usecase.DeleteFavoriteCoinUseCase
+import com.example.cryptotrack.domain.usecase.DeletePurchasedCoinUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinsFromHistoryOfViewingUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinsUseCase
 import com.example.cryptotrack.domain.usecase.GetFavoriteCoinsUseCase
+import com.example.cryptotrack.domain.usecase.GetPurchasedCoinsUseCase
 import com.example.cryptotrack.domain.usecase.InsertCoinToHistoryOfViewingUseCase
 import com.example.cryptotrack.domain.usecase.InsertCoinUseCase
 import com.example.cryptotrack.domain.usecase.InsertFavoriteCoinUseCase
+import com.example.cryptotrack.domain.usecase.InsertPurchaseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.util.stream.DoubleStream
 import javax.inject.Inject
 
 
@@ -32,6 +37,9 @@ class CoinViewModel @Inject constructor(
     private val getFavoriteCoinsUseCase: GetFavoriteCoinsUseCase,
     private val deleteFavoriteCoinUseCase: DeleteFavoriteCoinUseCase,
     private val deleteAllFavoriteCoinsUseCase: DeleteAllFavoriteCoinsUseCase,
+    private val insertPurchaseUseCase: InsertPurchaseUseCase,
+    private val getPurchasedCoinsUseCase: GetPurchasedCoinsUseCase,
+    private val deletePurchasedCoinUseCase: DeletePurchasedCoinUseCase,
 ) : ViewModel() {
 
 
@@ -40,6 +48,8 @@ class CoinViewModel @Inject constructor(
     val historyOfViewingCoins = getCoinsFromHistoryOfViewingUseCase()
 
     val favoriteCoins = getFavoriteCoinsUseCase()
+
+    val purchase = getPurchasedCoinsUseCase()
 
     init {
 
@@ -56,6 +66,10 @@ class CoinViewModel @Inject constructor(
 
             favoriteCoins.collect { list ->
                 Log.d("CoinVM", "favoriteCoins = $list")
+            }
+
+            purchase.collect { list ->
+                Log.d("CoinVM", "purchase = $list")
             }
         }
     }
@@ -121,6 +135,25 @@ class CoinViewModel @Inject constructor(
         }
     }
 
+    fun insertPurchase(
+        coinId: String,
+        name: String,
+        amount: Double,
+        buyPrice: Double,
+        buyDate: Long,
+    ) {
+        viewModelScope.launch {
+            insertPurchaseUseCase(
+                    coinId = coinId,
+                    name = name,
+                    amount = amount,
+                    buyPrice = buyPrice,
+                    buyDate = buyDate,
+            )
+            Log.d("CoinVM", "insertPurchase")
+        }
+    }
+
     fun deleteCoin(
         id: String
     ) {
@@ -143,6 +176,25 @@ class CoinViewModel @Inject constructor(
         viewModelScope.launch {
             deleteAllFavoriteCoinsUseCase()
             Log.d("CoinVM", "deleteAllFavoriteCoins called")
+        }
+    }
+
+    fun deletePurchasedCoin(
+        coinId: String,
+        name: String,
+        amount: Double,
+        buyPrice: Double,
+        buyDate: Long,
+    ) {
+        viewModelScope.launch {
+            deletePurchasedCoinUseCase(
+                coinId = coinId,
+                name = name,
+                amount = amount,
+                buyPrice = buyPrice,
+                buyDate = buyDate,
+            )
+            Log.d("CoinVM", "deletePurchasedCoin called")
         }
     }
 }

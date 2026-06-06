@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.cryptotrack.data.local.dao.CoinDao
 import com.example.cryptotrack.data.local.entity.CoinEntity
 import com.example.cryptotrack.data.local.entity.FavoriteEntity
+import com.example.cryptotrack.data.local.entity.PurchaseEntity
 import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
 
 
@@ -14,9 +15,10 @@ import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
     entities = [
         CoinEntity::class,
         ViewingHistoryEntity::class,
-        FavoriteEntity:: class
+        FavoriteEntity:: class,
+        PurchaseEntity:: class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 
@@ -66,6 +68,25 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("""
             ALTER TABLE favorites ADD COLUMN timestamp INTEGER NOT NULL DEFAULT 0
         """.trimIndent())
+
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+
+        db.execSQL(
+            """
+            CREATE TABLE purchase (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                coinId TEXT NOT NULL,
+                name TEXT NOT NULL,
+                amount REAL NOT NULL,
+                buyPrice REAL NOT NULL,
+                buyDate INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
 
     }
 }

@@ -2,9 +2,11 @@ package com.example.cryptotrack.data.mapper
 
 import com.example.cryptotrack.data.local.entity.CoinEntity
 import com.example.cryptotrack.data.local.entity.FavoriteEntity
+import com.example.cryptotrack.data.local.entity.PurchaseEntity
 import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
+import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 
 fun CoinEntity.toDomain() : RoomCoin {
@@ -60,5 +62,27 @@ fun FavoriteCoin.toEntity() : FavoriteEntity {
         symbol = symbol,
         imageUrl = imageUrl,
         timestamp = timestamp,
+    )
+}
+
+fun PurchaseEntity.toDomain() : PurchaseCoin {
+    return PurchaseCoin(
+        id = id,
+        coinId = coinId,
+        name = name,
+        amount = amount,
+        buyPrice = buyPrice,
+        buyDate = buyDate,
+    )
+}
+
+fun PurchaseCoin.toEntity() : PurchaseEntity {
+    return PurchaseEntity(
+        id = id,
+        coinId = coinId,
+        name = name,
+        amount = amount,
+        buyPrice = buyPrice,
+        buyDate = buyDate,
     )
 }

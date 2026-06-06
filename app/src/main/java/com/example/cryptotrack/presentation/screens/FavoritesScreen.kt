@@ -91,8 +91,7 @@ private fun FavoritesScreenPreview() {
 //        Content(
 //            paddingValues = paddingValues,
 //            navController = NavController(),
-//            coinViewModel = CoinViewModel()
-//
+//            coinViewModel = CoinViewModel(),
 //        )
 //    }
 }

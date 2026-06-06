@@ -7,6 +7,7 @@ import com.example.cryptotrack.data.local.database.AppDatabase
 import com.example.cryptotrack.data.local.database.MIGRATION_1_2
 import com.example.cryptotrack.data.local.database.MIGRATION_2_3
 import com.example.cryptotrack.data.local.database.MIGRATION_3_4
+import com.example.cryptotrack.data.local.database.MIGRATION_4_5
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,6 +33,7 @@ object DatabaseModule {
                 MIGRATION_1_2,
                 MIGRATION_2_3,
                 MIGRATION_3_4,
+                MIGRATION_4_5,
             )
             .build()
     }

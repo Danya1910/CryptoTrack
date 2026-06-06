@@ -200,7 +200,7 @@ private fun Content(
 }
 
 @Composable
-fun SearchField(
+private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     onQueryClear: () -> Unit,
@@ -277,7 +277,7 @@ fun SearchField(
 }
 
 @Composable
-fun SuggestionList(
+private fun SuggestionList(
     suggestions: Search?,
     navController: NavController,
     coinViewModel: CoinViewModel,
@@ -382,7 +382,7 @@ fun SuggestionList(
 
 
 @Composable
-fun Suggestion(
+private fun Suggestion(
     coin: SearchCoin,
     navController: NavController,
     coinViewModel: CoinViewModel,

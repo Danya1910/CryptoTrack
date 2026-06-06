@@ -1,6 +1,7 @@
 package com.example.cryptotrack.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -8,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.cryptotrack.data.local.entity.CoinEntity
 import com.example.cryptotrack.data.local.entity.FavoriteEntity
+import com.example.cryptotrack.data.local.entity.PurchaseEntity
 import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
@@ -66,4 +68,16 @@ WHERE id IN (
     @Query("DELETE FROM favorites")
     suspend fun deleteAllFavoriteCoins()
 
+
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertPurchase(coin: PurchaseEntity)
+
+    @Query("""
+        SELECT * FROM purchase
+        ORDER BY buyDate DESC
+    """)
+    fun getPurchasedCoins() : Flow<List<PurchaseEntity>>
+
+    @Delete
+    suspend fun deletePurchaseCoin(coin: PurchaseEntity)
 }

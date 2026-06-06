@@ -2,6 +2,7 @@ package com.example.cryptotrack.domain.repository
 
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
+import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import kotlinx.coroutines.flow.Flow
 
@@ -29,5 +30,12 @@ interface CoinRepository {
     suspend fun deleteFavoriteCoin(id: String)
 
     suspend fun deleteAllFavoriteCoins()
+
+    //purchase
+    suspend fun insertPurchase(coin: PurchaseCoin)
+
+    fun getPurchasedCoins() : Flow<List<PurchaseCoin>>
+
+    suspend fun deletePurchasedCoin(coin: PurchaseCoin)
 
 }

@@ -5,6 +5,7 @@ import com.example.cryptotrack.data.mapper.toDomain
 import com.example.cryptotrack.data.mapper.toEntity
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
+import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.domain.model.RoomCoin
 import com.example.cryptotrack.domain.repository.CoinRepository
 import kotlinx.coroutines.flow.Flow
@@ -69,6 +70,22 @@ class CoinRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAllFavoriteCoins() {
         dao.deleteAllFavoriteCoins()
+    }
+
+    override suspend fun insertPurchase(coin: PurchaseCoin) {
+        dao.insertPurchase(coin = coin.toEntity())
+    }
+
+    override fun getPurchasedCoins(): Flow<List<PurchaseCoin>> {
+        return dao.getPurchasedCoins().map { list->
+            list.map { entity ->
+                entity.toDomain()
+            }
+        }
+    }
+
+    override suspend fun deletePurchasedCoin(coin: PurchaseCoin) {
+        dao.deletePurchaseCoin(coin = coin.toEntity())
     }
 
 }

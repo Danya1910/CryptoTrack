@@ -33,3 +33,14 @@ data class FavoriteEntity(
     val imageUrl: String,
     val timestamp: Long,
 )
+
+@Entity(tableName = "purchase")
+data class PurchaseEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val coinId: String,
+    val name: String,
+    val amount: Double,
+    val buyPrice: Double,
+    val buyDate: Long,
+)

@@ -1,0 +1,749 @@
+package com.example.cryptotrack.presentation.screens
+
+import android.graphics.Paint
+import android.widget.Space
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Icon
+import androidx.compose.material.Text
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.PurchaseCoin
+import com.example.cryptotrack.domain.model.Search
+import com.example.cryptotrack.domain.model.SearchCoin
+import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.ui.theme.BlackBackground
+import com.example.cryptotrack.ui.theme.DarkBlue
+import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.OutlineGray
+import com.example.cryptotrack.ui.theme.SearchBarColor
+import kotlin.collections.forEachIndexed
+import kotlin.collections.lastIndex
+import kotlin.collections.orEmpty
+import kotlin.collections.take
+
+
+@Composable
+fun PurchaseScreen() {
+}
+
+
+@Composable
+@Preview(showBackground = true)
+private fun PurchaseScreenPreview() {
+    Scaffold(
+    ) { paddingValues ->
+        Content(
+            paddingValues = paddingValues
+        )
+    }
+}
+
+@Composable
+private fun Content(
+    paddingValues: PaddingValues,
+) {
+
+    var query by remember { mutableStateOf("") }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BlackBackground)
+            .padding(paddingValues)
+    ) {
+        item {
+            SearchCoinField(
+                query = query,
+                onQueryChange = {
+                    query = it
+                },
+                onQueryClear = {
+                    query = ""
+                }
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+//        item {
+//
+//            SuggestionList(
+//                suggestions = suggestions.suggestions,
+//                navController = navController,
+//                coinViewModel = coinViewModel,
+//                isExpanded = isExpanded,
+//                onExpandedChange = {
+//                    isExpanded = it
+//                }
+//            )
+//        }
+        item {
+            SelectedCoin()
+        }
+        item {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        item {
+            CountInputField(
+                query = query,
+                title = "BTC",
+                onQueryChange = {
+                    query = it
+                },
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        item {
+            PriceInputField(
+                query = query,
+                title = "USD",
+                symbol = "BTC",
+                onQueryChange = {
+                    query = it
+                },
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        item {
+            CalendarField()
+        }
+    }
+}
+
+@Composable
+private fun SearchCoinField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onQueryClear: () -> Unit,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .height(50.dp)
+            .fillMaxWidth()
+            .background(
+                color = SearchBarColor,
+                shape = RoundedCornerShape(20.dp)
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 15.dp)
+                .fillMaxSize()
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(25.dp),
+            )
+            Spacer(modifier = Modifier.width(15.dp))
+            BasicTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier
+                    .weight(1f),
+                maxLines = 1,
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    fontFamily = Inter,
+                    color = Color.White
+                ),
+                cursorBrush = SolidColor(Color.White),
+                decorationBox = { innerTextField ->
+                    Box(
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (query.isNullOrEmpty()) {
+                            Text(
+                                text = "Search coin",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Normal,
+                                fontFamily = Inter,
+                                color = Color.Gray
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            if (!query.isNullOrEmpty()) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_circle_cross),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(25.dp)
+                        .clickable {
+                            onQueryClear()
+                        },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SuggestionList(
+    suggestions: Search?,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+    isExpanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+) {
+
+    val coins = suggestions?.coins
+
+
+    val visibleCoins = if (isExpanded) {
+        coins.orEmpty()
+    } else {
+        coins.orEmpty().take(7)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+
+        ) {
+            if (!coins.isNullOrEmpty()) {
+                Column {
+                    visibleCoins.forEachIndexed { index, coin ->
+                        Suggestion(
+                            coin = coin,
+                            navController = navController,
+                            coinViewModel = coinViewModel
+                        )
+
+                        if (index != visibleCoins.lastIndex) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(1.dp)
+                                    .background(OutlineGray)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (!coins.isNullOrEmpty()) {
+            if ((coins?.size ?: 0) > 7) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp)
+                        .background(
+                            color = DarkBlue,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = OutlineGray,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        .clickable {
+                            onExpandedChange(!isExpanded)
+                        }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Text(
+                            text = if (isExpanded) "Скрыть" else "Показать ещё",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            color = Color.White,
+                            fontSize = 12.sp
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Icon(
+                            painter = painterResource(
+                                if (isExpanded) R.drawable.ic_arrow_up
+                                else R.drawable.ic_arrow_down
+                            ),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(9.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Suggestion(
+    coin: SearchCoin,
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clickable {
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+                coinViewModel.insertCoin(
+                    id = coin?.id ?: "",
+                    name = coin?.name ?: "",
+                    path = coin?.thumb ?: ""
+                )
+            }
+            .padding(horizontal = 10.dp)
+            .height(36.dp)
+            .fillMaxWidth()
+            .background(color = DarkBlue),
+    ) {
+        Text(
+            text = coin.marketCapRank.toString(),
+            fontFamily = Inter,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(0.2f),
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .fillMaxHeight()
+                .weight(1f),
+        ) {
+            AsyncImage(
+                model = coin?.thumb,
+                contentDescription = null,
+                modifier = Modifier.size(25.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = coin?.name ?: "Unknown",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = coin?.symbol ?: "Unk",
+                    fontFamily = Inter,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+    }
+}
+
+
+@Composable
+
+private fun SelectedCoin() {
+    Box(
+        modifier = Modifier
+            .height(70.dp)
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(15.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+//                AsyncImage(
+//                    model = "",
+//                    contentDescription = null,
+//                    modifier = Modifier.size(38.dp)
+//                )
+                Icon(
+                    painter = painterResource(R.drawable.bitcoin),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(38.dp),
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    Text(
+                        text = "Bitcoin",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = "BTC",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                    )
+                }
+            }
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier
+                    .weight(0.6f)
+                    .fillMaxHeight()
+            ) {
+                Text(
+                    text = "$67.452.12",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "+2.35%",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = Green,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountInputField(
+    query: String,
+    title: String,
+    onQueryChange: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Количество",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = Inter,
+            color = Color.White,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .height(45.dp)
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .border(
+                    color = OutlineGray,
+                    width = 1.dp,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 15.dp)
+            ) {
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier
+                        .weight(1f),
+                    maxLines = 1,
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = Inter,
+                        color = Color.White
+                    ),
+                    cursorBrush = SolidColor(Color.White),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            contentAlignment = Alignment.CenterStart,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (query.isNullOrEmpty()) {
+                                Text(
+                                    text = "Search coin",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    fontFamily = Inter,
+                                    color = Color.Gray
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                )
+                Text(
+                    textAlign = TextAlign.End,
+                    text = title,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.weight(0.3f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PriceInputField(
+    query: String,
+    symbol: String,
+    title: String,
+    onQueryChange: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Цена покупки",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = Inter,
+            color = Color.White,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .height(45.dp)
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .border(
+                    color = OutlineGray,
+                    width = 1.dp,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 15.dp)
+            ) {
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier
+                        .weight(1f),
+                    maxLines = 1,
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = Inter,
+                        color = Color.White
+                    ),
+                    cursorBrush = SolidColor(Color.White),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            contentAlignment = Alignment.CenterStart,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (query.isNullOrEmpty()) {
+                                Text(
+                                    text = "Search coin",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    fontFamily = Inter,
+                                    color = Color.Gray
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                )
+                Text(
+                    textAlign = TextAlign.End,
+                    text = title,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.weight(0.3f)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Цена за 1 $symbol",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = Inter,
+            color = Color.Gray,
+        )
+    }
+}
+
+@Composable
+private fun CalendarField(
+) {
+
+    val date by remember { mutableStateOf("20 мая 2024, 14:30") }
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Дата покупки",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = Inter,
+            color = Color.White,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .height(45.dp)
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .border(
+                    color = OutlineGray,
+                    width = 1.dp,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 15.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_calendar),
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = date,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = Inter,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_down),
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+        }
+    }
+}
+
+
