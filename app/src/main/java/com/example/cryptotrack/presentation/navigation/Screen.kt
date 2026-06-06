@@ -28,4 +28,8 @@ sealed interface Screen {
         override val route = "Favorites"
     }
 
+    data object Purchase: Screen {
+        override val route = "Purchase"
+    }
+
 }

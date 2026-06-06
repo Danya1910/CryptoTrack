@@ -49,6 +49,7 @@ dependencies {
 
     implementation(libs.androidx.compose.ui.test)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.material3)
     val roomVersion = "2.8.4"
 
     implementation("androidx.room:room-runtime:$roomVersion")
@@ -78,6 +79,8 @@ dependencies {
 
     implementation("androidx.compose.material:material:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    implementation("androidx.compose.material3:material3")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

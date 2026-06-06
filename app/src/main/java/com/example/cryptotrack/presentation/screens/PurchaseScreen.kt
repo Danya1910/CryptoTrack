@@ -23,7 +23,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +64,10 @@ import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.SearchBarColor
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import kotlin.collections.forEachIndexed
 import kotlin.collections.lastIndex
 import kotlin.collections.orEmpty
@@ -64,6 +76,11 @@ import kotlin.collections.take
 
 @Composable
 fun PurchaseScreen() {
+    Scaffold() { paddingValues ->
+        Content(
+            paddingValues = paddingValues
+        )
+    }
 }
 
 
@@ -153,6 +170,26 @@ private fun Content(
 
         item {
             CalendarField()
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        item {
+            FinalCost(
+                symbol = "BTC",
+                count = "0.025",
+                price = "$67,452.12"
+            )
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+
+        item {
+            AcceptButton()
         }
     }
 }
@@ -677,11 +714,40 @@ private fun PriceInputField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalendarField(
 ) {
 
-    val date by remember { mutableStateOf("20 мая 2024, 14:30") }
+    var showDatePicker by remember {
+        mutableStateOf(false)
+    }
+
+    var showTimePicker by remember {
+        mutableStateOf(false)
+    }
+
+    var selectedDateMillis by remember {
+        mutableStateOf<Long?>(null)
+    }
+
+    var buyDateMillis by remember {
+        mutableStateOf<Long?>(null)
+    }
+
+    val timeState = rememberTimePickerState()
+
+    val text = remember(buyDateMillis) {
+        if (buyDateMillis == null) {
+            "Выберите дату"
+        } else {
+            SimpleDateFormat(
+                "dd.MM.yyyy HH:mm",
+                Locale.getDefault()
+            ).format(Date(buyDateMillis!!))
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -706,6 +772,9 @@ private fun CalendarField(
                     width = 1.dp,
                     shape = RoundedCornerShape(10.dp)
                 )
+                .clickable {
+                    showDatePicker = true
+                }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -725,7 +794,7 @@ private fun CalendarField(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = date,
+                        text = text,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                         fontFamily = Inter,
@@ -744,6 +813,229 @@ private fun CalendarField(
             }
         }
     }
+    if (showDatePicker) {
+
+        val dateState = rememberDatePickerState()
+
+        DatePickerDialog(
+
+            onDismissRequest = {
+                showDatePicker = false
+            },
+
+            confirmButton = {
+
+                Button(
+
+                    onClick = {
+
+                        selectedDateMillis =
+                            dateState.selectedDateMillis
+
+                        showDatePicker = false
+
+                        if (selectedDateMillis != null) {
+                            showTimePicker = true
+                        }
+
+                    }
+
+                ) {
+
+                    Text("OK")
+
+                }
+
+            }
+
+        ) {
+
+            DatePicker(
+                state = dateState
+            )
+
+        }
+
+    }
+
+    if (showTimePicker) {
+
+        AlertDialog(
+
+            onDismissRequest = {
+                showTimePicker = false
+            },
+
+            confirmButton = {
+
+                Button(
+
+                    onClick = {
+
+                        val calendar =
+                            Calendar.getInstance()
+
+                        calendar.timeInMillis =
+                            selectedDateMillis!!
+
+                        calendar.set(
+                            Calendar.HOUR_OF_DAY,
+                            timeState.hour
+                        )
+
+                        calendar.set(
+                            Calendar.MINUTE,
+                            timeState.minute
+                        )
+
+                        calendar.set(
+                            Calendar.SECOND,
+                            0
+                        )
+
+                        calendar.set(
+                            Calendar.MILLISECOND,
+                            0
+                        )
+
+                        buyDateMillis =
+                            calendar.timeInMillis
+
+                        showTimePicker = false
+
+                    }
+
+                ) {
+
+                    Text("OK")
+
+                }
+
+            },
+
+            dismissButton = {
+
+                Button(
+
+                    onClick = {
+
+                        showTimePicker = false
+
+                    }
+
+                ) {
+
+                    Text("Cancel")
+
+                }
+
+            },
+
+            text = {
+
+                TimePicker(
+                    state = timeState
+                )
+
+            }
+
+        )
+
+    }
 }
 
 
+@Composable
+private fun FinalCost(
+    symbol: String,
+    count: String,
+    price: String,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(75.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(all = 15.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+            ) {
+                Text(
+                    text = "Итого",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                )
+                Text(
+                    text = "$count $symbol по цене $price",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+            ) {
+                Text(
+                    text = "$1,696.30",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Green,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AcceptButton() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Text(
+            text = "Сохранить покупку",
+            fontFamily = Inter,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Color.White,
+        )
+    }
+}
