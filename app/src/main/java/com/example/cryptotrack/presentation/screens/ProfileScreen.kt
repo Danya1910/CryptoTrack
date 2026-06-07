@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,23 +23,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
@@ -48,6 +49,7 @@ import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.uiModels.FavoriteUiItem
+import com.example.cryptotrack.presentation.util.uiModels.Slice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
@@ -56,6 +58,7 @@ import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
+import com.example.cryptotrack.ui.theme.Pink40
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
 import java.text.DecimalFormat
@@ -585,4 +588,100 @@ private fun RecentlyViewedItem(
             }
         }
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun PurchaseWidget() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .padding(all = 15.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(0.6f)
+            ) {
+                Text(
+                    text = "Стоимость портфеля",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "$12 482.75",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
+                    color = Color.White,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "$12 482.75",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = Green,
+                )
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(
+                modifier = Modifier.weight(0.4f)
+            ) {
+                PieTest()
+            }
+        }
+    }
+}
+
+@Composable
+fun PieTest() {
+
+    val slices = listOf(
+        Slice("Bitcoin", 50.0f, Color(0xFF4F46E5)),
+        Slice("Ethereum", 25.0f, Color(0xFF22C55E)),
+        Slice("Solana", 10.2f, Color(0xFFF97316)),
+        Slice("Другие", 14.8f, Color(0xFFEF4444)),
+    )
+
+    val gap = 5f
+
+    Canvas(
+        modifier = Modifier.size(50.dp)
+    ) {
+
+        val total = slices.sumOf { it.value.toDouble() }.toFloat()
+        var startAngle = -90f
+        val stroke = 10.dp.toPx()
+
+        slices.forEach {
+
+            val sweep = it.value / total * 360f
+
+            drawArc(
+                color = it.color,
+                startAngle = startAngle + gap / 2,
+                sweepAngle = sweep,
+                useCenter = false,
+                style = Stroke(width = stroke)
+            )
+
+            startAngle += sweep
+        }
+    }
+
 }
