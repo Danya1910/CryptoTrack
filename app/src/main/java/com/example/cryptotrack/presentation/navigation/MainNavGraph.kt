@@ -106,8 +106,13 @@ fun NavGraphBuilder.MainNavGraph(
             navController.getBackStackEntry("main_graph")
         }
         val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
+        val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
 
-        PurchaseScreen()
+        PurchaseScreen(
+            navController = navController,
+            viewModel = viewModel,
+            coinViewModel = coinViewModel,
+        )
 
     }
 

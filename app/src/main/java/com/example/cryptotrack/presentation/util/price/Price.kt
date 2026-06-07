@@ -41,3 +41,29 @@ fun Double.toCompactUsd(): String {
             "$" + String.format(Locale.US, "%.2f", this)
     }
 }
+
+fun sanitizePrice(input: String): String {
+    val filtered = input
+        .replace(",", ".") // заменяем запятую
+        .filter { it.isDigit() || it == '.' }
+
+    val parts = filtered.split('.')
+
+    return when {
+        parts.size <= 1 -> filtered
+        else -> parts[0] + "." + parts.drop(1).joinToString("")
+    }
+}
+
+fun sanitizeAmount(input: String): String {
+    val filtered = input
+        .replace(",", ".")
+        .filter { it.isDigit() || it == '.' }
+
+    val parts = filtered.split('.')
+
+    return when {
+        parts.size <= 1 -> filtered
+        else -> parts[0] + "." + parts.drop(1).joinToString("")
+    }
+}

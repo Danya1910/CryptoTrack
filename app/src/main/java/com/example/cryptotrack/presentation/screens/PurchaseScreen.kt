@@ -1,7 +1,5 @@
 package com.example.cryptotrack.presentation.screens
 
-import android.graphics.Paint
-import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material3.AlertDialog
@@ -33,6 +32,8 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,25 +46,36 @@ import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
-import com.example.cryptotrack.domain.model.PurchaseCoin
+import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.SearchCoin
 import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.sanitizeAmount
+import com.example.cryptotrack.presentation.util.price.sanitizePrice
+import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.GreenForButton
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
+import com.example.cryptotrack.ui.theme.OutlineGreen
+import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -75,10 +87,17 @@ import kotlin.collections.take
 
 
 @Composable
-fun PurchaseScreen() {
+fun PurchaseScreen(
+    navController: NavController,
+    coinViewModel: CoinViewModel,
+    viewModel: CoinGeckoViewModel,
+) {
     Scaffold() { paddingValues ->
         Content(
-            paddingValues = paddingValues
+            paddingValues = paddingValues,
+            navController = navController,
+            coinViewModel = coinViewModel,
+            viewModel = viewModel,
         )
     }
 }
@@ -87,20 +106,64 @@ fun PurchaseScreen() {
 @Composable
 @Preview(showBackground = true)
 private fun PurchaseScreenPreview() {
-    Scaffold(
-    ) { paddingValues ->
-        Content(
-            paddingValues = paddingValues
-        )
-    }
+//    Scaffold(
+//    ) { paddingValues ->
+//        Content(
+//            paddingValues = paddingValues
+//        )
+//    }
 }
 
 @Composable
 private fun Content(
     paddingValues: PaddingValues,
+    coinViewModel: CoinViewModel,
+    viewModel: CoinGeckoViewModel,
+    navController: NavController,
 ) {
 
+    val suggestions by viewModel.searchState.collectAsState()
     var query by remember { mutableStateOf("") }
+    var coinsCount by remember { mutableStateOf("") }
+    var buyPrice by remember { mutableStateOf("") }
+
+    var currentCoinId by remember { mutableStateOf("") }
+
+
+    LaunchedEffect(query) {
+        if (query.isNotEmpty())
+            viewModel.search(query = query)
+        else {
+            viewModel.clearSuggestionsList()
+        }
+    }
+
+    LaunchedEffect(currentCoinId) {
+        if (currentCoinId.isNotEmpty()) {
+            viewModel.getFavoriteCoinsDetails(ids = currentCoinId)
+        }
+    }
+
+    val favoriteCoinState by viewModel.favoriteCoinsDetailsState.collectAsState()
+
+    val selectedCoin = favoriteCoinState.details?.firstOrNull()
+
+    val coins = coinsCount.toDoubleOrNull()
+    val price = buyPrice.toDoubleOrNull()
+
+    val isFormValid =
+        selectedCoin != null &&
+                coins != null &&
+                price != null &&
+                coins > 0 &&
+                price > 0
+
+    val showFinalCost =
+        coins != null &&
+                price != null &&
+                coins > 0 &&
+                price > 0
+
 
     LazyColumn(
         modifier = Modifier
@@ -108,44 +171,55 @@ private fun Content(
             .background(BlackBackground)
             .padding(paddingValues)
     ) {
-        item {
-            SearchCoinField(
-                query = query,
-                onQueryChange = {
-                    query = it
-                },
-                onQueryClear = {
-                    query = ""
+        if (favoriteCoinState.details.isNullOrEmpty()) {
+            item {
+                SearchCoinField(
+                    query = query,
+                    onQueryChange = {
+                        query = it
+                    },
+                    onQueryClear = {
+                        query = ""
+                    }
+                )
+            }
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+            item {
+
+                SuggestionList(
+                    suggestions = suggestions.suggestions,
+                    onCoinClick = { coin ->
+                        query = coin.name
+
+                        viewModel.clearSuggestionsList()
+
+                        viewModel.getFavoriteCoinsDetails(ids = coin.id)
+                    }
+                )
+            }
+        } else {
+            if (selectedCoin != null) {
+                item {
+                    SelectedCoin(
+                        details = selectedCoin,
+                        onClick = {
+                            viewModel.clearFavoriteCoinsDetails()
+                        }
+                    )
                 }
-            )
-        }
-        item {
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-//        item {
-//
-//            SuggestionList(
-//                suggestions = suggestions.suggestions,
-//                navController = navController,
-//                coinViewModel = coinViewModel,
-//                isExpanded = isExpanded,
-//                onExpandedChange = {
-//                    isExpanded = it
-//                }
-//            )
-//        }
-        item {
-            SelectedCoin()
+            }
         }
         item {
             Spacer(modifier = Modifier.height(10.dp))
         }
         item {
             CountInputField(
-                query = query,
-                title = "BTC",
+                query = coinsCount,
+                title = selectedCoin?.symbol?.uppercase() ?: "",
                 onQueryChange = {
-                    query = it
+                    coinsCount = sanitizeAmount(it)
                 },
             )
         }
@@ -155,11 +229,11 @@ private fun Content(
 
         item {
             PriceInputField(
-                query = query,
+                query = buyPrice,
                 title = "USD",
-                symbol = "BTC",
+                symbol = selectedCoin?.symbol?.uppercase() ?: "монету",
                 onQueryChange = {
-                    query = it
+                    buyPrice = sanitizePrice(it)
                 },
             )
         }
@@ -176,23 +250,29 @@ private fun Content(
             Spacer(modifier = Modifier.height(10.dp))
         }
 
-        item {
-            FinalCost(
-                symbol = "BTC",
-                count = "0.025",
-                price = "$67,452.12"
-            )
+        if (showFinalCost) {
+            item {
+                FinalCost(
+                    symbol = selectedCoin?.symbol ?: "",
+                    count = coinsCount,
+                    price = buyPrice,
+                )
+            }
         }
+
 
         item {
             Spacer(modifier = Modifier.height(10.dp))
         }
 
         item {
-            AcceptButton()
+            AcceptButton(
+                isFormValid = isFormValid
+            )
         }
     }
 }
+
 
 @Composable
 private fun SearchCoinField(
@@ -206,7 +286,7 @@ private fun SearchCoinField(
             .height(50.dp)
             .fillMaxWidth()
             .background(
-                color = SearchBarColor,
+                color = DarkBlue,
                 shape = RoundedCornerShape(20.dp)
             )
     ) {
@@ -274,20 +354,13 @@ private fun SearchCoinField(
 @Composable
 private fun SuggestionList(
     suggestions: Search?,
-    navController: NavController,
-    coinViewModel: CoinViewModel,
-    isExpanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
+    onCoinClick: (SearchCoin) -> Unit,
 ) {
 
     val coins = suggestions?.coins
 
 
-    val visibleCoins = if (isExpanded) {
-        coins.orEmpty()
-    } else {
-        coins.orEmpty().take(7)
-    }
+    val visibleCoins = coins.orEmpty().take(7)
 
     Column(
         modifier = Modifier
@@ -307,8 +380,9 @@ private fun SuggestionList(
                     visibleCoins.forEachIndexed { index, coin ->
                         Suggestion(
                             coin = coin,
-                            navController = navController,
-                            coinViewModel = coinViewModel
+                            onClick = {
+                                onCoinClick(coin)
+                            }
                         )
 
                         if (index != visibleCoins.lastIndex) {
@@ -323,74 +397,19 @@ private fun SuggestionList(
                 }
             }
         }
-        if (!coins.isNullOrEmpty()) {
-            if ((coins?.size ?: 0) > 7) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp)
-                        .background(
-                            color = DarkBlue,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = OutlineGray,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .clickable {
-                            onExpandedChange(!isExpanded)
-                        }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        Text(
-                            text = if (isExpanded) "Скрыть" else "Показать ещё",
-                            fontFamily = Inter,
-                            fontWeight = FontWeight.Normal,
-                            color = Color.White,
-                            fontSize = 12.sp
-                        )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Icon(
-                            painter = painterResource(
-                                if (isExpanded) R.drawable.ic_arrow_up
-                                else R.drawable.ic_arrow_down
-                            ),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier
-                                .size(9.dp)
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
 @Composable
 private fun Suggestion(
     coin: SearchCoin,
-    navController: NavController,
-    coinViewModel: CoinViewModel,
+    onClick: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clickable {
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
-                coinViewModel.insertCoin(
-                    id = coin?.id ?: "",
-                    name = coin?.name ?: "",
-                    path = coin?.thumb ?: ""
-                )
+                onClick()
             }
             .padding(horizontal = 10.dp)
             .height(36.dp)
@@ -451,92 +470,132 @@ private fun Suggestion(
 
 
 @Composable
+private fun SelectedCoin(
+    details: FavoriteCoinDetails,
+    onClick: () -> Unit,
+) {
 
-private fun SelectedCoin() {
-    Box(
+    val currentPriceFormatted = formatPrice(value = details.currentPrice)
+
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val percentageColor = if (details.priceChangePercentage24h >= 0) Green else Red
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
+
+    val percentageText = details.priceChangePercentage24h.let {
+        if (it > 0) {
+            "+${formatter.format(it)}%"
+        } else {
+            "${formatter.format(it)}%"
+        }
+    }
+
+    Column(
         modifier = Modifier
-            .height(70.dp)
             .fillMaxWidth()
-            .background(
-                color = DarkBlue,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = OutlineGray,
-                shape = RoundedCornerShape(10.dp)
-            )
+            .clickable {
+                onClick()
+            }
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(15.dp)
+                .height(70.dp)
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = OutlineGray,
+                    shape = RoundedCornerShape(10.dp)
+                )
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxSize()
+                    .padding(15.dp)
             ) {
-//                AsyncImage(
-//                    model = "",
-//                    contentDescription = null,
-//                    modifier = Modifier.size(38.dp)
-//                )
-                Icon(
-                    painter = painterResource(R.drawable.bitcoin),
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(38.dp),
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    AsyncImage(
+                        model = details.image,
+                        contentDescription = null,
+                        modifier = Modifier.size(38.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(
+                        verticalArrangement = Arrangement.SpaceAround,
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Text(
+                            text = details.name,
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 15.sp,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = details.symbol.toUpperCase(),
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 12.sp,
+                            color = Color.Gray,
+                        )
+                    }
+                }
                 Column(
                     verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.Start,
+                    horizontalAlignment = Alignment.End,
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(0.6f)
+                        .fillMaxHeight()
                 ) {
                     Text(
-                        text = "Bitcoin",
+                        text = "$$currentPriceFormatted",
                         fontFamily = Inter,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp,
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = "BTC",
+                        text = percentageText,
                         fontFamily = Inter,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
-                        color = Color.Gray,
+                        color = percentageColor,
                     )
                 }
             }
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier
-                    .weight(0.6f)
-                    .fillMaxHeight()
-            ) {
-                Text(
-                    text = "$67.452.12",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = "+2.35%",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 12.sp,
-                    color = Green,
-                )
-            }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                textAlign = TextAlign.Center,
+                text = "Выбрать другую монету",
+                fontFamily = Inter,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Gray,
+            )
         }
     }
 }
@@ -581,6 +640,9 @@ private fun CountInputField(
                 BasicTextField(
                     value = query,
                     onValueChange = onQueryChange,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal
+                    ),
                     modifier = Modifier
                         .weight(1f),
                     maxLines = 1,
@@ -664,6 +726,9 @@ private fun PriceInputField(
                 BasicTextField(
                     value = query,
                     onValueChange = onQueryChange,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Decimal
+                    ),
                     modifier = Modifier
                         .weight(1f),
                     maxLines = 1,
@@ -951,6 +1016,11 @@ private fun FinalCost(
     count: String,
     price: String,
 ) {
+
+    val total = count.toDouble() * price.toDouble()
+
+    val formattedTotal = formatPrice(value = total)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -985,7 +1055,7 @@ private fun FinalCost(
                     color = Color.White,
                 )
                 Text(
-                    text = "$count $symbol по цене $price",
+                    text = "$count ${symbol.uppercase()} по цене $price",
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.sp,
@@ -1002,7 +1072,7 @@ private fun FinalCost(
                     .weight(1f)
             ) {
                 Text(
-                    text = "$1,696.30",
+                    text = "$$formattedTotal",
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
@@ -1014,19 +1084,21 @@ private fun FinalCost(
 }
 
 @Composable
-private fun AcceptButton() {
+private fun AcceptButton(
+    isFormValid: Boolean,
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
             .background(
-                color = DarkBlue,
+                color = if(!isFormValid) DarkBlue else GreenForButton,
                 shape = RoundedCornerShape(10.dp)
             )
             .border(
                 width = 1.dp,
-                color = OutlineGray,
+                color = if(!isFormValid) OutlineGray else OutlineGreen,
                 shape = RoundedCornerShape(10.dp)
             )
     ) {
@@ -1035,7 +1107,7 @@ private fun AcceptButton() {
             fontFamily = Inter,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
-            color = Color.White,
+            color = if(!isFormValid) Color.White else Color.Black,
         )
     }
 }
