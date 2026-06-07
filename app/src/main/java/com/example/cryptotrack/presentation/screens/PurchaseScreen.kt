@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -42,14 +43,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,12 +58,12 @@ import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.SearchCoin
-import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.price.sanitizeAmount
 import com.example.cryptotrack.presentation.util.price.sanitizePrice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.widgets.PurchaseTopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -73,7 +72,6 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.OutlineGreen
 import com.example.cryptotrack.ui.theme.Red
-import com.example.cryptotrack.ui.theme.SearchBarColor
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
@@ -92,7 +90,13 @@ fun PurchaseScreen(
     coinViewModel: CoinViewModel,
     viewModel: CoinGeckoViewModel,
 ) {
-    Scaffold() { paddingValues ->
+    Scaffold(
+        topBar = {
+            PurchaseTopAppBar(
+                navController = navController,
+            )
+        },
+    ) { paddingValues ->
         Content(
             paddingValues = paddingValues,
             navController = navController,
@@ -136,6 +140,7 @@ private fun Content(
         else {
             viewModel.clearSuggestionsList()
         }
+
     }
 
     LaunchedEffect(currentCoinId) {
@@ -148,21 +153,32 @@ private fun Content(
 
     val selectedCoin = favoriteCoinState.details?.firstOrNull()
 
+    var buyDate by remember { mutableStateOf<Long?>(null) }
+
+
+    LaunchedEffect(favoriteCoinState) {
+        Log.d("CoinViewModel", "${coinViewModel.purchase}")
+    }
+
     val coins = coinsCount.toDoubleOrNull()
     val price = buyPrice.toDoubleOrNull()
+
+    val isDateValid = buyDate != null && buyDate!! > 0
 
     val isFormValid =
         selectedCoin != null &&
                 coins != null &&
                 price != null &&
                 coins > 0 &&
-                price > 0
+                price > 0 &&
+                isDateValid
 
     val showFinalCost =
         coins != null &&
                 price != null &&
                 coins > 0 &&
                 price > 0
+
 
 
     LazyColumn(
@@ -243,7 +259,12 @@ private fun Content(
         }
 
         item {
-            CalendarField()
+            CalendarField(
+                buyDate = buyDate,
+                onDateSelected = {
+                    buyDate = it
+                }
+            )
         }
 
         item {
@@ -267,7 +288,16 @@ private fun Content(
 
         item {
             AcceptButton(
-                isFormValid = isFormValid
+                isFormValid = isFormValid,
+                onClick = {
+                    coinViewModel.insertPurchase(
+                        coinId = selectedCoin?.id ?: "",
+                        name = selectedCoin?.name ?: "",
+                        amount = coinsCount.toDouble(),
+                        buyPrice = buyPrice.toDouble(),
+                        buyDate = buyDate ?: 0,
+                    )
+                }
             )
         }
     }
@@ -782,6 +812,8 @@ private fun PriceInputField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CalendarField(
+    buyDate: Long?,
+    onDateSelected: (Long) -> Unit,
 ) {
 
     var showDatePicker by remember {
@@ -796,22 +828,20 @@ private fun CalendarField(
         mutableStateOf<Long?>(null)
     }
 
-    var buyDateMillis by remember {
-        mutableStateOf<Long?>(null)
-    }
-
+    val dateState = rememberDatePickerState()
     val timeState = rememberTimePickerState()
 
-    val text = remember(buyDateMillis) {
-        if (buyDateMillis == null) {
+    val text = remember(buyDate) {
+        if (buyDate == null) {
             "Выберите дату"
         } else {
             SimpleDateFormat(
                 "dd.MM.yyyy HH:mm",
                 Locale.getDefault()
-            ).format(Date(buyDateMillis!!))
+            ).format(Date(buyDate!!))
         }
     }
+
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -880,7 +910,6 @@ private fun CalendarField(
     }
     if (showDatePicker) {
 
-        val dateState = rememberDatePickerState()
 
         DatePickerDialog(
 
@@ -937,36 +966,20 @@ private fun CalendarField(
 
                     onClick = {
 
-                        val calendar =
-                            Calendar.getInstance()
+                        selectedDateMillis?.let { date ->
+                            val calendar = Calendar.getInstance()
 
-                        calendar.timeInMillis =
-                            selectedDateMillis!!
+                            calendar.timeInMillis = date
 
-                        calendar.set(
-                            Calendar.HOUR_OF_DAY,
-                            timeState.hour
-                        )
+                            calendar.set(Calendar.HOUR_OF_DAY, timeState.hour)
+                            calendar.set(Calendar.MINUTE, timeState.minute)
+                            calendar.set(Calendar.SECOND, 0)
+                            calendar.set(Calendar.MILLISECOND, 0)
 
-                        calendar.set(
-                            Calendar.MINUTE,
-                            timeState.minute
-                        )
+                            onDateSelected(calendar.timeInMillis)
 
-                        calendar.set(
-                            Calendar.SECOND,
-                            0
-                        )
-
-                        calendar.set(
-                            Calendar.MILLISECOND,
-                            0
-                        )
-
-                        buyDateMillis =
-                            calendar.timeInMillis
-
-                        showTimePicker = false
+                            showTimePicker = false
+                        }
 
                     }
 
@@ -1017,7 +1030,9 @@ private fun FinalCost(
     price: String,
 ) {
 
-    val total = count.toDouble() * price.toDouble()
+
+    val total = (count.toDoubleOrNull() ?: 0.0) *
+            (price.toDoubleOrNull() ?: 0.0)
 
     val formattedTotal = formatPrice(value = total)
 
@@ -1086,6 +1101,7 @@ private fun FinalCost(
 @Composable
 private fun AcceptButton(
     isFormValid: Boolean,
+    onClick: () -> Unit,
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -1101,6 +1117,11 @@ private fun AcceptButton(
                 color = if(!isFormValid) OutlineGray else OutlineGreen,
                 shape = RoundedCornerShape(10.dp)
             )
+            .clickable{
+                if(isFormValid) {
+                    onClick()
+                }
+            }
     ) {
         Text(
             text = "Сохранить покупку",

@@ -55,6 +55,10 @@ class CoinViewModel @Inject constructor(
 
         viewModelScope.launch {
 
+            purchase.collect { list ->
+                Log.d("CoinVM", "purchase = $list")
+            }
+
             coins.collect { list ->
 
                 Log.d("CoinVM", "coins = $list")
@@ -68,9 +72,6 @@ class CoinViewModel @Inject constructor(
                 Log.d("CoinVM", "favoriteCoins = $list")
             }
 
-            purchase.collect { list ->
-                Log.d("CoinVM", "purchase = $list")
-            }
         }
     }
 
