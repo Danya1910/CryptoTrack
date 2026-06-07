@@ -155,11 +155,6 @@ private fun Content(
 
     var buyDate by remember { mutableStateOf<Long?>(null) }
 
-
-    LaunchedEffect(favoriteCoinState) {
-        Log.d("CoinViewModel", "${coinViewModel.purchase}")
-    }
-
     val coins = coinsCount.toDoubleOrNull()
     val price = buyPrice.toDoubleOrNull()
 
@@ -178,8 +173,6 @@ private fun Content(
                 price != null &&
                 coins > 0 &&
                 price > 0
-
-
 
     LazyColumn(
         modifier = Modifier
@@ -365,7 +358,7 @@ private fun SearchCoinField(
                 }
             )
             Spacer(modifier = Modifier.width(10.dp))
-            if (!query.isNullOrEmpty()) {
+            if (query.isNotEmpty()) {
                 Icon(
                     painter = painterResource(R.drawable.ic_circle_cross),
                     contentDescription = null,
@@ -464,7 +457,7 @@ private fun Suggestion(
                 .weight(1f),
         ) {
             AsyncImage(
-                model = coin?.thumb,
+                model = coin.thumb,
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
@@ -474,7 +467,7 @@ private fun Suggestion(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = coin?.name ?: "Unknown",
+                    text = coin.name,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -484,7 +477,7 @@ private fun Suggestion(
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    text = coin?.symbol ?: "Unk",
+                    text = coin.symbol,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -688,9 +681,9 @@ private fun CountInputField(
                             contentAlignment = Alignment.CenterStart,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (query.isNullOrEmpty()) {
+                            if (query.isEmpty()) {
                                 Text(
-                                    text = "Search coin",
+                                    text = "Количество монет",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal,
                                     fontFamily = Inter,
@@ -774,9 +767,9 @@ private fun PriceInputField(
                             contentAlignment = Alignment.CenterStart,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            if (query.isNullOrEmpty()) {
+                            if (query.isEmpty()) {
                                 Text(
-                                    text = "Search coin",
+                                    text = "Цена за 1 $symbol",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal,
                                     fontFamily = Inter,
