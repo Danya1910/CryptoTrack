@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -31,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +41,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
@@ -46,6 +50,7 @@ import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
+import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.uiModels.FavoriteUiItem
@@ -99,6 +104,7 @@ private fun Content(
 
     val historyOfViewingList by coinViewModel.historyOfViewingCoins.collectAsState(initial = emptyList())
     val favoriteCoins by coinViewModel.favoriteCoins.collectAsState(initial = emptyList())
+    val purchase by coinViewModel.purchase.collectAsState(initial = emptyList())
 
     LaunchedEffect(favoriteCoins) {
         if (favoriteCoins.isNotEmpty()) {
@@ -122,6 +128,8 @@ private fun Content(
     val favoritesCount = favoriteCoins.size
     val recentlyViewedCount = historyOfViewingList.size
 
+    val parts = createSlices(purchases = purchase)
+
 
     Column(
         modifier = Modifier
@@ -137,7 +145,11 @@ private fun Content(
 
         )
         Spacer(modifier = Modifier.height(10.dp))
+        PurchaseWidget(
+            parts = parts,
+        )
 
+        Spacer(modifier = Modifier.height(10.dp))
         FavoriteWidget(
             details = uiList,
             navController = navController
@@ -591,8 +603,15 @@ private fun RecentlyViewedItem(
 }
 
 @Composable
-@Preview(showBackground = true)
-private fun PurchaseWidget() {
+private fun PurchaseWidget(
+    parts: List<Slice>
+) {
+
+    val total = formatPrice(parts.sumOf { it.value.toDouble() })
+
+
+
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -623,7 +642,7 @@ private fun PurchaseWidget() {
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "$12 482.75",
+                    text = "$$total",
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 20.sp,
@@ -631,34 +650,40 @@ private fun PurchaseWidget() {
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "$12 482.75",
+                    text = "12.4% (24h)",
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
                     color = Green,
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "С 12 июл. 2006",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                )
             }
             Spacer(modifier = Modifier.width(20.dp))
             Column(
-                modifier = Modifier.weight(0.4f)
+                modifier = Modifier.weight(0.5f)
             ) {
-                PieTest()
+                PieTest(slices = parts)
+                Spacer(modifier = Modifier.height(10.dp))
+                PurchasePercentage(parts = parts)
             }
         }
     }
 }
 
 @Composable
-fun PieTest() {
+fun PieTest(
+    slices: List<Slice>,
 
-    val slices = listOf(
-        Slice("Bitcoin", 50.0f, Color(0xFF4F46E5)),
-        Slice("Ethereum", 25.0f, Color(0xFF22C55E)),
-        Slice("Solana", 10.2f, Color(0xFFF97316)),
-        Slice("Другие", 14.8f, Color(0xFFEF4444)),
-    )
+) {
 
-    val gap = 5f
+    val gap = 6f
 
     Canvas(
         modifier = Modifier.size(50.dp)
@@ -674,8 +699,8 @@ fun PieTest() {
 
             drawArc(
                 color = it.color,
-                startAngle = startAngle + gap / 2,
-                sweepAngle = sweep,
+                startAngle = startAngle + gap/2,
+                sweepAngle = sweep - gap,
                 useCenter = false,
                 style = Stroke(width = stroke)
             )
@@ -683,5 +708,112 @@ fun PieTest() {
             startAngle += sweep
         }
     }
+}
 
+@Composable
+
+private fun PurchasePercentage(
+    parts: List<Slice>,
+) {
+    val total = parts.sumOf { it.value.toDouble() }.toFloat()
+
+    Column() {
+        parts.forEach { coin ->
+            val percent = if (total > 0f) {
+                coin.value / total * 100
+            } else {
+                0f
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .background(
+                            color = coin.color,
+                            shape = CircleShape
+                        )
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = coin.name,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(0.8f),
+                )
+                Text(
+                    text = "%.1f%%".format(percent).replace(',', '.'),
+                    textAlign = TextAlign.End,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(0.3f),
+                )
+            }
+        }
+    }
+}
+
+fun createSlices(purchases: List<PurchaseCoin>): List<Slice> {
+
+    val colors = listOf(
+        Color(0xFF4F46E5),
+        Color(0xFF22C55E),
+        Color(0xFFF97316),
+        Color(0xFFEAB308),
+        Color(0xFF06B6D4),
+        Color(0xFFEC4899)
+    )
+
+    // Объединяем одинаковые монеты и считаем их стоимость
+    val grouped = purchases
+        .groupBy { it.coinId }
+        .map { (_, list) ->
+            Slice(
+                name = list.first().name,
+                value = list.sumOf { it.amount * it.buyPrice }.toFloat(),
+                color = Color.Transparent
+            )
+        }
+        .sortedByDescending { it.value }
+
+    // Оставляем 3 самые большие
+    val result = mutableListOf<Slice>()
+
+    grouped.take(3).forEachIndexed { index, slice ->
+        result.add(
+            slice.copy(
+                color = colors[index % colors.size]
+            )
+        )
+    }
+
+    // Все остальные объединяем в "Другие"
+    val otherValue = grouped
+        .drop(3)
+        .sumOf { it.value.toDouble() }
+        .toFloat()
+
+    if (otherValue > 0f) {
+        result.add(
+            Slice(
+                name = "Другие",
+                value = otherValue,
+                color = Color(0xFFEF4444)
+            )
+        )
+    }
+
+    return result
 }
