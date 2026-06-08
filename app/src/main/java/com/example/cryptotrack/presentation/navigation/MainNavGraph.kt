@@ -13,6 +13,7 @@ import com.example.cryptotrack.presentation.screens.CoinDetailsScreen
 import com.example.cryptotrack.presentation.screens.FavoritesScreen
 import com.example.cryptotrack.presentation.screens.MarketScreen
 import com.example.cryptotrack.presentation.screens.ProfileScreen
+import com.example.cryptotrack.presentation.screens.AddPurchaseScreen
 import com.example.cryptotrack.presentation.screens.PurchaseScreen
 import com.example.cryptotrack.presentation.screens.SearchScreen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
@@ -98,6 +99,22 @@ fun NavGraphBuilder.MainNavGraph(
             navController = navController,
             coinViewModel = coinViewModel,
         )
+    }
+
+    composable(route = Screen.AddPurchase.route) { backStackEntry ->
+
+        val parentEntry = remember(backStackEntry) {
+            navController.getBackStackEntry("main_graph")
+        }
+        val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
+        val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
+
+        AddPurchaseScreen(
+            navController = navController,
+            viewModel = viewModel,
+            coinViewModel = coinViewModel,
+        )
+
     }
 
     composable(route = Screen.Purchase.route) { backStackEntry ->

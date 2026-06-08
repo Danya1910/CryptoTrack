@@ -1,5 +1,7 @@
 package com.example.cryptotrack.presentation.util.price
 
+import com.example.cryptotrack.domain.model.PurchaseCoin
+import com.example.cryptotrack.presentation.util.uiModels.AggregatedPurchase
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -66,4 +68,22 @@ fun sanitizeAmount(input: String): String {
         parts.size <= 1 -> filtered
         else -> parts[0] + "." + parts.drop(1).joinToString("")
     }
+}
+
+fun aggregatePurchases(purchases: List<PurchaseCoin>): List<AggregatedPurchase> {
+
+    return purchases
+        .groupBy { it.coinId }
+        .map { (_, list) ->
+
+            val totalAmount = list.sumOf { it.amount }
+            val totalValue = list.sumOf { it.amount * it.buyPrice }
+
+            AggregatedPurchase(
+                coinId = list.first().coinId,
+                name = list.first().name,
+                totalAmount = totalAmount,
+                totalValue = totalValue
+            )
+        }
 }

@@ -19,7 +19,7 @@ fun RootNavGraph() {
         startDestination = "main_graph"
     ) {
         navigation(
-            startDestination = Screen.Profile.route,
+            startDestination = Screen.Purchase.route,
             route = "main_graph"
         ) {
             MainNavGraph(navController)
