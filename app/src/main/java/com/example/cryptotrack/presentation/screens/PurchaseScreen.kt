@@ -1,6 +1,5 @@
 package com.example.cryptotrack.presentation.screens
 
-import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +31,6 @@ import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -51,7 +49,12 @@ import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Lavender
 import com.example.cryptotrack.ui.theme.OutlineGray
+import com.example.cryptotrack.ui.theme.Purple
+import com.example.cryptotrack.ui.theme.Red
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 
 
 @Composable
@@ -101,35 +104,87 @@ private fun Content(
             viewModel.getFavoriteCoinsDetails(ids = ids)
         }
     }
-    
+
     val purchaseDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
 
     val details = purchaseDetails.details
 
+    val investedSum = calculateInvested(purchases = purchase)
 
-    Column(
+    val currentSum = calculateCurrentPrice(
+        aggregatedPurchase = aggregatedPurchase,
+        details = details
+    )
+
+    val profit = currentSum - investedSum
+
+    val investedFormatted = formatPrice(value = investedSum)
+    val currentFormatted = formatPrice(value = currentSum)
+
+    val profitPercentage = calculateProfitPercentage(
+        current = currentSum,
+        invested = investedSum,
+    )
+
+
+    Box(
+        contentAlignment = Alignment.BottomCenter,
         modifier = Modifier
             .fillMaxSize()
             .background(
                 color = BlackBackground
             )
             .padding(paddingValues)
+            .padding(horizontal = 15.dp)
+            .padding(bottom = 10.dp)
     ) {
-        TotalVolume()
+        ConclusionWidget(
+            invested = investedFormatted,
+            profit = profit,
+        )
+    }
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(horizontal = 15.dp)
+            .padding(bottom = 75.dp)
+    ) {
+        TotalVolume(
+            profitPercentage = profitPercentage,
+            currentPrice = currentFormatted,
+        )
 
+        Spacer(modifier = Modifier.height(10.dp))
 
         CoinsList(
             purchase = aggregatedPurchase,
             details = details,
         )
+
     }
 }
 
 @Composable
 private fun TotalVolume(
-
+    profitPercentage: Double,
+    currentPrice: String,
 ) {
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val percentageColor = if (profitPercentage >= 0) Green else Red
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
+
+    val percentageText =
+        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else "-${
+            formatter.format(profitPercentage)
+        }%"
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -161,7 +216,7 @@ private fun TotalVolume(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "1 245 735,45 $",
+                    text = "$currentPrice $",
                     fontFamily = Inter,
                     color = Color.White,
                     fontWeight = FontWeight.Normal,
@@ -172,9 +227,9 @@ private fun TotalVolume(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "+12.45%",
+                        text = percentageText,
                         fontFamily = Inter,
-                        color = Green,
+                        color = percentageColor,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
                     )
@@ -200,7 +255,7 @@ private fun ListItem(
 ) {
 
     val totalPrice = formatPrice(purchase.totalValue)
-    val percentage = details.priceChangePercentage24h
+    val percentage = "%.2f".format(details.priceChangePercentage24h)
 
 
     Row(
@@ -234,7 +289,7 @@ private fun ListItem(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "${purchase.totalAmount} BTC",
+                    text = "${purchase.totalAmount} ${details.symbol.uppercase()}",
                     fontFamily = Inter,
                     color = Color.Gray,
                     fontWeight = FontWeight.Normal,
@@ -272,17 +327,125 @@ private fun CoinsList(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth(1f)
-            .fillMaxHeight(0.5f)
-            .background(color = Color.Gray)
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
     ) {
-        purchase.take(5).forEach { item ->
+        purchase.forEachIndexed { index, item ->
+
             val coinDetails = details?.find { it.id == item.coinId }
 
             if (coinDetails != null) {
                 ListItem(
                     purchase = item,
                     details = coinDetails
+                )
+
+                // Разделитель после каждого элемента, кроме последнего
+                if (index != purchase.lastIndex) {
+                    Box(
+                        modifier = Modifier
+                            .height(1.dp)
+                            .fillMaxWidth()
+                            .background(color = OutlineGray),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConclusionWidget(
+    invested: String,
+    profit: Double
+) {
+
+    val profitColor = if (profit >= 0.0) Green else Red
+
+    val profitText =
+        if (profit >= 0.0) "+" + formatPrice(value = profit) + " $" else "-" + formatPrice(value = profit) + " $"
+
+    Box(
+        modifier = Modifier
+            .height(55.dp)
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(all = 10.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        color = Purple,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_wallet),
+                    contentDescription = null,
+                    tint = Lavender,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(0.5f)
+            ) {
+                Text(
+                    text = "Вложено средств",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "$invested $",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(0.5f)
+            ) {
+                Text(
+                    text = "Прибыль",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = profitText,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    color = profitColor
                 )
             }
         }
@@ -311,4 +474,37 @@ private fun ListHat() {
             fontSize = 12.sp,
         )
     }
+}
+
+
+private fun calculateInvested(
+    purchases: List<PurchaseCoin>
+): Double {
+    val total = purchases.sumOf { it.amount * it.buyPrice }
+
+    return total
+}
+
+private fun calculateCurrentPrice(
+    aggregatedPurchase: List<AggregatedPurchase>,
+    details: List<FavoriteCoinDetails>?
+): Double {
+    var currentPrice: Double = 0.0
+    aggregatedPurchase.forEach { purchase ->
+        details?.forEach { details ->
+            if (purchase.coinId == details.id) {
+                currentPrice += purchase.totalAmount * details.currentPrice
+            }
+        }
+    }
+    return currentPrice
+}
+
+private fun calculateProfitPercentage(
+    current: Double,
+    invested: Double,
+): Double {
+    if (invested == 0.0) return 0.0
+
+    return ((current - invested) / invested) * 100
 }
