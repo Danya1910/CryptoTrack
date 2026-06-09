@@ -12,6 +12,11 @@ sealed class BottomNavComponents (
         title = "Market",
         icon = R.drawable.ic_graph
     )
+    data object Purchase: BottomNavComponents(
+        route = "Purchase",
+        title = "Portfolio",
+        icon = R.drawable.ic_wallet,
+    )
     data object Search: BottomNavComponents(
         route = "Search",
         title = "Search",

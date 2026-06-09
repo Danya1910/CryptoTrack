@@ -62,7 +62,7 @@ import com.example.cryptotrack.presentation.util.price.sanitizeAmount
 import com.example.cryptotrack.presentation.util.price.sanitizePrice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
-import com.example.cryptotrack.presentation.widgets.PurchaseTopAppBar
+import com.example.cryptotrack.presentation.widgets.AddPurchaseTopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -91,7 +91,7 @@ fun AddPurchaseScreen(
 ) {
     Scaffold(
         topBar = {
-            PurchaseTopAppBar(
+            AddPurchaseTopAppBar(
                 navController = navController,
             )
         },
@@ -132,6 +132,9 @@ private fun Content(
 
     var currentCoinId by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.clearFavoriteCoinsDetails()
+    }
 
     LaunchedEffect(query) {
         if (query.isNotEmpty())
@@ -290,6 +293,7 @@ private fun Content(
                         buyPrice = buyPrice.toDouble(),
                         buyDate = buyDate ?: 0,
                     )
+                    navController.popBackStack()
                 }
             )
         }

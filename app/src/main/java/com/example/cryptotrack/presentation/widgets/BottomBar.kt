@@ -57,6 +57,7 @@ fun BottomBar(
 
     val items = listOf(
         BottomNavComponents.Market,
+        BottomNavComponents.Purchase,
         BottomNavComponents.Search,
         BottomNavComponents.Favorite,
         BottomNavComponents.Profile

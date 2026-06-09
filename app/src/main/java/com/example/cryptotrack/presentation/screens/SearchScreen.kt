@@ -135,9 +135,9 @@ private fun Content(
 
     Column(
         modifier = Modifier
+            .background(color = BlackBackground)
             .padding(paddingValues)
             .fillMaxSize()
-            .background(color = BlackBackground)
             .padding(horizontal = 15.dp)
     ) {
         SearchField(
