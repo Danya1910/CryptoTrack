@@ -2,6 +2,7 @@ package com.example.cryptotrack.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,10 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -95,6 +103,15 @@ private fun Content(
         aggregatePurchases(purchase)
     }
 
+    var isAscending by remember { mutableStateOf(true) }
+
+    val sortedPurchases = remember(aggregatedPurchase, isAscending) {
+        sortPurchasesByPrice(
+            purchases = aggregatedPurchase,
+            isAscending = isAscending
+        )
+    }
+
     LaunchedEffect(aggregatedPurchase) {
         if (purchase.isNotEmpty()) {
             val ids = aggregatedPurchase.joinToString(",") { it.coinId }
@@ -122,6 +139,8 @@ private fun Content(
         current = currentSum,
         invested = investedSum,
     )
+
+
 
 
     Box(
@@ -155,8 +174,17 @@ private fun Content(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        ListHat(
+            isAscending = isAscending,
+            onClick = {
+                isAscending = !isAscending
+            }
+        )
+
+        Spacer(modifier = Modifier.height(5.dp))
+
         CoinsList(
-            purchase = aggregatedPurchase,
+            purchase = sortedPurchases,
             details = details,
         )
 
@@ -254,6 +282,8 @@ private fun ListItem(
     val totalPrice = formatPrice(purchase.totalValue)
     val percentage = "%.2f".format(details.priceChangePercentage24h)
 
+    val percentageColor = if(details.priceChangePercentage24h >= 0.0) Green else Red
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -309,7 +339,7 @@ private fun ListItem(
             Text(
                 text = "$percentage%",
                 fontFamily = Inter,
-                color = Color.Green,
+                color = percentageColor,
                 fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
             )
@@ -322,32 +352,39 @@ private fun CoinsList(
     purchase: List<AggregatedPurchase>,
     details: List<FavoriteCoinDetails>?,
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
             .background(
                 color = DarkBlue,
-                shape = RoundedCornerShape(10.dp)
             )
     ) {
-        purchase.forEachIndexed { index, item ->
-
-            val coinDetails = details?.find { it.id == item.coinId }
-
-            if (coinDetails != null) {
-                ListItem(
-                    purchase = item,
-                    details = coinDetails
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(
+                    rememberScrollState()
                 )
+        ) {
+            purchase.forEachIndexed { index, item ->
 
-                // Разделитель после каждого элемента, кроме последнего
-                if (index != purchase.lastIndex) {
-                    Box(
-                        modifier = Modifier
-                            .height(1.dp)
-                            .fillMaxWidth()
-                            .background(color = OutlineGray),
+                val coinDetails = details?.find { it.id == item.coinId }
+
+                if (coinDetails != null) {
+                    ListItem(
+                        purchase = item,
+                        details = coinDetails
                     )
+
+                    if (index != purchase.lastIndex) {
+                        Box(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .fillMaxWidth()
+                                .background(color = OutlineGray),
+                        )
+                    }
                 }
             }
         }
@@ -450,7 +487,10 @@ private fun ConclusionWidget(
 }
 
 @Composable
-private fun ListHat() {
+private fun ListHat(
+    isAscending: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -462,17 +502,45 @@ private fun ListHat() {
             fontSize = 14.sp,
         )
         Spacer(modifier = Modifier.weight(1f))
-        Text(
-            text = "Ну тут фильтр",
-            textAlign = TextAlign.End,
-            fontFamily = Inter,
-            color = Color.Gray,
-            fontWeight = FontWeight.Normal,
-            fontSize = 12.sp,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .clickable{
+                    onClick()
+                }
+        ) {
+            Text(
+                text = "По стоимости",
+                textAlign = TextAlign.End,
+                fontFamily = Inter,
+                color = Color.Gray,
+                fontWeight = FontWeight.Normal,
+                fontSize = 12.sp,
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Icon(
+                painter = painterResource(
+                    if(isAscending) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down
+                 ),
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(8.dp)
+            )
+        }
     }
 }
 
+fun sortPurchasesByPrice(
+    purchases: List<AggregatedPurchase>,
+    isAscending: Boolean
+): List<AggregatedPurchase> {
+    return if (isAscending) {
+        purchases.sortedBy { it.totalValue }
+    } else {
+        purchases.sortedByDescending { it.totalValue }
+    }
+}
 
 private fun calculateInvested(
     purchases: List<PurchaseCoin>

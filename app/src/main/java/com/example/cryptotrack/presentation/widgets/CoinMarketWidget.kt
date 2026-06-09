@@ -167,7 +167,7 @@ private fun CoinMarketHat(
 
 @SuppressLint("DefaultLocale")
 @Composable
-private fun CoinMarket(
+private fun CoinMarketItem(
     coin: MarketData?,
     navController: NavController,
     coinViewModel: CoinViewModel,
@@ -364,6 +364,7 @@ private fun CoinsMarketList(
                 shape = RoundedCornerShape(10.dp)
             )
 
+
     ) {
         if (!coins.isNullOrEmpty()) {
             LazyColumn(
@@ -375,7 +376,7 @@ private fun CoinsMarketList(
                     key = { index -> coins[index].id }
                 ) { index ->
                     val coin = coins[index]
-                    CoinMarket(
+                    CoinMarketItem(
                         coin = coin,
                         coinViewModel = coinViewModel,
                         navController = navController,

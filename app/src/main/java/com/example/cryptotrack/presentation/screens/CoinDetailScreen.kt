@@ -700,7 +700,7 @@ private fun CoinInfo(
                         .background(color = OutlineGray)
                 )
                 InfoItem(
-                    icon = R.drawable.ic_stack,
+                    icon = R.drawable.ic_bank,
                     title = "Fully Diluted Valuation",
                     value = "$$fullyDilutedValuation",
                     modifier = Modifier.weight(1f),
@@ -736,7 +736,7 @@ private fun CoinInfo(
                     .height(IntrinsicSize.Min),
             ) {
                 InfoItem(
-                    icon = R.drawable.ic_market_cap,
+                    icon = R.drawable.ic_sync,
                     title = "Circulating Supply",
                     value = "$circulatingSupply ${details?.symbol?.uppercase()}",
                     modifier = Modifier.weight(1f),
@@ -760,7 +760,7 @@ private fun CoinInfo(
                         .background(color = OutlineGray)
                 )
                 InfoItem(
-                    icon = R.drawable.ic_planet,
+                    icon = R.drawable.ic_infinity,
                     title = "Max Supply",
                     value = "$maxSupply ${details?.symbol?.uppercase()}",
                     modifier = Modifier.weight(1f),

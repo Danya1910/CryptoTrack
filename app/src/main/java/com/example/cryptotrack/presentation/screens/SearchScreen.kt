@@ -211,7 +211,7 @@ private fun SearchField(
             .height(50.dp)
             .fillMaxWidth()
             .background(
-                color = SearchBarColor,
+                color = DarkBlue,
                 shape = RoundedCornerShape(20.dp)
             )
     ) {
