@@ -28,6 +28,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,12 +49,14 @@ import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.PurchaseCoin
+import com.example.cryptotrack.domain.model.UserData
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.uiModels.FavoriteUiItem
 import com.example.cryptotrack.presentation.util.uiModels.Slice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.viewmodel.UserViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
@@ -69,6 +74,7 @@ fun ProfileScreen(
     navController: NavController,
     coinViewModel: CoinViewModel,
     viewModel: CoinGeckoViewModel,
+    userViewModel: UserViewModel,
 ) {
     Scaffold(
         topBar = {},
@@ -83,6 +89,7 @@ fun ProfileScreen(
             coinViewModel = coinViewModel,
             navController = navController,
             viewModel = viewModel,
+            userViewModel = userViewModel,
         )
     }
 }
@@ -94,11 +101,16 @@ private fun Content(
     coinViewModel: CoinViewModel,
     navController: NavController,
     viewModel: CoinGeckoViewModel,
+    userViewModel: UserViewModel,
 ) {
 
     val historyOfViewingList by coinViewModel.historyOfViewingCoins.collectAsState(initial = emptyList())
     val favoriteCoins by coinViewModel.favoriteCoins.collectAsState(initial = emptyList())
     val purchase by coinViewModel.purchase.collectAsState(initial = emptyList())
+
+    LaunchedEffect(Unit) {
+        userViewModel.getData()
+    }
 
     LaunchedEffect(favoriteCoins) {
         if (favoriteCoins.isNotEmpty()) {
@@ -124,6 +136,9 @@ private fun Content(
 
     val parts = createSlices(purchases = purchase)
 
+    val userData by userViewModel.userData.collectAsState()
+
+
 
     Column(
         modifier = Modifier
@@ -132,12 +147,15 @@ private fun Content(
             .padding(horizontal = 15.dp)
             .padding(paddingValues)
     ) {
-        UserInfo()
+        UserInfo(
+            userViewModel = userViewModel,
+            userData = userData,
+        )
         UserStatsWidget(
             favoritesCount = favoritesCount,
             recentlyViewedCount = recentlyViewedCount,
 
-        )
+            )
         Spacer(modifier = Modifier.height(10.dp))
         PurchaseWidget(
             parts = parts,
@@ -155,30 +173,51 @@ private fun Content(
 }
 
 @Composable
-private fun UserInfo() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(horizontal = 20.dp)
-            .fillMaxWidth()
-            .height(100.dp)
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_reddit),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(100.dp)
+private fun UserInfo(
+    userViewModel: UserViewModel,
+    userData: UserData,
+) {
+    var query by remember { mutableStateOf("") }
+
+
+    Column {
+        SearchField(
+            query = query,
+            onQueryChange = {
+                query = it
+            },
+            onQueryClear = {
+                query = ""
+            }
         )
-        Spacer(modifier = Modifier.width(20.dp))
-        Text(
-            text = "Danya",
-            fontSize = 28.sp,
-            fontFamily = Inter,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth()
+                .height(100.dp)
+                .clickable{
+                    userViewModel.insertName(name = query)
+                }
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_reddit),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(100.dp)
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Text(
+                text = userData.name.ifEmpty { "Name" },
+                fontSize = 28.sp,
+                fontFamily = Inter,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
     }
 }
 
@@ -617,7 +656,7 @@ private fun PurchaseWidget(
                 color = OutlineGray,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.Purchase.route)
             }
             .padding(all = 15.dp)
@@ -677,7 +716,7 @@ private fun PurchaseWidget(
 fun PieTest(
     slices: List<Slice>,
 
-) {
+    ) {
 
     val gap = 6f
 
@@ -695,7 +734,7 @@ fun PieTest(
 
             drawArc(
                 color = it.color,
-                startAngle = startAngle + gap/2,
+                startAngle = startAngle + gap / 2,
                 sweepAngle = sweep - gap,
                 useCenter = false,
                 style = Stroke(width = stroke)

@@ -18,6 +18,7 @@ import com.example.cryptotrack.presentation.screens.PurchaseScreen
 import com.example.cryptotrack.presentation.screens.SearchScreen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.viewmodel.UserViewModel
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -81,11 +82,13 @@ fun NavGraphBuilder.MainNavGraph(
         }
         val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
         val coinViewModel: CoinViewModel = hiltViewModel(parentEntry)
+        val userViewModel: UserViewModel = hiltViewModel(parentEntry)
 
         ProfileScreen(
             navController = navController,
             coinViewModel = coinViewModel,
             viewModel = viewModel,
+            userViewModel = userViewModel,
         )
     }
 

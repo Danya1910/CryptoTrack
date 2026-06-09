@@ -200,7 +200,7 @@ private fun Content(
 }
 
 @Composable
-private fun SearchField(
+ fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     onQueryClear: () -> Unit,

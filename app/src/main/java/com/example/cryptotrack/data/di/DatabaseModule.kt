@@ -3,11 +3,13 @@ package com.example.cryptotrack.data.di
 import android.content.Context
 import androidx.room.Room
 import com.example.cryptotrack.data.local.dao.CoinDao
+import com.example.cryptotrack.data.local.dao.UserDao
 import com.example.cryptotrack.data.local.database.AppDatabase
 import com.example.cryptotrack.data.local.database.MIGRATION_1_2
 import com.example.cryptotrack.data.local.database.MIGRATION_2_3
 import com.example.cryptotrack.data.local.database.MIGRATION_3_4
 import com.example.cryptotrack.data.local.database.MIGRATION_4_5
+import com.example.cryptotrack.data.local.database.MIGRATION_5_6
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,6 +36,7 @@ object DatabaseModule {
                 MIGRATION_2_3,
                 MIGRATION_3_4,
                 MIGRATION_4_5,
+                MIGRATION_5_6,
             )
             .build()
     }
@@ -43,5 +46,12 @@ object DatabaseModule {
         database: AppDatabase
     ): CoinDao {
         return database.coinDao()
+    }
+
+    @Provides
+    fun provideUserDao(
+        database: AppDatabase
+    ): UserDao {
+        return database.userDao()
     }
 }

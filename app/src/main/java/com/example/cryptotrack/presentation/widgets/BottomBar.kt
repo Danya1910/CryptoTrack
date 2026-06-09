@@ -215,7 +215,7 @@ private fun BottomItem(
         Text(
             text = title,
             fontFamily = Inter,
-            fontSize = 12.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Normal,
             color = textColor,
         )
