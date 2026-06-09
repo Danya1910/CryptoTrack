@@ -43,7 +43,6 @@ import com.example.cryptotrack.presentation.util.uiModels.AggregatedPurchase
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
-import com.example.cryptotrack.presentation.widgets.AddPurchaseTopAppBar
 import com.example.cryptotrack.presentation.widgets.PurchaseTopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
@@ -77,7 +76,6 @@ fun PurchaseScreen(
     ) { paddingValues ->
         Content(
             paddingValues = paddingValues,
-            navController = navController,
             coinViewModel = coinViewModel,
             viewModel = viewModel,
         )
@@ -87,7 +85,6 @@ fun PurchaseScreen(
 @Composable
 private fun Content(
     paddingValues: PaddingValues,
-    navController: NavController,
     coinViewModel: CoinViewModel,
     viewModel: CoinGeckoViewModel,
 ) {

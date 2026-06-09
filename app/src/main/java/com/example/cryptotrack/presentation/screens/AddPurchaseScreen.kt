@@ -242,7 +242,6 @@ private fun Content(
         item {
             PriceInputField(
                 query = buyPrice,
-                title = "USD",
                 symbol = selectedCoin?.symbol?.uppercase() ?: "монету",
                 onQueryChange = {
                     buyPrice = sanitizePrice(it)
@@ -348,7 +347,7 @@ private fun SearchCoinField(
                         contentAlignment = Alignment.CenterStart,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        if (query.isNullOrEmpty()) {
+                        if (query.isEmpty()) {
                             Text(
                                 text = "Search coin",
                                 fontSize = 16.sp,
@@ -574,7 +573,7 @@ private fun SelectedCoin(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = details.symbol.toUpperCase(),
+                            text = details.symbol.toUpperCase(Locale.ROOT),
                             fontFamily = Inter,
                             fontWeight = FontWeight.Normal,
                             fontSize = 12.sp,
@@ -716,7 +715,6 @@ private fun CountInputField(
 private fun PriceInputField(
     query: String,
     symbol: String,
-    title: String,
     onQueryChange: (String) -> Unit,
 ) {
     Column(
@@ -786,7 +784,7 @@ private fun PriceInputField(
                 )
                 Text(
                     textAlign = TextAlign.End,
-                    text = title,
+                    text = "USD",
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 13.sp,
@@ -835,7 +833,7 @@ private fun CalendarField(
             SimpleDateFormat(
                 "dd.MM.yyyy HH:mm",
                 Locale.getDefault()
-            ).format(Date(buyDate!!))
+            ).format(Date(buyDate))
         }
     }
 

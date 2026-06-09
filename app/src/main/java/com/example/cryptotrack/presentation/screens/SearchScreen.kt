@@ -246,7 +246,7 @@ private fun SearchField(
                         contentAlignment = Alignment.CenterStart,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        if (query.isNullOrEmpty()) {
+                        if (query.isEmpty()) {
                             Text(
                                 text = "Search coin",
                                 fontSize = 16.sp,
@@ -260,7 +260,7 @@ private fun SearchField(
                 }
             )
             Spacer(modifier = Modifier.width(10.dp))
-            if (!query.isNullOrEmpty()) {
+            if (query.isNotEmpty()) {
                 Icon(
                     painter = painterResource(R.drawable.ic_circle_cross),
                     contentDescription = null,
@@ -329,7 +329,7 @@ private fun SuggestionList(
             }
         }
         if (!coins.isNullOrEmpty()) {
-            if ((coins?.size ?: 0) > 7) {
+            if ((coins.size) > 7) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Box(
                     contentAlignment = Alignment.Center,
@@ -391,8 +391,8 @@ private fun Suggestion(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .clickable {
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
-                coinViewModel.insertCoin(id = coin?.id ?: "", name = coin?.name ?: "", path = coin?.thumb ?: "")
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
+                coinViewModel.insertCoin(id = coin.id, name = coin.name, path = coin.thumb)
             }
             .padding(horizontal = 10.dp)
             .height(36.dp)
@@ -417,7 +417,7 @@ private fun Suggestion(
                 .weight(1f),
         ) {
             AsyncImage(
-                model = coin?.thumb,
+                model = coin.thumb,
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
@@ -427,7 +427,7 @@ private fun Suggestion(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = coin?.name ?: "Unknown",
+                    text = coin.name,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -437,7 +437,7 @@ private fun Suggestion(
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    text = coin?.symbol ?: "Unk",
+                    text = coin.symbol,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,

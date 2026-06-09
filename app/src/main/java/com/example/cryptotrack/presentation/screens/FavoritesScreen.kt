@@ -130,9 +130,7 @@ private fun Content(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                HelpWidget(
-                    navController = navController,
-                )
+                HelpWidget()
             }
 
         } else {
@@ -145,7 +143,6 @@ private fun Content(
         CoinsList(
             navController = navController,
             favoriteCoins = favoriteCoins,
-            coinViewModel = coinViewModel,
             removedIds = removedIds,
         )
     }
@@ -155,7 +152,6 @@ private fun Content(
 private fun CoinsList(
     favoriteCoins: List<FavoriteCoin>,
     navController: NavController,
-    coinViewModel: CoinViewModel,
     removedIds: MutableList<String>,
 ) {
     LazyVerticalGrid(
@@ -167,7 +163,6 @@ private fun CoinsList(
         items(favoriteCoins) { coin ->
             CoinItem(
                 coin = coin,
-                coinViewModel = coinViewModel,
                 navController = navController,
                 modifier = Modifier.fillMaxWidth(),
                 removedIds = removedIds,
@@ -181,7 +176,6 @@ private fun CoinItem(
     modifier: Modifier,
     coin: FavoriteCoin,
     navController: NavController,
-    coinViewModel: CoinViewModel,
     removedIds: MutableList<String>,
 ) {
 
@@ -409,9 +403,7 @@ private fun getCoinsCountText(count: Int): String {
 
 
 @Composable
-private fun HelpWidget(
-    navController: NavController,
-) {
+private fun HelpWidget() {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier

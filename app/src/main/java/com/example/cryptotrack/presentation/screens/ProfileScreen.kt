@@ -32,18 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
@@ -63,7 +58,6 @@ import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
-import com.example.cryptotrack.ui.theme.Pink40
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
 import java.text.DecimalFormat
@@ -296,13 +290,13 @@ private fun FavoriteItemFull(
 
     val formatter = DecimalFormat("#,##0.00", symbols)
 
-    val percentageText = coin.priceChangePercentage24h?.let {
+    val percentageText = coin.priceChangePercentage24h.let {
         if (it > 0) {
             "+${formatter.format(it)}%"
         } else {
             "${formatter.format(it)}%"
         }
-    } ?: "0.00%"
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -310,7 +304,7 @@ private fun FavoriteItemFull(
             .fillMaxWidth()
             .height(36.dp)
             .clickable {
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
             }
             .padding(horizontal = 10.dp)
     ) {
@@ -322,7 +316,7 @@ private fun FavoriteItemFull(
                 .weight(1f),
         ) {
             AsyncImage(
-                model = coin?.image,
+                model = coin.image,
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
@@ -332,7 +326,7 @@ private fun FavoriteItemFull(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = coin?.name ?: "Unknown",
+                    text = coin.name,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -342,7 +336,7 @@ private fun FavoriteItemFull(
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    text = coin?.symbol ?: "Unk",
+                    text = coin.symbol,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -389,7 +383,7 @@ private fun FavoriteItemBasic(
             .fillMaxWidth()
             .height(36.dp)
             .clickable {
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
             }
             .padding(horizontal = 10.dp)
     ) {
@@ -401,7 +395,7 @@ private fun FavoriteItemBasic(
                 .weight(1f),
         ) {
             AsyncImage(
-                model = coin?.imageUrl,
+                model = coin.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.size(25.dp),
             )
@@ -411,7 +405,7 @@ private fun FavoriteItemBasic(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = coin?.name ?: "Unknown",
+                    text = coin.name,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -421,7 +415,7 @@ private fun FavoriteItemBasic(
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    text = coin?.symbol ?: "Unk",
+                    text = coin.symbol,
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
@@ -560,7 +554,7 @@ private fun RecentlyViewedItem(
                 shape = RoundedCornerShape(10.dp)
             )
             .clickable {
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id ?: ""))
+                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
             }
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
@@ -719,7 +713,7 @@ private fun PurchasePercentage(
 ) {
     val total = parts.sumOf { it.value.toDouble() }.toFloat()
 
-    Column() {
+    Column {
         parts.forEach { coin ->
             val percent = if (total > 0f) {
                 coin.value / total * 100
