@@ -147,12 +147,13 @@ private fun Content(
         Spacer(modifier = Modifier.height(10.dp))
         PurchaseWidget(
             parts = parts,
+            navController = navController,
         )
 
         Spacer(modifier = Modifier.height(10.dp))
         FavoriteWidget(
             details = uiList,
-            navController = navController
+            navController = navController,
         )
         Spacer(modifier = Modifier.height(10.dp))
         RecentlyViewed(coins = historyOfViewingList, navController = navController)
@@ -604,13 +605,11 @@ private fun RecentlyViewedItem(
 
 @Composable
 private fun PurchaseWidget(
-    parts: List<Slice>
+    parts: List<Slice>,
+    navController: NavController,
 ) {
 
     val total = formatPrice(parts.sumOf { it.value.toDouble() })
-
-
-
 
     Box(
         modifier = Modifier
@@ -624,6 +623,9 @@ private fun PurchaseWidget(
                 color = OutlineGray,
                 shape = RoundedCornerShape(10.dp)
             )
+            .clickable{
+                navController.navigate(Screen.Purchase.route)
+            }
             .padding(all = 15.dp)
     ) {
         Row(
