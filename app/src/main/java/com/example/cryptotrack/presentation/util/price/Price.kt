@@ -4,6 +4,9 @@ import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.presentation.util.uiModels.AggregatedPurchase
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 fun formatPrice(value: Double?): String {
@@ -86,4 +89,11 @@ fun aggregatePurchases(purchases: List<PurchaseCoin>): List<AggregatedPurchase> 
                 totalValue = totalValue
             )
         }
+}
+
+fun formatTime(millis: Long): String {
+    val formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale("ru"))
+        .withZone(ZoneId.systemDefault())
+
+    return formatter.format(Instant.ofEpochMilli(millis))
 }

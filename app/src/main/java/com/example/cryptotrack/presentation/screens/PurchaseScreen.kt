@@ -542,7 +542,7 @@ fun sortPurchasesByPrice(
     }
 }
 
-private fun calculateInvested(
+fun calculateInvested(
     purchases: List<PurchaseCoin>
 ): Double {
     val total = purchases.sumOf { it.amount * it.buyPrice }
@@ -550,7 +550,7 @@ private fun calculateInvested(
     return total
 }
 
-private fun calculateCurrentPrice(
+fun calculateCurrentPrice(
     aggregatedPurchase: List<AggregatedPurchase>,
     details: List<FavoriteCoinDetails>?
 ): Double {
@@ -565,7 +565,7 @@ private fun calculateCurrentPrice(
     return currentPrice
 }
 
-private fun calculateProfitPercentage(
+fun calculateProfitPercentage(
     current: Double,
     invested: Double,
 ): Double {

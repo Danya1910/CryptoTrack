@@ -1,12 +1,9 @@
 package com.example.cryptotrack.presentation.screens
 
-import android.Manifest
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,17 +43,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,7 +63,9 @@ import com.example.cryptotrack.domain.model.HistoryOfViewingCoin
 import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.domain.model.UserData
 import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.formatTime
 import com.example.cryptotrack.presentation.util.uiModels.FavoriteUiItem
 import com.example.cryptotrack.presentation.util.uiModels.Slice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
@@ -85,7 +79,6 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
-import okhttp3.internal.io.FileSystem
 import java.io.File
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -143,6 +136,35 @@ private fun Content(
         }
     }
 
+    val aggregatedPurchase = remember(purchase) {
+        aggregatePurchases(purchase)
+    }
+
+    LaunchedEffect(aggregatedPurchase) {
+        if (purchase.isNotEmpty()) {
+            val ids = aggregatedPurchase.joinToString(",") { it.coinId }
+            viewModel.getFavoriteCoinsDetails(ids = ids)
+        }
+    }
+
+    val purchaseDetailsState by viewModel.favoriteCoinsDetailsState.collectAsState()
+
+    val purchaseDetails = purchaseDetailsState.details
+
+    val currentSum = calculateCurrentPrice(
+        aggregatedPurchase = aggregatedPurchase,
+        details = purchaseDetails
+    )
+
+    val investedSum = calculateInvested(purchases = purchase)
+
+    val currentFormatted = formatPrice(value = currentSum)
+
+    val profitPercentage = calculateProfitPercentage(
+        current = currentSum,
+        invested = investedSum,
+    )
+
     val favoriteCoinsDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
 
 
@@ -160,6 +182,7 @@ private fun Content(
 
     val parts = createSlices(purchases = purchase)
 
+    val time = purchase.minOfOrNull { it.buyDate }
 
 
 
@@ -184,6 +207,9 @@ private fun Content(
         PurchaseWidget(
             parts = parts,
             navController = navController,
+            currentPrice = currentFormatted,
+            profitPercentage = profitPercentage,
+            time = time,
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -227,7 +253,7 @@ private fun UserInfo(
     ) {
         if(userData?.avatar.isNullOrEmpty())
         Icon(
-            painter = painterResource(R.drawable.ic_reddit),
+            painter = painterResource(R.drawable.ic_incognito),
             contentDescription = null,
             tint = Color.Unspecified,
             modifier = Modifier
@@ -792,9 +818,26 @@ private fun RecentlyViewedItem(
 private fun PurchaseWidget(
     parts: List<Slice>,
     navController: NavController,
+    currentPrice: String,
+    profitPercentage: Double,
+    time: Long?
 ) {
 
-    val total = formatPrice(parts.sumOf { it.value.toDouble() })
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val percentageColor = if (profitPercentage >= 0) Green else Red
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
+
+    val percentageText =
+        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else "-${
+            formatter.format(profitPercentage)
+        }%"
+
+    val firstInvestedDate = formatTime(millis = time ?: 0)
 
     Box(
         modifier = Modifier
@@ -829,7 +872,7 @@ private fun PurchaseWidget(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "$$total",
+                    text = "$$currentPrice",
                     fontFamily = Inter,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 20.sp,
@@ -837,15 +880,15 @@ private fun PurchaseWidget(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "12.4% (24h)",
+                    text = "$percentageText",
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = Green,
+                    color = percentageColor,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "С 12 июл. 2006",
+                    text = "C $firstInvestedDate",
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 10.sp,
