@@ -1,5 +1,12 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.Manifest
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,14 +41,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.text.TextStyle
@@ -75,6 +85,8 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
+import okhttp3.internal.io.FileSystem
+import java.io.File
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 
@@ -161,6 +173,7 @@ private fun Content(
         UserInfo(
             userViewModel = userViewModel,
             userData = userData,
+            navController = navController,
         )
         UserStatsWidget(
             favoritesCount = favoritesCount,
@@ -186,11 +199,24 @@ private fun Content(
 @Composable
 private fun UserInfo(
     userViewModel: UserViewModel,
-    userData: UserData,
+    userData: UserData?,
+    navController: NavController,
 ) {
     var query by remember { mutableStateOf("") }
 
     var isEditing by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            userViewModel.insertAvatar(context, uri)
+            navController.navigate(Screen.Profile.route)
+
+        }
+    }
 
 
     Row(
@@ -199,12 +225,38 @@ private fun UserInfo(
             .fillMaxWidth()
             .height(100.dp)
     ) {
+        if(userData?.avatar.isNullOrEmpty())
         Icon(
             painter = painterResource(R.drawable.ic_reddit),
             contentDescription = null,
             tint = Color.Unspecified,
-            modifier = Modifier.size(100.dp)
+            modifier = Modifier
+                .size(100.dp)
+                .clickable{
+                    galleryLauncher.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }
         )
+        else {
+            AsyncImage(
+                model = File(userData.avatar),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(shape = CircleShape)
+                    .clickable{
+                        galleryLauncher.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    }
+            )
+        }
         Spacer(modifier = Modifier.width(20.dp))
         Box(
             modifier = Modifier
@@ -226,7 +278,7 @@ private fun UserInfo(
                         Box{
                             if(query == "") {
                                 Text(
-                                    text = userData.name.ifEmpty { "Введите имя" },
+                                    text = userData?.name ?: "Введите имя",
                                     color = Color.Gray,
                                     fontSize = 22.sp,
                                     fontFamily = Inter,
@@ -249,7 +301,7 @@ private fun UserInfo(
                 )
             } else {
                 Text(
-                    text = userData.name.ifEmpty { "Name" },
+                    text = userData?.name ?: "Name",
                     fontSize = 22.sp,
                     fontFamily = Inter,
                     fontWeight = FontWeight.Bold,
@@ -280,7 +332,7 @@ private fun UserInfo(
                     .clickable {
                         if (isEditing) {
                             if(query == ""){
-                                userViewModel.insertName(name = userData.name)
+                                userViewModel.insertName(name = userData?.name ?: "Введите имя")
                             }
                             else {
                                 userViewModel.insertName(name = query)
