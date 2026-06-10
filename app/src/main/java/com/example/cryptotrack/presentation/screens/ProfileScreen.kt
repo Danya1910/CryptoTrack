@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,10 +34,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -112,6 +122,8 @@ private fun Content(
         userViewModel.getData()
     }
 
+    val userData by userViewModel.userData.collectAsState()
+
     LaunchedEffect(favoriteCoins) {
         if (favoriteCoins.isNotEmpty()) {
             val ids = favoriteCoins.joinToString(",") { it.id }
@@ -136,7 +148,6 @@ private fun Content(
 
     val parts = createSlices(purchases = purchase)
 
-    val userData by userViewModel.userData.collectAsState()
 
 
 
@@ -179,43 +190,132 @@ private fun UserInfo(
 ) {
     var query by remember { mutableStateOf("") }
 
+    var isEditing by remember { mutableStateOf(false) }
 
-    Column {
-        SearchField(
-            query = query,
-            onQueryChange = {
-                query = it
-            },
-            onQueryClear = {
-                query = ""
-            }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_reddit),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(100.dp)
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Spacer(modifier = Modifier.width(20.dp))
+        Box(
             modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .fillMaxWidth()
-                .height(100.dp)
-                .clickable{
-                    userViewModel.insertName(name = query)
-                }
+                .weight(1f)
         ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_reddit),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(100.dp)
-            )
-            Spacer(modifier = Modifier.width(20.dp))
-            Text(
-                text = userData.name.ifEmpty { "Name" },
-                fontSize = 28.sp,
-                fontFamily = Inter,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (isEditing) {
+                BasicTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    textStyle = TextStyle(
+                        fontSize = 22.sp,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    ),
+                    cursorBrush = SolidColor(Color.White),
+                    singleLine = true,
+                    decorationBox = { innerTextField ->
+                        Box{
+                            if(query == "") {
+                                Text(
+                                    text = userData.name.ifEmpty { "Введите имя" },
+                                    color = Color.Gray,
+                                    fontSize = 22.sp,
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        innerTextField()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .drawBehind {
+                            drawLine(
+                                color = Color.White,
+                                start = Offset(x = 0f, y = size.height),
+                                end = Offset(x = size.width, y = size.height),
+                                strokeWidth = 1.dp.toPx()
+                            )
+                        }
+                )
+            } else {
+                Text(
+                    text = userData.name.ifEmpty { "Name" },
+                    fontSize = 22.sp,
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Row(
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .height(25.dp)
+                    .background(
+                        color = DarkBlue,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = OutlineGray,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .clickable {
+                        if (isEditing) {
+                            if(query == ""){
+                                userViewModel.insertName(name = userData.name)
+                            }
+                            else {
+                                userViewModel.insertName(name = query)
+                            }
+                            query = ""
+                        }
+                        isEditing = !isEditing
+
+                    }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 10.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (isEditing) R.drawable.ic_tick
+                            else R.drawable.ic_edit
+                        ),
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (isEditing) "Сохранить" else "Изменить",
+                        fontSize = 9.sp,
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                    )
+                }
+            }
         }
 
     }

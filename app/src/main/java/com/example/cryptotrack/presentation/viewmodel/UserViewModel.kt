@@ -39,6 +39,7 @@ class UserViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             insertNameUseCase(name = name)
+            _userData.value = getDataUseCase()
         }
     }
 
