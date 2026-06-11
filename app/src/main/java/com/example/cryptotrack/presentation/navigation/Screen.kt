@@ -36,4 +36,8 @@ sealed interface Screen {
         override val route = "Purchase"
     }
 
+    data object PurchaseHistory : Screen {
+        override val route = "PurchaseHistory"
+    }
+
 }

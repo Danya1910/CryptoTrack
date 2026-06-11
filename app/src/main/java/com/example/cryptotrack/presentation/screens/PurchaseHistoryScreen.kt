@@ -2,6 +2,7 @@ package com.example.cryptotrack.presentation.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,20 +15,39 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.cryptotrack.R
+import com.example.cryptotrack.domain.model.FavoriteCoinDetails
+import com.example.cryptotrack.domain.model.PurchaseCoin
+import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.util.price.aggregatePurchases
+import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.formatTimeAndDate
+import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
+import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
+import com.example.cryptotrack.presentation.widgets.PurchaseHistoryTopAppBar
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -40,25 +60,80 @@ import java.text.DecimalFormatSymbols
 
 
 @Composable
-fun PurchaseHistoryScreen() {
+fun PurchaseHistoryScreen(
+    coinViewModel: CoinViewModel,
+    viewModel: CoinGeckoViewModel,
+    navController: NavController
+) {
+    Scaffold(
+        topBar = {
+            PurchaseHistoryTopAppBar(
+                navController = navController,
+            )
+        }
+    ) { paddingValues ->
+        Content(
+            paddingValues = paddingValues,
+            coinViewModel = coinViewModel,
+            viewModel = viewModel,
+            navController = navController,
+        )
+    }
 }
 
 @Composable
 @Preview(showBackground = true)
 private fun PurchaseHistoryScreenPreview() {
 
-    Scaffold(
-        topBar = {},
-    ) {paddingValues ->
-        Content(paddingValues = paddingValues)
-    }
+//    Scaffold(
+//        topBar = {},
+//    ) {paddingValues ->
+//        Content(paddingValues = paddingValues)
+//    }
 
 }
 
 @Composable
 private fun Content(
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    coinViewModel: CoinViewModel,
+    viewModel: CoinGeckoViewModel,
+    navController: NavController,
 ) {
+
+    val purchase by coinViewModel.purchase.collectAsState(initial = emptyList())
+    val aggregatedPurchase = remember(purchase) {
+        aggregatePurchases(purchase)
+    }
+
+    LaunchedEffect(purchase) {
+        if (purchase.isNotEmpty()) {
+            val ids = purchase.joinToString(",") { it.coinId }
+            viewModel.getFavoriteCoinsDetails(ids = ids)
+        }
+    }
+
+    val purchaseDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
+
+    val details = purchaseDetails.details
+
+    val purchasesCount = purchase.size.toString()
+    val investedSum = calculateInvested(purchases = purchase)
+
+    val currentSum = calculateCurrentPrice(
+        aggregatedPurchase = aggregatedPurchase,
+        details = details
+    )
+
+
+    val currentFormatted = formatPrice(value = currentSum)
+    val investedFormatted = formatPrice(value = investedSum)
+    val profitPercentage = calculateProfitPercentage(
+        current = currentSum,
+        invested = investedSum,
+    )
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -66,12 +141,19 @@ private fun Content(
                 color = BlackBackground
             )
             .padding(paddingValues)
+            .padding(horizontal = 15.dp)
     ) {
         PurchaseInfoHat(
-            purchaseCount = "24",
-            invested = "12 556.33$",
-            currentPrice = "12 234.33$",
-            profitPercentage = 23.12
+            purchaseCount = purchasesCount,
+            invested = "$investedFormatted$",
+            currentPrice = "$currentFormatted$",
+            profitPercentage = profitPercentage
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        PurchasesList(
+            purchase = purchase,
+            details = details,
+            navController = navController
         )
     }
 }
@@ -162,7 +244,7 @@ private fun PurchaseInfoHat(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Потрачено всего",
+                    text = "Инвестировано",
                     fontFamily = Inter,
                     color = Color.Gray,
                     fontWeight = FontWeight.Normal,
@@ -174,7 +256,7 @@ private fun PurchaseInfoHat(
                     fontFamily = Inter,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                 )
 
             }
@@ -195,7 +277,7 @@ private fun PurchaseInfoHat(
                     fontFamily = Inter,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
@@ -206,6 +288,170 @@ private fun PurchaseInfoHat(
                     fontSize = 12.sp,
                 )
 
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun HistoryItem(
+    purchase: PurchaseCoin,
+    details: FavoriteCoinDetails,
+    navController: NavController,
+) {
+
+    val buyPrice = formatPrice(purchase.buyPrice)
+
+
+    val firstInvestedDate = formatTimeAndDate(millis = purchase.buyDate)
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .background(color = DarkBlue)
+            .clickable{
+                navController.navigate(Screen.CoinDetails.createRoute(id = purchase.coinId))
+            }
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+    ) {
+        AsyncImage(
+            model = details.image,
+            contentDescription = null,
+            modifier = Modifier.size(40.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = purchase.name,
+                fontFamily = Inter,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = "Количество",
+                fontFamily = Inter,
+                color = Color.Gray,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = "${purchase.amount} ${details.symbol}",
+                fontFamily = Inter,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = "Цена за 1 монету",
+                fontFamily = Inter,
+                color = Color.Gray,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = "$buyPrice$",
+                fontFamily = Inter,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = firstInvestedDate,
+                    fontFamily = Inter,
+                    color = Color.Gray,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_right),
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PurchasesList(
+    purchase: List<PurchaseCoin>,
+    details: List<FavoriteCoinDetails>?,
+    navController: NavController,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                color = DarkBlue,
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(
+                    rememberScrollState()
+                )
+        ) {
+            purchase.forEachIndexed { index, item ->
+
+                val coinDetails = details?.find { it.id == item.coinId }
+
+                if (coinDetails != null) {
+                    HistoryItem(
+                        purchase = item,
+                        details = coinDetails,
+                        navController = navController,
+                    )
+
+                    if (index != purchase.lastIndex) {
+                        Box(
+                            modifier = Modifier
+                                .height(1.dp)
+                                .fillMaxWidth()
+                                .background(color = OutlineGray),
+                        )
+                    }
+                }
             }
         }
     }

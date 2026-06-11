@@ -98,6 +98,13 @@ fun formatTime(millis: Long): String {
     return formatter.format(Instant.ofEpochMilli(millis))
 }
 
+fun formatTimeAndDate(millis: Long): String {
+    val formatter = DateTimeFormatter.ofPattern("d MMM yyyy\nHH:mm", Locale("ru"))
+        .withZone(ZoneId.systemDefault())
+
+    return formatter.format(Instant.ofEpochMilli(millis))
+}
+
 fun Int?.formatWithSpaces(formatter: DecimalFormat): String {
     return this?.let { formatter.format(it) } ?: ""
 }
