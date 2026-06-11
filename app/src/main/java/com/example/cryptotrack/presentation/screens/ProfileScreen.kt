@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -45,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -251,37 +254,93 @@ private fun UserInfo(
             .fillMaxWidth()
             .height(100.dp)
     ) {
-        if(userData?.avatar.isNullOrEmpty())
-        Icon(
-            painter = painterResource(R.drawable.ic_incognito),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier
-                .size(100.dp)
-                .clickable{
-                    galleryLauncher.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
-                    )
-                }
-        )
-        else {
-            AsyncImage(
-                model = File(userData.avatar),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+        if (userData?.avatar.isNullOrEmpty()) {
+            Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(shape = CircleShape)
-                    .clickable{
-                        galleryLauncher.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageOnly
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_incognito),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .align(Alignment.Center)
+                        .clickable {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
                             )
+                        }
+                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = 43.dp, y = 25.dp)
+                        .size(25.dp)
+                        .background(
+                            color = DarkBlue,
+                            shape = CircleShape,
                         )
-                    }
-            )
+                        .clickable {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_camera),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+            ) {
+                AsyncImage(
+                    model = File(userData.avatar),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(shape = CircleShape)
+                        .align(Alignment.Center)
+                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = 43.dp, y = 25.dp)
+                        .size(25.dp)
+                        .background(
+                            color = DarkBlue,
+                            shape = CircleShape,
+                        )
+                        .clickable {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_camera),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+
+            }
         }
         Spacer(modifier = Modifier.width(20.dp))
         Box(
@@ -301,8 +360,8 @@ private fun UserInfo(
                     cursorBrush = SolidColor(Color.White),
                     singleLine = true,
                     decorationBox = { innerTextField ->
-                        Box{
-                            if(query == "") {
+                        Box {
+                            if (query == "") {
                                 Text(
                                     text = userData?.name ?: "Введите имя",
                                     color = Color.Gray,
@@ -357,10 +416,9 @@ private fun UserInfo(
                     )
                     .clickable {
                         if (isEditing) {
-                            if(query == ""){
+                            if (query == "") {
                                 userViewModel.insertName(name = userData?.name ?: "Введите имя")
-                            }
-                            else {
+                            } else {
                                 userViewModel.insertName(name = query)
                             }
                             query = ""
@@ -880,7 +938,7 @@ private fun PurchaseWidget(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "$percentageText",
+                    text = percentageText,
                     fontFamily = Inter,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,

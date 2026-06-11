@@ -1,47 +1,31 @@
 package com.example.cryptotrack.presentation.widgets
 
 import android.annotation.SuppressLint
-import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.model.MarketCapPercentage
@@ -51,11 +35,12 @@ import com.example.cryptotrack.presentation.util.price.formatWithSpaces
 import com.example.cryptotrack.presentation.util.price.toCompactUsd
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
-import okhttp3.internal.format
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import kotlin.math.abs
 
 
 @SuppressLint("DefaultLocale")
@@ -63,22 +48,6 @@ import java.text.DecimalFormatSymbols
 fun GlobalMarketWidget(
     market: GlobalMarket?,
 ) {
-
-
-    val symbols = DecimalFormatSymbols().apply {
-        groupingSeparator = ' '
-        decimalSeparator = '.'
-    }
-
-    val formatter = DecimalFormat("#,##0.00", symbols)
-
-    val totalVolume = market?.totalVolume?.usd?.let {
-        formatter.format(it)
-    } ?: "0.00"
-
-    val totalMarketCap = market?.totalMarketCap?.usd?.let {
-        formatter.format(it)
-    } ?: "0.00"
 
     val isPositive =
         market?.marketCapChangePercentage24hUsd?.let {
@@ -322,45 +291,30 @@ private fun GlobalMarketWidgetPreview() {
         )
     )
 
-    val symbols = DecimalFormatSymbols().apply {
-        groupingSeparator = ' '
-        decimalSeparator = '.'
-    }
-
-    val formatter = DecimalFormat("#,##0.00", symbols)
-
-    val totalVolume = market?.totalVolume?.usd?.let {
-        formatter.format(it)
-    } ?: "0.00"
-
-    val totalMarketCap = market?.totalMarketCap?.usd?.let {
-        formatter.format(it)
-    } ?: "0.00"
-
     val isPositive =
-        market?.marketCapChangePercentage24hUsd?.let {
+        market.marketCapChangePercentage24hUsd.let {
             if (it >= 0) true
             else false
         }
 
-    val percentageColor = if (isPositive == true) Green else Red
+    val percentageColor = if (isPositive) Green else Red
 
     val marketCap = String.format(
         "%.2f",
-        market?.marketCapChangePercentage24hUsd
+        market.marketCapChangePercentage24hUsd
     )
 
-    val marketCapColor = if ((market?.marketCapChangePercentage24hUsd ?: 0.0) >= 0.0) Green else Red
+    val marketCapColor = if ((market.marketCapChangePercentage24hUsd) >= 0.0) Green else Red
 
 
     val formattedPercentageBtc = String.format(
         "%.2f",
-        market?.marketCapPercentage?.btc,
+        market.marketCapPercentage.btc,
     )
 
     val formattedPercentageEth = String.format(
         "%.2f",
-        market?.marketCapPercentage?.eth,
+        market.marketCapPercentage.eth,
     )
 
     Box(
@@ -417,7 +371,7 @@ private fun GlobalMarketWidgetPreview() {
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                     Text(
-                        text = market?.totalMarketCap?.usd?.toCompactUsd() ?: "",
+                        text = market.totalMarketCap.usd.toCompactUsd(),
                         fontFamily = Inter,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -431,7 +385,7 @@ private fun GlobalMarketWidgetPreview() {
                     ) {
                         Icon(
                             painter = painterResource(
-                                if (isPositive == true) R.drawable.ic_up
+                                if (isPositive) R.drawable.ic_up
                                 else R.drawable.ic_down
                             ),
                             contentDescription = null,
@@ -506,8 +460,8 @@ private fun GlobalMarketWidgetPreview() {
             ) {
                 GlobalMarketItem(
                     title = "Market Cap",
-                    value = market?.totalMarketCap?.usd?.toCompactUsd() ?: "",
-                    percentage = market?.marketCapChangePercentage24hUsd ?: 0.0
+                    value = market.totalMarketCap.usd.toCompactUsd(),
+                    percentage = market.marketCapChangePercentage24hUsd
                 )
                 Box(
                     modifier = Modifier
@@ -517,8 +471,8 @@ private fun GlobalMarketWidgetPreview() {
                 )
                 GlobalMarketItem(
                     title = "24h volume",
-                    value = market?.totalVolume?.usd?.toCompactUsd() ?: "",
-                    percentage = market?.volumeChangePercentage24Usd
+                    value = market.totalVolume.usd.toCompactUsd(),
+                    percentage = market.volumeChangePercentage24Usd
                 )
                 Box(
                     modifier = Modifier
@@ -555,6 +509,8 @@ private fun GlobalMarketItem(
     percentage: Double? = null,
 ) {
 
+    val absPercentage = percentage?.let { abs(it) }
+
     val isPositive =
         percentage?.let {
             if (it >= 0) true
@@ -565,7 +521,7 @@ private fun GlobalMarketItem(
 
     val formattedPercents = String.format(
         "%.2f",
-        percentage,
+        absPercentage,
     )
 
 
