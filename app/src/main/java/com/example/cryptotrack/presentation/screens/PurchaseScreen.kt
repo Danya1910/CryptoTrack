@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +46,7 @@ import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.PurchaseCoin
+import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.uiModels.AggregatedPurchase
@@ -86,6 +88,7 @@ fun PurchaseScreen(
             paddingValues = paddingValues,
             coinViewModel = coinViewModel,
             viewModel = viewModel,
+            navController = navController,
         )
     }
 }
@@ -95,6 +98,7 @@ private fun Content(
     paddingValues: PaddingValues,
     coinViewModel: CoinViewModel,
     viewModel: CoinGeckoViewModel,
+    navController: NavController,
 ) {
 
     val purchase by coinViewModel.purchase.collectAsState(initial = emptyList())
@@ -171,6 +175,10 @@ private fun Content(
             profitPercentage = profitPercentage,
             currentPrice = currentFormatted,
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        HistoryButton(navController = navController)
 
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -272,6 +280,51 @@ private fun TotalVolume(
     }
 }
 
+@Composable
+private fun HistoryButton(
+    navController: NavController,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable{
+                navController.navigate(Screen.PurchaseHistory.route)
+            }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_clock),
+                contentDescription = null,
+                tint = Lavender,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = "История покупок",
+                fontFamily = Inter,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+            )
+        }
+    }
+}
 
 @Composable
 private fun ListItem(
