@@ -182,6 +182,10 @@ private fun Content(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        AddPurchaseButton(navController = navController)
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         ListHat(
             isAscending = isAscending,
             onClick = {
@@ -312,14 +316,60 @@ private fun HistoryButton(
                 painter = painterResource(R.drawable.ic_clock),
                 contentDescription = null,
                 tint = Lavender,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = "История покупок",
                 fontFamily = Inter,
                 color = Color.White,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Normal,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddPurchaseButton(
+    navController: NavController,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clickable{
+                navController.navigate(Screen.AddPurchase.route)
+            }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_plus),
+                contentDescription = null,
+                tint = Lavender,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = "Добавить покупку",
+                fontFamily = Inter,
+                color = Color.White,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
             )
         }
