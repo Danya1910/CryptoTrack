@@ -1,6 +1,7 @@
 package com.example.cryptotrack.presentation.widgets
 
 import android.annotation.SuppressLint
+import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -27,12 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -89,7 +92,7 @@ fun GlobalMarketWidget(
         market?.marketCapChangePercentage24hUsd
     )
 
-    val marketCapColor = if((market?.marketCapChangePercentage24hUsd ?: 0.0) >= 0.0) Green else Red
+    val marketCapColor = if ((market?.marketCapChangePercentage24hUsd ?: 0.0) >= 0.0) Green else Red
 
 
     val formattedPercentageBtc = String.format(
@@ -101,6 +104,15 @@ fun GlobalMarketWidget(
         "%.2f",
         market?.marketCapPercentage?.eth,
     )
+
+    val symbolsNum = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+    }
+
+    val formatterNum = DecimalFormat("#,###", symbolsNum)
+
+    val activeCoins = formatterNum.format(market?.activeCryptocurrencies)
+    val markets = formatterNum.format(market?.markets)
 
     Box(
         modifier = Modifier
@@ -189,15 +201,46 @@ fun GlobalMarketWidget(
                         )
                     }
                 }
-                Text(
-                    text = "ТУТ должен быть график)))",
-                    fontFamily = Inter,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Red,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Active Coins",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = activeCoins,
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Markets",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = markets,
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White,
+                    )
+                }
             }
             Box(
                 modifier = Modifier
@@ -306,7 +349,7 @@ private fun GlobalMarketWidgetPreview() {
         market?.marketCapChangePercentage24hUsd
     )
 
-    val marketCapColor = if((market?.marketCapChangePercentage24hUsd ?: 0.0) >= 0.0) Green else Red
+    val marketCapColor = if ((market?.marketCapChangePercentage24hUsd ?: 0.0) >= 0.0) Green else Red
 
 
     val formattedPercentageBtc = String.format(
@@ -406,15 +449,46 @@ private fun GlobalMarketWidgetPreview() {
                         )
                     }
                 }
-                Text(
-                    text = "ТУТ должен быть график)))",
-                    fontFamily = Inter,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Red,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Active Coins",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = "17,542",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Markets",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = "1434",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White,
+                    )
+                }
             }
             Box(
                 modifier = Modifier
@@ -507,7 +581,11 @@ private fun GlobalMarketItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(
+            modifier = Modifier.height(
+                if (percentage == null) 20.dp else 10.dp
+            )
+        )
         Text(
             text = value,
             fontFamily = Inter,
@@ -517,34 +595,12 @@ private fun GlobalMarketItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        if(percentage != null) {
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                painter = painterResource(
-                    if (isPositive == true) R.drawable.ic_up
-                    else R.drawable.ic_down
-                ),
-                contentDescription = null,
-                tint = percentageColor,
-                modifier = Modifier.size(7.dp)
+        Spacer(
+            modifier = Modifier.height(
+                if (percentage == null) 12.dp else 0.dp
             )
-
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = "$formattedPercents%",
-                    fontFamily = Inter,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = percentageColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        else {
+        )
+        if (percentage != null) {
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -555,7 +611,7 @@ private fun GlobalMarketItem(
                         else R.drawable.ic_down
                     ),
                     contentDescription = null,
-                    tint = Color.Transparent,
+                    tint = percentageColor,
                     modifier = Modifier.size(7.dp)
                 )
 
@@ -565,7 +621,7 @@ private fun GlobalMarketItem(
                     fontFamily = Inter,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Transparent,
+                    color = percentageColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
