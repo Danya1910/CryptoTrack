@@ -47,6 +47,7 @@ import com.example.cryptotrack.domain.model.GlobalMarket
 import com.example.cryptotrack.domain.model.MarketCapPercentage
 import com.example.cryptotrack.domain.model.TotalMarketCap
 import com.example.cryptotrack.domain.model.TotalVolume
+import com.example.cryptotrack.presentation.util.price.formatWithSpaces
 import com.example.cryptotrack.presentation.util.price.toCompactUsd
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -111,8 +112,8 @@ fun GlobalMarketWidget(
 
     val formatterNum = DecimalFormat("#,###", symbolsNum)
 
-    val activeCoins = formatterNum.format(market?.activeCryptocurrencies)
-    val markets = formatterNum.format(market?.markets)
+    val activeCoins = market?.activeCryptocurrencies.formatWithSpaces(formatterNum)
+    val markets = market?.markets.formatWithSpaces(formatterNum)
 
     Box(
         modifier = Modifier

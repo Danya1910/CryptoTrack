@@ -97,3 +97,7 @@ fun formatTime(millis: Long): String {
 
     return formatter.format(Instant.ofEpochMilli(millis))
 }
+
+fun Int?.formatWithSpaces(formatter: DecimalFormat): String {
+    return this?.let { formatter.format(it) } ?: ""
+}
