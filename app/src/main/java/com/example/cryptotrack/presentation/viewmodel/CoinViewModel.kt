@@ -181,6 +181,7 @@ class CoinViewModel @Inject constructor(
     }
 
     fun deletePurchasedCoin(
+        id: Int,
         coinId: String,
         name: String,
         amount: Double,
@@ -189,6 +190,7 @@ class CoinViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             deletePurchasedCoinUseCase(
+                id = id,
                 coinId = coinId,
                 name = name,
                 amount = amount,

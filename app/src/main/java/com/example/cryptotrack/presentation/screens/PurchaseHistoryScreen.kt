@@ -3,6 +3,7 @@ package com.example.cryptotrack.presentation.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,15 +27,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -57,6 +64,7 @@ import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import kotlin.math.roundToInt
 
 
 @Composable
@@ -153,6 +161,7 @@ private fun Content(
         PurchasesList(
             purchase = purchase,
             details = details,
+            coinViewModel = coinViewModel,
             navController = navController
         )
     }
@@ -298,123 +307,179 @@ private fun PurchaseInfoHat(
 private fun HistoryItem(
     purchase: PurchaseCoin,
     details: FavoriteCoinDetails,
+    coinViewModel: CoinViewModel,
     navController: NavController,
 ) {
 
     val buyPrice = formatPrice(purchase.buyPrice)
 
-
     val firstInvestedDate = formatTimeAndDate(millis = purchase.buyDate)
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    var offsetX by remember { mutableStateOf(0f) }
+
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
-            .background(color = DarkBlue)
-            .clickable{
-                navController.navigate(Screen.CoinDetails.createRoute(id = purchase.coinId))
-            }
-            .padding(horizontal = 10.dp, vertical = 5.dp)
     ) {
-        AsyncImage(
-            model = details.image,
-            contentDescription = null,
-            modifier = Modifier.size(40.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f)
+        Row(
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(
+                    color= Red
+                )
+                .clickable{
+                    coinViewModel.deletePurchasedCoin(
+                        id = purchase.id,
+                        coinId = purchase.coinId,
+                        name = purchase.name,
+                        amount = purchase.amount,
+                        buyPrice = purchase.buyPrice,
+                        buyDate = purchase.buyDate,
+                    )
+                }
+                .padding(end = 20.dp)
         ) {
             Text(
-                text = purchase.name,
+                text = "Удалить",
                 fontFamily = Inter,
                 color = Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = "Количество",
-                fontFamily = Inter,
-                color = Color.Gray,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = "${purchase.amount} ${details.symbol}",
-                fontFamily = Inter,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
-        Spacer(modifier = Modifier.width(10.dp))
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .offset {
+                    IntOffset(offsetX.roundToInt(), 0)
+                }
+                .background(color = DarkBlue)
+                .clickable {
+                    navController.navigate(Screen.CoinDetails.createRoute(id = purchase.coinId))
+                }
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { _, dragAmount ->
+                            offsetX = (offsetX + dragAmount).coerceIn(-250f, 0f)
+                        },
+                        onDragEnd = {
+                            offsetX = if (offsetX < -180)
+                                -250f
+                            else 0f
+                        }
+                    )
+                },
         ) {
-            Text(
-                text = "Цена за 1 монету",
-                fontFamily = Inter,
-                color = Color.Gray,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            AsyncImage(
+                model = details.image,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp)
             )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = "$buyPrice$",
-                fontFamily = Inter,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Spacer(modifier = Modifier.width(10.dp))
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = firstInvestedDate,
+                    text = purchase.name,
+                    fontFamily = Inter,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = "Количество",
                     fontFamily = Inter,
                     color = Color.Gray,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Normal,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    painter = painterResource(R.drawable.ic_arrow_right),
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(15.dp)
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = "${purchase.amount} ${details.symbol}",
+                    fontFamily = Inter,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = "Цена за 1 монету",
+                    fontFamily = Inter,
+                    color = Color.Gray,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = "$buyPrice$",
+                    fontFamily = Inter,
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = firstInvestedDate,
+                        fontFamily = Inter,
+                        color = Color.Gray,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Normal,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_arrow_right),
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(15.dp)
+                    )
+                }
+            }
         }
+
     }
+
 }
 
 @Composable
 private fun PurchasesList(
     purchase: List<PurchaseCoin>,
     details: List<FavoriteCoinDetails>?,
+    coinViewModel: CoinViewModel,
     navController: NavController,
 ) {
     Box(
@@ -440,6 +505,7 @@ private fun PurchasesList(
                     HistoryItem(
                         purchase = item,
                         details = coinDetails,
+                        coinViewModel = coinViewModel,
                         navController = navController,
                     )
 

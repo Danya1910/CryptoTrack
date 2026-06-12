@@ -9,6 +9,7 @@ class DeletePurchasedCoinUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(
+        id: Int,
         coinId: String,
         name: String,
         amount: Double,
@@ -17,6 +18,7 @@ class DeletePurchasedCoinUseCase @Inject constructor(
     ) {
         return coinRepository.deletePurchasedCoin(
             coin = PurchaseCoin(
+                id = id,
                 coinId = coinId,
                 name = name,
                 amount = amount,
