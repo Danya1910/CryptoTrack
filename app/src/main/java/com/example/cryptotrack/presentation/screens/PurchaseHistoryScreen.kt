@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,9 +27,11 @@ import androidx.compose.material.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -114,7 +119,14 @@ private fun Content(
         aggregatePurchases(purchase)
     }
 
+    val uiList = remember {mutableStateListOf<PurchaseCoin>()}
+
     LaunchedEffect(purchase) {
+        if(uiList.isEmpty() && purchase.isNotEmpty())
+            uiList.addAll(purchase)
+    }
+
+    LaunchedEffect(Unit) {
         if (purchase.isNotEmpty()) {
             val ids = purchase.joinToString(",") { it.coinId }
             viewModel.getFavoriteCoinsDetails(ids = ids)
@@ -123,7 +135,9 @@ private fun Content(
 
     val purchaseDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
 
-    val details = purchaseDetails.details
+    val details by remember(purchaseDetails.details) {
+        mutableStateOf(purchaseDetails.details)
+    }
 
     val purchasesCount = purchase.size.toString()
     val investedSum = calculateInvested(purchases = purchase)
@@ -140,7 +154,6 @@ private fun Content(
         current = currentSum,
         invested = investedSum,
     )
-
 
     Column(
         modifier = Modifier
@@ -159,9 +172,21 @@ private fun Content(
         )
         Spacer(modifier = Modifier.height(10.dp))
         PurchasesList(
-            purchase = purchase,
+            purchase = uiList,
             details = details,
             coinViewModel = coinViewModel,
+            onDeleteClick = { item ->
+                uiList.remove(item)
+                // Если метод требует отдельные поля, вытаскиваем их из item:
+                coinViewModel.deletePurchasedCoin(
+                    id = item.id,
+                    coinId = item.coinId,
+                    name = item.name,
+                    amount = item.amount,
+                    buyPrice = item.buyPrice,
+                    buyDate = item.buyDate
+                )
+            },
             navController = navController
         )
     }
@@ -308,8 +333,11 @@ private fun HistoryItem(
     purchase: PurchaseCoin,
     details: FavoriteCoinDetails,
     coinViewModel: CoinViewModel,
+    onClick: () -> Unit,
     navController: NavController,
+    modifier: Modifier,
 ) {
+
 
     val buyPrice = formatPrice(purchase.buyPrice)
 
@@ -319,7 +347,7 @@ private fun HistoryItem(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(60.dp)
     ) {
@@ -333,14 +361,7 @@ private fun HistoryItem(
                     color= Red
                 )
                 .clickable{
-                    coinViewModel.deletePurchasedCoin(
-                        id = purchase.id,
-                        coinId = purchase.coinId,
-                        name = purchase.name,
-                        amount = purchase.amount,
-                        buyPrice = purchase.buyPrice,
-                        buyDate = purchase.buyDate,
-                    )
+                    onClick()
                 }
                 .padding(end = 20.dp)
         ) {
@@ -480,8 +501,11 @@ private fun PurchasesList(
     purchase: List<PurchaseCoin>,
     details: List<FavoriteCoinDetails>?,
     coinViewModel: CoinViewModel,
+    onDeleteClick: (PurchaseCoin) -> Unit,
     navController: NavController,
 ) {
+
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -490,15 +514,16 @@ private fun PurchasesList(
                 color = DarkBlue,
             )
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(
-                    rememberScrollState()
-                )
+                .clip(RoundedCornerShape(10.dp))
+                .background(DarkBlue)
         ) {
-            purchase.forEachIndexed { index, item ->
-
+            itemsIndexed(
+                items = purchase,
+                key = { _, item -> item.id }
+            ) { index, item ->
                 val coinDetails = details?.find { it.id == item.coinId }
 
                 if (coinDetails != null) {
@@ -506,7 +531,9 @@ private fun PurchasesList(
                         purchase = item,
                         details = coinDetails,
                         coinViewModel = coinViewModel,
+                        onClick = { onDeleteClick(item) },
                         navController = navController,
+                        modifier = Modifier.animateItem()
                     )
 
                     if (index != purchase.lastIndex) {
@@ -514,7 +541,7 @@ private fun PurchasesList(
                             modifier = Modifier
                                 .height(1.dp)
                                 .fillMaxWidth()
-                                .background(color = OutlineGray),
+                                .background(OutlineGray)
                         )
                     }
                 }
