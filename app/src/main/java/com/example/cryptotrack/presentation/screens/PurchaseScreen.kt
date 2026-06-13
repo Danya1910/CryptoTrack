@@ -126,22 +126,28 @@ private fun Content(
 
     val details = purchaseDetails.details
 
+    val isApiDataAvailable = !details.isNullOrEmpty()
+
     val investedSum = calculateInvested(purchases = purchase)
 
-    val currentSum = calculateCurrentPrice(
-        aggregatedPurchase = aggregatedPurchase,
-        details = details
-    )
+    val currentSum = if (isApiDataAvailable) {
+        calculateCurrentPrice(
+            aggregatedPurchase = aggregatedPurchase,
+            details = details
+        )
+    } else null
 
-    val profit = currentSum - investedSum
+    val profit = if (currentSum != null) currentSum - investedSum
+    else null
 
     val investedFormatted = formatPrice(value = investedSum)
-    val currentFormatted = formatPrice(value = currentSum)
+    val currentFormatted = currentSum?.let { formatPrice(value = it) }
 
-    val profitPercentage = calculateProfitPercentage(
+
+    val profitPercentage = if (isApiDataAvailable && currentSum != null) calculateProfitPercentage(
         current = currentSum,
         invested = investedSum,
-    )
+    ) else null
 
     Box(
         contentAlignment = Alignment.BottomCenter,
@@ -201,21 +207,27 @@ private fun Content(
 
 @Composable
 private fun TotalVolume(
-    profitPercentage: Double,
-    currentPrice: String,
+    profitPercentage: Double?,
+    currentPrice: String?,
 ) {
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
         decimalSeparator = '.'
     }
 
-    val percentageColor = if (profitPercentage >= 0) Green else Red
+    val percentageColor = when {
+        profitPercentage == null -> Color.Gray
+        profitPercentage >= 0 -> Green
+        else -> Red
+    }
 
     val formatter = DecimalFormat("#,##0.00", symbols)
 
-    val percentageText =
-        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else
-            "${formatter.format(profitPercentage)}%"
+    val percentageText = profitPercentage?.let {
+        if (it > 0) "+${formatter.format(it)}%" else "${formatter.format(it)}%"
+    } ?: "--%"
+
+    val displayCurrentPrice = currentPrice ?: "--"
 
     Box(
         modifier = Modifier
@@ -248,7 +260,7 @@ private fun TotalVolume(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "$currentPrice $",
+                    text = "$displayCurrentPrice $",
                     fontFamily = Inter,
                     color = Color.White,
                     fontWeight = FontWeight.Normal,
@@ -370,6 +382,7 @@ private fun AddPurchaseButton(
         }
     }
 }
+
 @Composable
 private fun ListItem(
     purchase: AggregatedPurchase,
@@ -497,13 +510,19 @@ private fun CoinsList(
 @Composable
 private fun ConclusionWidget(
     invested: String,
-    profit: Double,
+    profit: Double?,
 ) {
 
-    val profitColor = if (profit >= 0.0) Green else Red
+    val profitColor = when {
+        profit == null -> Color.Gray
+        profit >= 0 -> Green
+        else -> Red
+    }
 
-    val profitText =
-        if (profit >= 0.0) "+" + formatPrice(value = profit) + " $" else formatPrice(value = profit) + " $"
+    val profitText = profit?.let {
+        if (profit >= 0.0) "+" + formatPrice(value = profit) + " $"
+        else formatPrice(value = profit) + " $"
+    } ?: "-- $"
 
     Box(
         modifier = Modifier
