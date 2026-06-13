@@ -148,21 +148,24 @@ private fun Content(
         mutableStateOf(purchaseDetails.details)
     }
 
+    val isApiDataAvailable = !details.isNullOrEmpty()
+
     val purchasesCount = purchase.size.toString()
     val investedSum = calculateInvested(purchases = purchase)
 
-    val currentSum = calculateCurrentPrice(
-        aggregatedPurchase = aggregatedPurchase,
-        details = details
-    )
+    val currentSum = if (isApiDataAvailable) {
+        calculateCurrentPrice(aggregatedPurchase = aggregatedPurchase, details = details)
+    } else null
 
 
-    val currentFormatted = formatPrice(value = currentSum)
+    val currentFormatted = currentSum?.let { formatPrice(value = it) }
     val investedFormatted = formatPrice(value = investedSum)
-    val profitPercentage = calculateProfitPercentage(
-        current = currentSum,
-        invested = investedSum,
-    )
+    val profitPercentage = if (isApiDataAvailable && currentSum != null)
+        calculateProfitPercentage(
+            current = currentSum,
+            invested = investedSum,
+        )
+    else null
 
     Column(
         modifier = Modifier
@@ -176,7 +179,7 @@ private fun Content(
         PurchaseInfoHat(
             purchaseCount = purchasesCount,
             invested = "$investedFormatted$",
-            currentPrice = "$currentFormatted$",
+            currentPrice = currentFormatted,
             profitPercentage = profitPercentage
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -186,7 +189,6 @@ private fun Content(
             coinViewModel = coinViewModel,
             onDeleteClick = { item ->
                 uiList.remove(item)
-                // Если метод требует отдельные поля, вытаскиваем их из item:
                 coinViewModel.deletePurchasedCoin(
                     id = item.id,
                     coinId = item.coinId,
@@ -206,8 +208,8 @@ private fun Content(
 private fun PurchaseInfoHat(
     purchaseCount: String,
     invested: String,
-    currentPrice: String,
-    profitPercentage: Double,
+    currentPrice: String?,
+    profitPercentage: Double?,
 ) {
 
     val symbols = DecimalFormatSymbols().apply {
@@ -215,17 +217,19 @@ private fun PurchaseInfoHat(
         decimalSeparator = '.'
     }
 
-    val percentageColor = if (profitPercentage >= 0) Green else Red
+    val percentageColor = when {
+        profitPercentage == null -> Color.Gray
+        profitPercentage >= 0 -> Green
+        else -> Red
+    }
 
     val formatter = DecimalFormat("#,##0.00", symbols)
 
-    val percentageText = profitPercentage.let {
-        if (it > 0) {
-            "+${formatter.format(it)}%"
-        } else {
-            "${formatter.format(it)}%"
-        }
-    }
+    val percentageText = profitPercentage?.let {
+        if (it > 0) "+${formatter.format(it)}%" else "${formatter.format(it)}%"
+    } ?: "--%"
+
+    val displayCurrentPrice = currentPrice ?: "--"
 
     Box(
         modifier = Modifier
@@ -317,7 +321,7 @@ private fun PurchaseInfoHat(
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(
-                    text = currentPrice,
+                    text = "$displayCurrentPrice $",
                     fontFamily = Inter,
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
