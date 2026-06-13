@@ -2,6 +2,7 @@ package com.example.cryptotrack.presentation.screens
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -71,6 +72,7 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
+import kotlinx.coroutines.Delay
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -353,6 +355,16 @@ private fun HistoryItem(
 
     val hintOffset = remember { Animatable(0f) }
 
+    var isPendingDelete by remember { mutableStateOf(false) }
+
+    var deleted by remember {
+        mutableStateOf(false)
+    }
+
+    val height by animateDpAsState(
+        if (deleted) 0.dp else 60.dp
+    )
+
     LaunchedEffect(showSwipeHint) {
         if(showSwipeHint) {
             delay(1000)
@@ -377,7 +389,7 @@ private fun HistoryItem(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(height)
     ) {
         Row(
             horizontalArrangement = Arrangement.End,
@@ -389,13 +401,7 @@ private fun HistoryItem(
                     color= Red
                 )
                 .clickable{
-                    scope.launch {
-                        offsetX.animateTo(
-                            targetValue = -1000f,
-                            animationSpec = tween(250)
-                        )
-                        onClick()
-                    }
+                    onClick()
                 }
                 .padding(end = 20.dp)
         ) {
@@ -434,11 +440,29 @@ private fun HistoryItem(
                             when {
                                 offsetX.value < -300f -> {
                                     scope.launch {
+
+                                        isPendingDelete = true
+                                        deleted = true
+
                                         offsetX.animateTo(
                                             targetValue = -1000f,
                                             animationSpec = tween(250)
                                         )
-                                        onClick()
+
+                                        delay(3000)
+
+                                        if (isPendingDelete) {
+
+                                            offsetX.snapTo(-1000f)
+
+                                            offsetX.animateTo(
+                                                targetValue = 0f,
+                                                animationSpec = tween(300)
+                                            )
+
+                                            isPendingDelete = false
+                                            deleted = false
+                                        }
                                     }
                                 }
 
