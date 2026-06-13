@@ -500,13 +500,13 @@ private fun CoinsList(
 @Composable
 private fun ConclusionWidget(
     invested: String,
-    profit: Double
+    profit: Double,
 ) {
 
     val profitColor = if (profit >= 0.0) Green else Red
 
     val profitText =
-        if (profit >= 0.0) "+" + formatPrice(value = profit) + " $" else "-" + formatPrice(value = profit) + " $"
+        if (profit >= 0.0) "+" + formatPrice(value = profit) + " $" else formatPrice(value = profit) + " $"
 
     Box(
         modifier = Modifier
