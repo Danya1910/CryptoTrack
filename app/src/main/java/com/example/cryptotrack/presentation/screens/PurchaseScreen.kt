@@ -403,7 +403,7 @@ private fun ListItem(
                 .weight(0.7f)
         ) {
             AsyncImage(
-                model = details.image,
+                model = purchase.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.size(30.dp)
             )

@@ -142,6 +142,7 @@ class CoinViewModel @Inject constructor(
         amount: Double,
         buyPrice: Double,
         buyDate: Long,
+        imageUrl: String,
     ) {
         viewModelScope.launch {
             insertPurchaseUseCase(
@@ -150,6 +151,7 @@ class CoinViewModel @Inject constructor(
                     amount = amount,
                     buyPrice = buyPrice,
                     buyDate = buyDate,
+                    imageUrl = imageUrl,
             )
             Log.d("CoinVM", "insertPurchase")
         }
@@ -187,6 +189,7 @@ class CoinViewModel @Inject constructor(
         amount: Double,
         buyPrice: Double,
         buyDate: Long,
+        imageUrl: String,
     ) {
         viewModelScope.launch {
             deletePurchasedCoinUseCase(
@@ -196,6 +199,7 @@ class CoinViewModel @Inject constructor(
                 amount = amount,
                 buyPrice = buyPrice,
                 buyDate = buyDate,
+                imageUrl = imageUrl,
             )
             Log.d("CoinVM", "deletePurchasedCoin called")
         }

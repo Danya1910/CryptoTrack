@@ -291,6 +291,7 @@ private fun Content(
                         amount = coinsCount.toDouble(),
                         buyPrice = buyPrice.toDouble(),
                         buyDate = buyDate ?: 0,
+                        imageUrl = selectedCoin?.image ?: "",
                     )
                     navController.popBackStack()
                 }

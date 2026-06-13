@@ -43,4 +43,5 @@ data class PurchaseEntity(
     val amount: Double,
     val buyPrice: Double,
     val buyDate: Long,
+    val imageUrl: String,
 )

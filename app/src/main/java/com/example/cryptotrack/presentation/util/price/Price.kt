@@ -86,7 +86,8 @@ fun aggregatePurchases(purchases: List<PurchaseCoin>): List<AggregatedPurchase> 
                 coinId = list.first().coinId,
                 name = list.first().name,
                 totalAmount = totalAmount,
-                totalValue = totalValue
+                totalValue = totalValue,
+                imageUrl = list.first().imageUrl,
             )
         }
 }

@@ -14,6 +14,7 @@ class InsertPurchaseUseCase @Inject constructor(
         amount: Double,
         buyPrice: Double,
         buyDate: Long,
+        imageUrl: String,
     ) {
         coinRepository.insertPurchase(
             coin = PurchaseCoin(
@@ -22,6 +23,7 @@ class InsertPurchaseUseCase @Inject constructor(
                 amount = amount,
                 buyPrice = buyPrice,
                 buyDate = buyDate,
+                imageUrl = imageUrl,
             )
         )
     }

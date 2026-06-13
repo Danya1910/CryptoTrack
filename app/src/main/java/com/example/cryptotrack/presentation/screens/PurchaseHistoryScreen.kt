@@ -192,7 +192,8 @@ private fun Content(
                     name = item.name,
                     amount = item.amount,
                     buyPrice = item.buyPrice,
-                    buyDate = item.buyDate
+                    buyDate = item.buyDate,
+                    imageUrl = item.imageUrl,
                 )
             },
             navController = navController
@@ -489,7 +490,7 @@ private fun HistoryItem(
                 },
         ) {
             AsyncImage(
-                model = details.image,
+                model = purchase.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.size(40.dp)
             )

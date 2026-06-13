@@ -7,4 +7,5 @@ data class PurchaseCoin(
     val amount: Double,
     val buyPrice: Double,
     val buyDate: Long,
+    val imageUrl: String,
 )

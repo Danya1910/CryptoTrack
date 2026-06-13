@@ -21,7 +21,7 @@ import com.example.cryptotrack.data.local.entity.ViewingHistoryEntity
         PurchaseEntity::class,
         UserEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 
@@ -109,6 +109,18 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
                 avatar TEXT
             )
             """.trimIndent()
+        )
+
+    }
+}
+
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+
+        db.execSQL(
+            """
+            ALTER TABLE purchase ADD COLUMN imageUrl TEXT NOT NULL DEFAULT ""
+        """.trimIndent()
         )
 
     }

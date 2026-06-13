@@ -73,6 +73,7 @@ fun PurchaseEntity.toDomain() : PurchaseCoin {
         amount = amount,
         buyPrice = buyPrice,
         buyDate = buyDate,
+        imageUrl = imageUrl,
     )
 }
 
@@ -84,5 +85,6 @@ fun PurchaseCoin.toEntity() : PurchaseEntity {
         amount = amount,
         buyPrice = buyPrice,
         buyDate = buyDate,
+        imageUrl = imageUrl,
     )
 }

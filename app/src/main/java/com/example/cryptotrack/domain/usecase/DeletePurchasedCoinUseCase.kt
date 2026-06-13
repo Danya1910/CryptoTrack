@@ -15,6 +15,7 @@ class DeletePurchasedCoinUseCase @Inject constructor(
         amount: Double,
         buyPrice: Double,
         buyDate: Long,
+        imageUrl: String,
     ) {
         return coinRepository.deletePurchasedCoin(
             coin = PurchaseCoin(
@@ -24,6 +25,7 @@ class DeletePurchasedCoinUseCase @Inject constructor(
                 amount = amount,
                 buyPrice = buyPrice,
                 buyDate = buyDate,
+                imageUrl = imageUrl,
             )
         )
     }
