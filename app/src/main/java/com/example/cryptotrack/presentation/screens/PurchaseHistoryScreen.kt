@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +72,7 @@ import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import kotlin.math.roundToInt
@@ -343,6 +345,7 @@ private fun HistoryItem(
     showSwipeHint: Boolean,
 ) {
 
+    val scope = rememberCoroutineScope()
 
     val buyPrice = formatPrice(purchase.buyPrice)
 
@@ -354,11 +357,11 @@ private fun HistoryItem(
         if(showSwipeHint) {
             delay(1000)
             hintOffset.animateTo(
-                targetValue = -170f,
+                targetValue = -220f,
                 animationSpec = tween(250)
             )
             hintOffset.animateTo(
-                targetValue = -170f,
+                targetValue = -220f,
                 animationSpec = tween(250)
             )
             hintOffset.animateTo(
@@ -368,7 +371,7 @@ private fun HistoryItem(
         }
     }
 
-    var offsetX by remember { mutableStateOf(0f) }
+    val offsetX = remember { Animatable(0f) }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -386,7 +389,13 @@ private fun HistoryItem(
                     color= Red
                 )
                 .clickable{
-                    onClick()
+                    scope.launch {
+                        offsetX.animateTo(
+                            targetValue = -1000f,
+                            animationSpec = tween(250)
+                        )
+                        onClick()
+                    }
                 }
                 .padding(end = 20.dp)
         ) {
@@ -404,7 +413,7 @@ private fun HistoryItem(
                 .fillMaxWidth()
                 .height(60.dp)
                 .offset {
-                    IntOffset((offsetX + hintOffset.value).roundToInt(), 0)
+                    IntOffset((offsetX.value + hintOffset.value).roundToInt(), 0)
                 }
                 .background(color = DarkBlue)
                 .clickable {
@@ -414,12 +423,43 @@ private fun HistoryItem(
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
                         onHorizontalDrag = { _, dragAmount ->
-                            offsetX = (offsetX + dragAmount).coerceIn(-250f, 0f)
+                            scope.launch {
+                                offsetX.snapTo(
+                                    (offsetX.value + dragAmount)
+                                        .coerceIn(-650f, 0f)
+                                )
+                            }
                         },
                         onDragEnd = {
-                            offsetX = if (offsetX < -180)
-                                -250f
-                            else 0f
+                            when {
+                                offsetX.value < -300f -> {
+                                    scope.launch {
+                                        offsetX.animateTo(
+                                            targetValue = -1000f,
+                                            animationSpec = tween(250)
+                                        )
+                                        onClick()
+                                    }
+                                }
+
+                                offsetX.value < -180 -> {
+                                    scope.launch {
+                                        offsetX.animateTo(
+                                            -220f,
+                                            tween(200)
+                                        )
+                                    }
+                                }
+
+                                else -> {
+                                    scope.launch {
+                                        offsetX.animateTo(
+                                            0f,
+                                            tween(200)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     )
                 },
