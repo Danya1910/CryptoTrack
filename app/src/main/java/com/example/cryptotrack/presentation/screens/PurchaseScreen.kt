@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,8 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +47,7 @@ import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.getCoinPlural
 import com.example.cryptotrack.presentation.util.uiModels.AggregatedPurchase
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
@@ -144,9 +142,6 @@ private fun Content(
         current = currentSum,
         invested = investedSum,
     )
-
-
-
 
     Box(
         contentAlignment = Alignment.BottomCenter,
@@ -302,7 +297,7 @@ private fun HistoryButton(
                 color = OutlineGray,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.PurchaseHistory.route)
             }
     ) {
@@ -348,7 +343,7 @@ private fun AddPurchaseButton(
                 color = OutlineGray,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.AddPurchase.route)
             }
     ) {
@@ -375,18 +370,22 @@ private fun AddPurchaseButton(
         }
     }
 }
-
 @Composable
 private fun ListItem(
     purchase: AggregatedPurchase,
-    details: FavoriteCoinDetails,
+    details: FavoriteCoinDetails?,
 ) {
 
     val totalPrice = formatPrice(purchase.totalValue)
-    val percentage = "%.2f".format(details.priceChangePercentage24h)
+    val percentage = details?.priceChangePercentage24h?.let { "%.2f".format(it) } ?: "--"
 
-    val percentageColor = if(details.priceChangePercentage24h >= 0.0) Green else Red
+    val percentageColor = details?.priceChangePercentage24h?.let { if (it >= 0.0) Green else Red }
 
+    val insteadOfSymbol = if (details?.symbol.isNullOrEmpty()) {
+        getCoinPlural(purchase.totalAmount)
+    } else {
+        details.symbol.uppercase()
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -411,7 +410,7 @@ private fun ListItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = details.name,
+                    text = purchase.name,
                     fontFamily = Inter,
                     color = Color.White,
                     fontWeight = FontWeight.Normal,
@@ -421,7 +420,7 @@ private fun ListItem(
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "${purchase.totalAmount} ${details.symbol.uppercase()}",
+                    text = "${purchase.totalAmount} $insteadOfSymbol",
                     fontFamily = Inter,
                     color = Color.Gray,
                     fontWeight = FontWeight.Normal,
@@ -444,13 +443,14 @@ private fun ListItem(
             Text(
                 text = "$percentage%",
                 fontFamily = Inter,
-                color = percentageColor,
+                color = percentageColor ?: Color.Transparent,
                 fontWeight = FontWeight.Normal,
                 fontSize = 12.sp,
             )
         }
     }
 }
+
 
 @Composable
 private fun CoinsList(
@@ -476,20 +476,18 @@ private fun CoinsList(
 
                 val coinDetails = details?.find { it.id == item.coinId }
 
-                if (coinDetails != null) {
-                    ListItem(
-                        purchase = item,
-                        details = coinDetails
-                    )
+                ListItem(
+                    purchase = item,
+                    details = coinDetails
+                )
 
-                    if (index != purchase.lastIndex) {
-                        Box(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .fillMaxWidth()
-                                .background(color = OutlineGray),
-                        )
-                    }
+                if (index != purchase.lastIndex) {
+                    Box(
+                        modifier = Modifier
+                            .height(1.dp)
+                            .fillMaxWidth()
+                            .background(color = OutlineGray),
+                    )
                 }
             }
         }
@@ -611,7 +609,7 @@ private fun ListHat(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End,
             modifier = Modifier
-                .clickable{
+                .clickable {
                     onClick()
                 }
         ) {
@@ -626,8 +624,8 @@ private fun ListHat(
             Spacer(modifier = Modifier.width(5.dp))
             Icon(
                 painter = painterResource(
-                    if(isAscending) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down
-                 ),
+                    if (isAscending) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down
+                ),
                 contentDescription = null,
                 tint = Color.Gray,
                 modifier = Modifier.size(8.dp)
@@ -659,7 +657,7 @@ fun calculateCurrentPrice(
     aggregatedPurchase: List<AggregatedPurchase>,
     details: List<FavoriteCoinDetails>?
 ): Double {
-    var currentPrice: Double = 0.0
+    var currentPrice = 0.0
     aggregatedPurchase.forEach { purchase ->
         details?.forEach { details ->
             if (purchase.coinId == details.id) {
