@@ -1,5 +1,8 @@
 package com.example.cryptotrack.presentation.screens
 
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -67,6 +70,7 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
+import kotlinx.coroutines.delay
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import kotlin.math.roundToInt
@@ -336,12 +340,33 @@ private fun HistoryItem(
     onClick: () -> Unit,
     navController: NavController,
     modifier: Modifier,
+    showSwipeHint: Boolean,
 ) {
 
 
     val buyPrice = formatPrice(purchase.buyPrice)
 
     val firstInvestedDate = formatTimeAndDate(millis = purchase.buyDate)
+
+    val hintOffset = remember { Animatable(0f) }
+
+    LaunchedEffect(showSwipeHint) {
+        if(showSwipeHint) {
+            delay(1000)
+            hintOffset.animateTo(
+                targetValue = -170f,
+                animationSpec = tween(250)
+            )
+            hintOffset.animateTo(
+                targetValue = -170f,
+                animationSpec = tween(250)
+            )
+            hintOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(250)
+            )
+        }
+    }
 
     var offsetX by remember { mutableStateOf(0f) }
 
@@ -379,7 +404,7 @@ private fun HistoryItem(
                 .fillMaxWidth()
                 .height(60.dp)
                 .offset {
-                    IntOffset(offsetX.roundToInt(), 0)
+                    IntOffset((offsetX + hintOffset.value).roundToInt(), 0)
                 }
                 .background(color = DarkBlue)
                 .clickable {
@@ -493,7 +518,6 @@ private fun HistoryItem(
         }
 
     }
-
 }
 
 @Composable
@@ -533,7 +557,8 @@ private fun PurchasesList(
                         coinViewModel = coinViewModel,
                         onClick = { onDeleteClick(item) },
                         navController = navController,
-                        modifier = Modifier.animateItem()
+                        modifier = Modifier.animateItem(),
+                        showSwipeHint = index == 0,
                     )
 
                     if (index != purchase.lastIndex) {
