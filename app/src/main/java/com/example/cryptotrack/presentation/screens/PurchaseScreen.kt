@@ -219,9 +219,8 @@ private fun TotalVolume(
     val formatter = DecimalFormat("#,##0.00", symbols)
 
     val percentageText =
-        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else "-${
-            formatter.format(profitPercentage)
-        }%"
+        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else
+            "${formatter.format(profitPercentage)}%"
 
     Box(
         modifier = Modifier
