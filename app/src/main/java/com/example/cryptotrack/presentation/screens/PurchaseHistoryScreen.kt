@@ -62,6 +62,7 @@ import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.price.formatTimeAndDate
+import com.example.cryptotrack.presentation.util.price.getCoinPlural
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.PurchaseHistoryTopAppBar
@@ -127,10 +128,10 @@ private fun Content(
         aggregatePurchases(purchase)
     }
 
-    val uiList = remember {mutableStateListOf<PurchaseCoin>()}
+    val uiList = remember { mutableStateListOf<PurchaseCoin>() }
 
     LaunchedEffect(purchase) {
-        if(uiList.isEmpty() && purchase.isNotEmpty())
+        if (uiList.isEmpty() && purchase.isNotEmpty())
             uiList.addAll(purchase)
     }
 
@@ -340,7 +341,7 @@ private fun PurchaseInfoHat(
 @Composable
 private fun HistoryItem(
     purchase: PurchaseCoin,
-    details: FavoriteCoinDetails,
+    details: FavoriteCoinDetails?,
     coinViewModel: CoinViewModel,
     onClick: () -> Unit,
     navController: NavController,
@@ -366,8 +367,14 @@ private fun HistoryItem(
         if (deleted) 0.dp else 60.dp
     )
 
+    val insteadOfSymbol = if (details?.symbol.isNullOrEmpty()) {
+        getCoinPlural(purchase.amount)
+    } else {
+        details.symbol.uppercase()
+    }
+
     LaunchedEffect(showSwipeHint) {
-        if(showSwipeHint) {
+        if (showSwipeHint) {
             delay(1000)
             hintOffset.animateTo(
                 targetValue = -220f,
@@ -399,9 +406,9 @@ private fun HistoryItem(
                 .fillMaxWidth()
                 .height(60.dp)
                 .background(
-                    color= Red
+                    color = Red
                 )
-                .clickable{
+                .clickable {
                     onClick()
                 }
                 .padding(end = 20.dp)
@@ -520,7 +527,7 @@ private fun HistoryItem(
                 )
                 Spacer(modifier = Modifier.height(3.dp))
                 Text(
-                    text = "${purchase.amount} ${details.symbol}",
+                    text = "${purchase.amount} $insteadOfSymbol",
                     fontFamily = Inter,
                     color = Color.White,
                     fontSize = 12.sp,
@@ -615,25 +622,23 @@ private fun PurchasesList(
             ) { index, item ->
                 val coinDetails = details?.find { it.id == item.coinId }
 
-                if (coinDetails != null) {
-                    HistoryItem(
-                        purchase = item,
-                        details = coinDetails,
-                        coinViewModel = coinViewModel,
-                        onClick = { onDeleteClick(item) },
-                        navController = navController,
-                        modifier = Modifier.animateItem(),
-                        showSwipeHint = index == 0,
-                    )
+                HistoryItem(
+                    purchase = item,
+                    details = coinDetails,
+                    coinViewModel = coinViewModel,
+                    onClick = { onDeleteClick(item) },
+                    navController = navController,
+                    modifier = Modifier.animateItem(),
+                    showSwipeHint = index == 0,
+                )
 
-                    if (index != purchase.lastIndex) {
-                        Box(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .fillMaxWidth()
-                                .background(OutlineGray)
-                        )
-                    }
+                if (index != purchase.lastIndex) {
+                    Box(
+                        modifier = Modifier
+                            .height(1.dp)
+                            .fillMaxWidth()
+                            .background(OutlineGray)
+                    )
                 }
             }
         }
