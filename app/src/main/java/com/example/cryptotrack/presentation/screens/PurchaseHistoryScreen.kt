@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -74,6 +75,7 @@ import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
 import kotlinx.coroutines.Delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -112,7 +114,6 @@ private fun PurchaseHistoryScreenPreview() {
 //    ) {paddingValues ->
 //        Content(paddingValues = paddingValues)
 //    }
-
 }
 
 @Composable
@@ -167,41 +168,91 @@ private fun Content(
         )
     else null
 
-    Column(
+    var showCancel by remember { mutableStateOf(false) }
+    val cancelDeleting = remember { mutableStateOf(false) }
+    val clicked = remember {mutableStateOf(false)}
+
+
+    LaunchedEffect(showCancel) {
+        if (showCancel) {
+            delay(3000)
+            showCancel = false
+            clicked.value = false
+        }
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                color = BlackBackground
-            )
-            .padding(paddingValues)
-            .padding(horizontal = 15.dp)
     ) {
-        PurchaseInfoHat(
-            purchaseCount = purchasesCount,
-            invested = "$investedFormatted$",
-            currentPrice = currentFormatted,
-            profitPercentage = profitPercentage
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        PurchasesList(
-            purchase = uiList,
-            details = details,
-            coinViewModel = coinViewModel,
-            onDeleteClick = { item ->
-                uiList.remove(item)
-                coinViewModel.deletePurchasedCoin(
-                    id = item.id,
-                    coinId = item.coinId,
-                    name = item.name,
-                    amount = item.amount,
-                    buyPrice = item.buyPrice,
-                    buyDate = item.buyDate,
-                    imageUrl = item.imageUrl,
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = BlackBackground
                 )
-            },
-            navController = navController
-        )
+                .padding(paddingValues)
+                .padding(horizontal = 15.dp)
+        ) {
+            PurchaseInfoHat(
+                purchaseCount = purchasesCount,
+                invested = "$investedFormatted$",
+                currentPrice = currentFormatted,
+                profitPercentage = profitPercentage
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            PurchasesList(
+                purchase = uiList,
+                details = details,
+                coinViewModel = coinViewModel,
+                onDeleteClick = { item ->
+                    uiList.remove(item)
+                    coinViewModel.deletePurchasedCoin(
+                        id = item.id,
+                        coinId = item.coinId,
+                        name = item.name,
+                        amount = item.amount,
+                        buyPrice = item.buyPrice,
+                        buyDate = item.buyDate,
+                        imageUrl = item.imageUrl,
+                    )
+                },
+                navController = navController,
+                showCancelTrigger = {
+                    showCancel = it
+                },
+                cancelDeleting = cancelDeleting,
+                clicked = clicked,
+            )
+        }
+        if (showCancel) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(
+                        color = Color.White,
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .align(Alignment.BottomCenter)
+                    .clickable {
+                        cancelDeleting.value = true
+                        showCancel = false
+                        clicked.value = true
+                    }
+            ) {
+                Text(
+                    text = "Всего покупок",
+                    fontFamily = Inter,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                )
+            }
+        }
     }
+
 }
 
 @Composable
@@ -351,6 +402,9 @@ private fun HistoryItem(
     navController: NavController,
     modifier: Modifier,
     showSwipeHint: Boolean,
+    showCancelTrigger: (Boolean) -> Unit,
+    cancelDeleting: MutableState<Boolean>,
+    clicked: MutableState<Boolean>,
 ) {
 
     val scope = rememberCoroutineScope()
@@ -360,8 +414,6 @@ private fun HistoryItem(
     val firstInvestedDate = formatTimeAndDate(millis = purchase.buyDate)
 
     val hintOffset = remember { Animatable(0f) }
-
-    var isPendingDelete by remember { mutableStateOf(false) }
 
     var deleted by remember {
         mutableStateOf(false)
@@ -453,8 +505,8 @@ private fun HistoryItem(
                                 offsetX.value < -300f -> {
                                     scope.launch {
 
-                                        isPendingDelete = true
                                         deleted = true
+                                        showCancelTrigger(true)
 
                                         offsetX.animateTo(
                                             targetValue = -1000f,
@@ -463,17 +515,26 @@ private fun HistoryItem(
 
                                         delay(3000)
 
-                                        if (isPendingDelete) {
 
-                                            offsetX.snapTo(-1000f)
+                                        if(clicked.value) {
 
-                                            offsetX.animateTo(
-                                                targetValue = 0f,
-                                                animationSpec = tween(300)
-                                            )
+                                            if (cancelDeleting.value) {
 
-                                            isPendingDelete = false
-                                            deleted = false
+                                                offsetX.snapTo(-1000f)
+
+                                                offsetX.animateTo(
+                                                    targetValue = 0f,
+                                                    animationSpec = tween(300)
+                                                )
+
+                                                cancelDeleting.value = false
+                                                deleted = false
+                                                showCancelTrigger(false)
+                                            }
+                                            clicked.value = false
+                                        } else {
+                                            onClick()
+                                            showCancelTrigger(false)
                                         }
                                     }
                                 }
@@ -603,6 +664,9 @@ private fun PurchasesList(
     coinViewModel: CoinViewModel,
     onDeleteClick: (PurchaseCoin) -> Unit,
     navController: NavController,
+    showCancelTrigger: (Boolean) -> Unit,
+    cancelDeleting: MutableState<Boolean>,
+    clicked: MutableState<Boolean>,
 ) {
 
 
@@ -634,6 +698,9 @@ private fun PurchasesList(
                     navController = navController,
                     modifier = Modifier.animateItem(),
                     showSwipeHint = index == 0,
+                    showCancelTrigger = showCancelTrigger,
+                    cancelDeleting = cancelDeleting,
+                    clicked = clicked,
                 )
 
                 if (index != purchase.lastIndex) {
