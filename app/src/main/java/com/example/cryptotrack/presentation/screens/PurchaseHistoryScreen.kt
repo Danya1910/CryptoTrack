@@ -1,6 +1,5 @@
 package com.example.cryptotrack.presentation.screens
 
-import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -22,16 +21,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -46,9 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -71,11 +67,10 @@ import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Lavender
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
-import kotlinx.coroutines.Delay
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
@@ -170,7 +165,7 @@ private fun Content(
 
     var showCancel by remember { mutableStateOf(false) }
     val cancelDeleting = remember { mutableStateOf(false) }
-    val clicked = remember {mutableStateOf(false)}
+    val clicked = remember { mutableStateOf(false) }
 
 
     LaunchedEffect(showCancel) {
@@ -201,29 +196,34 @@ private fun Content(
                 profitPercentage = profitPercentage
             )
             Spacer(modifier = Modifier.height(10.dp))
-            PurchasesList(
-                purchase = uiList,
-                details = details,
-                coinViewModel = coinViewModel,
-                onDeleteClick = { item ->
-                    uiList.remove(item)
-                    coinViewModel.deletePurchasedCoin(
-                        id = item.id,
-                        coinId = item.coinId,
-                        name = item.name,
-                        amount = item.amount,
-                        buyPrice = item.buyPrice,
-                        buyDate = item.buyDate,
-                        imageUrl = item.imageUrl,
-                    )
-                },
-                navController = navController,
-                showCancelTrigger = {
-                    showCancel = it
-                },
-                cancelDeleting = cancelDeleting,
-                clicked = clicked,
-            )
+            if (purchase.isEmpty()) {
+                HelpWidget(
+                    navController = navController,
+                )
+            } else {
+                PurchasesList(
+                    purchase = uiList,
+                    details = details,
+                    onDeleteClick = { item ->
+                        uiList.remove(item)
+                        coinViewModel.deletePurchasedCoin(
+                            id = item.id,
+                            coinId = item.coinId,
+                            name = item.name,
+                            amount = item.amount,
+                            buyPrice = item.buyPrice,
+                            buyDate = item.buyDate,
+                            imageUrl = item.imageUrl,
+                        )
+                    },
+                    navController = navController,
+                    showCancelTrigger = {
+                        showCancel = it
+                    },
+                    cancelDeleting = cancelDeleting,
+                    clicked = clicked,
+                )
+            }
         }
         if (showCancel) {
             Box(
@@ -252,7 +252,57 @@ private fun Content(
             }
         }
     }
+}
 
+@Composable
+private fun HelpWidget(
+    navController: NavController,
+) {
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable{
+                navController.navigate(Screen.AddPurchase.route)
+            }
+            .padding(horizontal = 60.dp)
+    ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_clock),
+                contentDescription = null,
+                tint = Lavender,
+                modifier = Modifier.size(50.dp),
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "История покупок пуста",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                textAlign = TextAlign.Center,
+                text = "После первой покупки здесь будут отображаться все операции.",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Normal,
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                textAlign = TextAlign.Center,
+                text = "Добавить покупку",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Normal,
+                fontSize = 12.sp,
+                textDecoration = TextDecoration.Underline,
+                color = Lavender
+            )
+        }
 }
 
 @Composable
@@ -397,7 +447,6 @@ private fun PurchaseInfoHat(
 private fun HistoryItem(
     purchase: PurchaseCoin,
     details: FavoriteCoinDetails?,
-    coinViewModel: CoinViewModel,
     onClick: () -> Unit,
     navController: NavController,
     modifier: Modifier,
@@ -516,7 +565,7 @@ private fun HistoryItem(
                                         delay(3000)
 
 
-                                        if(clicked.value) {
+                                        if (clicked.value) {
 
                                             if (cancelDeleting.value) {
 
@@ -661,7 +710,6 @@ private fun HistoryItem(
 private fun PurchasesList(
     purchase: List<PurchaseCoin>,
     details: List<FavoriteCoinDetails>?,
-    coinViewModel: CoinViewModel,
     onDeleteClick: (PurchaseCoin) -> Unit,
     navController: NavController,
     showCancelTrigger: (Boolean) -> Unit,
@@ -693,7 +741,6 @@ private fun PurchasesList(
                 HistoryItem(
                     purchase = item,
                     details = coinDetails,
-                    coinViewModel = coinViewModel,
                     onClick = { onDeleteClick(item) },
                     navController = navController,
                     modifier = Modifier.animateItem(),
