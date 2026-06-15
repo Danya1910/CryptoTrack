@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +35,7 @@ import com.example.cryptotrack.domain.model.TotalMarketCap
 import com.example.cryptotrack.domain.model.TotalVolume
 import com.example.cryptotrack.presentation.util.price.formatWithSpaces
 import com.example.cryptotrack.presentation.util.price.toCompactUsd
+import com.example.cryptotrack.presentation.util.something.shimmer
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
@@ -268,6 +271,168 @@ fun GlobalMarketWidget(
     }
 }
 
+@Composable
+fun GlobalMarketWidgetSkeleton(
+) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                color = OutlineGray,
+                width = 1.dp,
+                shape = RoundedCornerShape(10.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 15.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                ) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.ic_internet),
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(15.dp))
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = "Global Market Cap",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    SkeletonBox(
+                        modifier = Modifier
+                            .width(45.dp)
+                            .height(16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    SkeletonBox(
+                        modifier = Modifier
+                            .width(70.dp)
+                            .height(13.dp)
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Active Coins",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    SkeletonBox(
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(13.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Markets",
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    SkeletonBox(
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(13.dp)
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(color = OutlineGray)
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 15.dp)
+            ) {
+                GlobalMarketItemSkeleton(
+                    title = "Market Cap",
+                )
+                Box(
+                    modifier = Modifier
+                        .height(60.dp)
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                GlobalMarketItemSkeleton(
+                    title = "24h volume",
+                )
+                Box(
+                    modifier = Modifier
+                        .height(60.dp)
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                GlobalMarketItemSkeleton(
+                    title = "BTC Dominance",
+                )
+                Box(
+                    modifier = Modifier
+                        .height(60.dp)
+                        .width(1.dp)
+                        .background(color = OutlineGray)
+                )
+                GlobalMarketItemSkeleton(
+                    title = "ETH Dominance",
+                )
+
+            }
+        }
+    }
+}
+
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -353,7 +518,9 @@ private fun GlobalMarketWidgetPreview() {
                         painter = painterResource(R.drawable.ic_internet),
                         contentDescription = null,
                         tint = marketCapColor,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier
+                            .size(28.dp)
+                            .shimmer()
                     )
                 }
                 Spacer(modifier = Modifier.width(15.dp))
@@ -581,6 +748,52 @@ private fun GlobalMarketItem(
                     color = percentageColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlobalMarketItemSkeleton(
+    title: String,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = title,
+            fontFamily = Inter,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Gray,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(
+            modifier = Modifier.height(
+                if (title.contains("Dominance")) 20.dp else 10.dp
+            )
+        )
+        SkeletonBox(
+            modifier = Modifier
+                .width(40.dp)
+                .height(13.dp)
+        )
+        Spacer(
+            modifier = Modifier.height(
+                if (title.contains("Dominance")) 12.dp else 0.dp
+            )
+        )
+        if (!title.contains("Dominance")) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(13.dp)
                 )
             }
         }
