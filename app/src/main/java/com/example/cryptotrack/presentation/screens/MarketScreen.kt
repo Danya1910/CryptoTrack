@@ -28,6 +28,7 @@ import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.GlobalMarketWidgetSkeleton
 import com.example.cryptotrack.presentation.widgets.TrendWidget
+import com.example.cryptotrack.presentation.widgets.TrendWidgetSkeleton
 
 
 @Composable
@@ -109,10 +110,14 @@ private fun Content(
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
-        TrendWidget(
-            trends = trendCoins.trendCoins,
-            navController = navController,
-        )
+        if(trendCoins.isLoading || trendCoins.trendCoins == null){
+            TrendWidgetSkeleton()
+        } else {
+            TrendWidget(
+                trends = trendCoins.trendCoins,
+                navController = navController,
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
         CoinMarketWidget(
             order = order,
