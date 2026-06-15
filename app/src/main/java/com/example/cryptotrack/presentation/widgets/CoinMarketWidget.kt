@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +78,25 @@ fun CoinMarketWidget(
             coinViewModel = coinViewModel,
             navController = navController,
         )
+    }
+}
+
+@Composable
+fun CoinMarketWidgetSkeleton(
+    order: MarketOrder,
+    viewModel: CoinGeckoViewModel,
+) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 20.dp)
+    ) {
+        CoinMarketHat(
+            order = order,
+            viewModel = viewModel
+        )
+        CoinsMarketListSkeleton()
     }
 }
 
@@ -324,17 +347,17 @@ private fun CoinMarketItem(
         )
         Icon(
             painter = painterResource(
-                if(isFavorite) R.drawable.ic_fill_star else R.drawable.ic_star),
+                if (isFavorite) R.drawable.ic_fill_star else R.drawable.ic_star
+            ),
             contentDescription = null,
-            tint = if(isFavorite) Yellow else Color.White,
+            tint = if (isFavorite) Yellow else Color.White,
             modifier = Modifier
                 .size(14.dp)
                 .weight(0.2f)
-                .clickable{
-                    if(isFavorite) {
+                .clickable {
+                    if (isFavorite) {
                         coinViewModel.deleteFavoriteCoin(id = coin?.id ?: "")
-                    }
-                    else {
+                    } else {
                         coinViewModel.insertFavoriteCoin(
                             id = coin?.id ?: "",
                             name = coin?.name ?: "",
@@ -346,6 +369,67 @@ private fun CoinMarketItem(
                 }
         )
 
+    }
+}
+
+@Composable
+private fun CoinMarketItemSkeleton() {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 10.dp)
+            .height(36.dp)
+            .fillMaxWidth()
+            .background(DarkBlue),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        SkeletonBox(Modifier.weight(0.2f))
+
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SkeletonBox(
+                modifier = Modifier
+                    .size(25.dp)
+                    .clip(shape = CircleShape),
+            )
+
+            Spacer(Modifier.width(8.dp))
+
+            Column {
+                SkeletonBox(Modifier
+                    .width(80.dp)
+                    .height(10.dp))
+                Spacer(Modifier.height(5.dp))
+                SkeletonBox(Modifier
+                    .width(40.dp)
+                    .height(10.dp))
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+
+        SkeletonBox(Modifier
+            .weight(0.7f)
+            .height(10.dp))
+
+        Spacer(Modifier.width(8.dp))
+
+        Row(
+            modifier = Modifier.weight(1.4f),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SkeletonBox(Modifier
+                .width(40.dp)
+                .height(10.dp))
+
+            SkeletonBox(Modifier
+                .width(60.dp)
+                .height(10.dp))
+
+            SkeletonBox(Modifier.size(14.dp))
+        }
     }
 }
 
@@ -381,7 +465,7 @@ private fun CoinsMarketList(
                         coinViewModel = coinViewModel,
                         navController = navController,
                     )
-                    if (index != coins.size) {
+                    if (index != coins.size - 1) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -395,5 +479,30 @@ private fun CoinsMarketList(
             }
         }
     }
+}
 
+@Composable
+private fun CoinsMarketListSkeleton() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DarkBlue, RoundedCornerShape(10.dp))
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(10) {
+                CoinMarketItemSkeleton()
+
+                if (it != 9) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(OutlineGray)
+                    )
+                }
+            }
+        }
+    }
 }
