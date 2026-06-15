@@ -24,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,13 +38,13 @@ import com.example.cryptotrack.domain.model.TrendCoin
 import com.example.cryptotrack.domain.model.TrendCoins
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.something.shimmer
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.DarkGray
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
-
 
 
 @Composable
@@ -73,7 +75,38 @@ fun TrendWidget(
                     coin = coin,
                     navController = navController,
                 )
-                if(index != coins.lastIndex){
+                if (index != coins.lastIndex) {
+                    Spacer(modifier = Modifier.width(5.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TrendWidgetSkeleton(
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = "Trending coins",
+            fontFamily = Inter,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+        ) {
+            for (i in 0..4) {
+                TrendItemSkeleton()
+                if (i != 4) {
+
                     Spacer(modifier = Modifier.width(5.dp))
                 }
             }
@@ -115,7 +148,7 @@ private fun TrendItem(
                 width = 1.dp,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.CoinDetails.createRoute(id = coin?.id.toString()))
             }
             .padding(all = 8.dp)
@@ -215,6 +248,89 @@ private fun TrendItem(
                     contentDescription = null,
                     tint = percentageColor,
                     modifier = Modifier.size(7.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TrendItemSkeleton(
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .width(100.dp)
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .border(
+                color = OutlineGray,
+                width = 1.dp,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .padding(all = 8.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(shape = CircleShape)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(13.dp)
+                        .height(16.dp)
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(shape = CircleShape)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(14.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .width(50.dp)
+                    .height(14.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            SkeletonBox(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(14.dp)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(10.dp)
+                )
+                Spacer(modifier = Modifier.width(3.dp))
+                SkeletonBox(
+                    modifier = Modifier
+                        .size(9.dp)
                 )
             }
         }
