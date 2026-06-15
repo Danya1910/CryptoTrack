@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
+import com.example.cryptotrack.presentation.widgets.CoinMarketWidgetSkeleton
 import com.example.cryptotrack.presentation.widgets.GlobalMarketWidgetSkeleton
 import com.example.cryptotrack.presentation.widgets.TrendWidget
 import com.example.cryptotrack.presentation.widgets.TrendWidgetSkeleton
@@ -119,13 +120,22 @@ private fun Content(
             )
         }
         Spacer(modifier = Modifier.height(20.dp))
-        CoinMarketWidget(
-            order = order,
-            coins = marketData.market,
-            viewModel = viewModel,
-            navController = navController,
-            coinViewModel = coinViewModel,
-        )
+        if(marketData.isLoading || marketData.market.isNullOrEmpty()){
+            CoinMarketWidgetSkeleton(
+                order = order,
+                viewModel = viewModel,
+            )
+        }
+        else {
+            CoinMarketWidget(
+                order = order,
+                coins = marketData.market,
+                viewModel = viewModel,
+                navController = navController,
+                coinViewModel = coinViewModel,
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
+
     }
 }
