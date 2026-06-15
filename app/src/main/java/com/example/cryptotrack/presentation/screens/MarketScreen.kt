@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
+import com.example.cryptotrack.presentation.widgets.GlobalMarketWidgetSkeleton
 import com.example.cryptotrack.presentation.widgets.TrendWidget
 
 
@@ -99,9 +100,14 @@ private fun Content(
             .fillMaxSize()
             .background(color = BlackBackground)
     ) {
-        GlobalMarketWidget(
-            market = screenState.globalMarket
-        )
+        if(screenState.isLoading || screenState.globalMarket == null) {
+            GlobalMarketWidgetSkeleton()
+        }
+        else {
+            GlobalMarketWidget(
+                market = screenState.globalMarket
+            )
+        }
         Spacer(modifier = Modifier.height(20.dp))
         TrendWidget(
             trends = trendCoins.trendCoins,
