@@ -32,7 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -196,11 +202,21 @@ private fun Content(
         )
 
         Spacer(modifier = Modifier.height(5.dp))
-
-        CoinsList(
-            purchase = sortedPurchases,
-            details = details,
-        )
+        if (purchase.isEmpty())
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                HelpWidget(
+                    navController = navController,
+                )
+            }
+        else
+            CoinsList(
+                purchase = sortedPurchases,
+                details = details,
+            )
 
     }
 }
@@ -503,6 +519,79 @@ private fun CoinsList(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HelpWidget(
+    navController: NavController,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = DarkBlue,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .drawBehind {
+                drawRoundRect(
+                    color = OutlineGray,
+                    style = Stroke(
+                        width = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(20f, 8f)
+                        )
+                    ),
+                    cornerRadius = CornerRadius(
+                        x = 10.dp.toPx(),
+                        y = 10.dp.toPx()
+                    )
+                )
+            }
+            .clickable{
+                navController.navigate(Screen.PurchaseHistory.route)
+            }
+            .padding(all = 20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 100.dp, end = 40.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Нет избранных покупок",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Записывайте покупки, чтобы они появлялись здесь.",
+                fontFamily = Inter,
+                fontWeight = FontWeight.Normal,
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+        }
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 40.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_wallet),
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(50.dp),
+            )
         }
     }
 }
