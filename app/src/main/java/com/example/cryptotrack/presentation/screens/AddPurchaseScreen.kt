@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +64,7 @@ import com.example.cryptotrack.presentation.util.price.sanitizePrice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.AddPurchaseTopAppBar
+import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -199,17 +201,21 @@ private fun Content(
                 Spacer(modifier = Modifier.height(10.dp))
             }
             item {
+                if((suggestions.suggestions?.coins.isNullOrEmpty() && query.isNotEmpty()) && suggestions.isLoading){
+                    SkeletonSuggestionList()
+                }
+                else {
+                    SuggestionList(
+                        suggestions = suggestions.suggestions,
+                        onCoinClick = { coin ->
+                            query = coin.name
 
-                SuggestionList(
-                    suggestions = suggestions.suggestions,
-                    onCoinClick = { coin ->
-                        query = coin.name
+                            viewModel.clearSuggestionsList()
 
-                        viewModel.clearSuggestionsList()
-
-                        viewModel.getFavoriteCoinsDetails(ids = coin.id)
-                    }
-                )
+                            viewModel.getFavoriteCoinsDetails(ids = coin.id)
+                        }
+                    )
+                }
             }
         } else {
             if (selectedCoin != null) {
@@ -378,6 +384,7 @@ private fun SearchCoinField(
     }
 }
 
+
 @Composable
 private fun SuggestionList(
     suggestions: Search?,
@@ -420,6 +427,40 @@ private fun SuggestionList(
                                     .background(OutlineGray)
                             )
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkeletonSuggestionList() {
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+
+        ) {
+            Column {
+                for (i in 0..6) {
+                    SkeletonSuggestion()
+                    if (i != 6) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(OutlineGray)
+                        )
                     }
                 }
             }
@@ -493,6 +534,15 @@ private fun Suggestion(
         }
 
     }
+}
+
+@Composable
+private fun SkeletonSuggestion() {
+    SkeletonBox(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(36.dp)
+    )
 }
 
 
@@ -1105,16 +1155,16 @@ private fun AcceptButton(
             .fillMaxWidth()
             .height(40.dp)
             .background(
-                color = if(!isFormValid) DarkBlue else GreenForButton,
+                color = if (!isFormValid) DarkBlue else GreenForButton,
                 shape = RoundedCornerShape(10.dp)
             )
             .border(
                 width = 1.dp,
-                color = if(!isFormValid) OutlineGray else OutlineGreen,
+                color = if (!isFormValid) OutlineGray else OutlineGreen,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable{
-                if(isFormValid) {
+            .clickable {
+                if (isFormValid) {
                     onClick()
                 }
             }
@@ -1124,7 +1174,7 @@ private fun AcceptButton(
             fontFamily = Inter,
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
-            color = if(!isFormValid) Color.White else Color.Black,
+            color = if (!isFormValid) Color.White else Color.Black,
         )
     }
 }
