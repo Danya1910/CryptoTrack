@@ -75,6 +75,7 @@ import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.viewmodel.UserViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
+import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -154,19 +155,29 @@ private fun Content(
 
     val purchaseDetails = purchaseDetailsState.details
 
-    val currentSum = calculateCurrentPrice(
-        aggregatedPurchase = aggregatedPurchase,
-        details = purchaseDetails
-    )
+    val isApiDataAvailable = !purchaseDetails.isNullOrEmpty()
+
 
     val investedSum = calculateInvested(purchases = purchase)
 
+    val currentSum = if (isApiDataAvailable) {
+        calculateCurrentPrice(
+            aggregatedPurchase = aggregatedPurchase,
+            details = purchaseDetails
+        )
+    } else null
+
+    val profit = if (currentSum != null) currentSum - investedSum
+    else null
+
     val currentFormatted = formatPrice(value = currentSum)
 
-    val profitPercentage = calculateProfitPercentage(
-        current = currentSum,
-        invested = investedSum,
-    )
+    val profitPercentage = currentSum?.let {
+        calculateProfitPercentage(
+            current = currentSum,
+            invested = investedSum,
+        )
+    }
 
     val favoriteCoinsDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
 
@@ -211,6 +222,8 @@ private fun Content(
             parts = parts,
             navController = navController,
             currentPrice = currentFormatted,
+            currentSum = currentSum,
+            investedSum = investedSum,
             profitPercentage = profitPercentage,
             time = time,
         )
@@ -877,7 +890,9 @@ private fun PurchaseWidget(
     parts: List<Slice>,
     navController: NavController,
     currentPrice: String,
-    profitPercentage: Double,
+    currentSum: Double?,
+    profitPercentage: Double?,
+    investedSum: Double,
     time: Long?
 ) {
 
@@ -886,14 +901,14 @@ private fun PurchaseWidget(
         decimalSeparator = '.'
     }
 
-    val percentageColor = if (profitPercentage >= 0) Green else Red
+    val percentageColor = profitPercentage?.let { if (profitPercentage >= 0) Green else Red }
 
     val formatter = DecimalFormat("#,##0.00", symbols)
 
-    val percentageText =
-        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else "-${
-            formatter.format(profitPercentage)
-        }%"
+    val percentageText = profitPercentage?.let {
+        if (profitPercentage >= 0) " +${formatter.format(profitPercentage)}%" else
+            formatter.format(profitPercentage) + "%"
+    }
 
     val firstInvestedDate = formatTime(millis = time ?: 0)
 
@@ -929,29 +944,83 @@ private fun PurchaseWidget(
                     color = Color.Gray,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "$$currentPrice",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp,
-                    color = Color.White,
-                )
+                if (investedSum == 0.0) {
+                    Text(
+                        text = "$0.0",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 20.sp,
+                        color = Color.White,
+                    )
+                } else {
+                    if (currentSum == null) {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .height(22.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "$$currentPrice",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 20.sp,
+                            color = Color.White,
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = percentageText,
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 12.sp,
-                    color = percentageColor,
-                )
+                if (investedSum == 0.0) {
+                    Text(
+                        text = "0.0%",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = Color.White,
+                    )
+                } else {
+                    if (percentageText == null || percentageColor == null) {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(14.dp)
+                                .width(50.dp)
+                        )
+                    } else {
+                        Text(
+                            text = percentageText,
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 12.sp,
+                            color = percentageColor,
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "C $firstInvestedDate",
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 10.sp,
-                    color = Color.Gray,
-                )
+                if (investedSum == 0.0) {
+                    Text(
+                        text = "Запишите покупку!",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                    )
+                } else {
+                    if (firstInvestedDate.isEmpty()) {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(12.dp)
+                                .width(80.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "C $firstInvestedDate",
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 10.sp,
+                            color = Color.Gray,
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.width(20.dp))
             Column(
