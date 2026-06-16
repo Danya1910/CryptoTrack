@@ -322,7 +322,7 @@ private fun TotalVolume(
                             SkeletonBox(
                                 modifier = Modifier
                                     .height(14.dp)
-                                    .width(18.dp)
+                                    .width(30.dp)
                             )
                         } else {
                             Text(
