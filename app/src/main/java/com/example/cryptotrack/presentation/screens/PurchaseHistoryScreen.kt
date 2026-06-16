@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +64,7 @@ import com.example.cryptotrack.presentation.util.price.getCoinPlural
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.PurchaseHistoryTopAppBar
+import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -264,45 +266,45 @@ private fun HelpWidget(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.AddPurchase.route)
             }
             .padding(horizontal = 60.dp)
     ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_clock),
-                contentDescription = null,
-                tint = Lavender,
-                modifier = Modifier.size(50.dp),
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = "История покупок пуста",
-                fontFamily = Inter,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                textAlign = TextAlign.Center,
-                text = "После первой покупки здесь будут отображаться все операции.",
-                fontFamily = Inter,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                textAlign = TextAlign.Center,
-                text = "Добавить покупку",
-                fontFamily = Inter,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                textDecoration = TextDecoration.Underline,
-                color = Lavender
-            )
-        }
+        Icon(
+            painter = painterResource(R.drawable.ic_clock),
+            contentDescription = null,
+            tint = Lavender,
+            modifier = Modifier.size(50.dp),
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "История покупок пуста",
+            fontFamily = Inter,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            textAlign = TextAlign.Center,
+            text = "После первой покупки здесь будут отображаться все операции.",
+            fontFamily = Inter,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            textAlign = TextAlign.Center,
+            text = "Добавить покупку",
+            fontFamily = Inter,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
+            textDecoration = TextDecoration.Underline,
+            color = Lavender
+        )
+    }
 }
 
 @Composable
@@ -328,9 +330,9 @@ private fun PurchaseInfoHat(
 
     val percentageText = profitPercentage?.let {
         if (it > 0) "+${formatter.format(it)}%" else "${formatter.format(it)}%"
-    } ?: "--%"
+    }
 
-    val displayCurrentPrice = currentPrice ?: "--"
+    val displayCurrentPrice = currentPrice
 
     Box(
         modifier = Modifier
@@ -421,22 +423,37 @@ private fun PurchaseInfoHat(
                     fontSize = 10.sp,
                 )
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = "$displayCurrentPrice $",
-                    fontFamily = Inter,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                )
+                if (displayCurrentPrice.isNullOrEmpty()) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .width(120.dp)
+                    )
+                } else {
+                    Text(
+                        text = "$displayCurrentPrice $",
+                        fontFamily = Inter,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                    )
+                }
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = percentageText,
-                    fontFamily = Inter,
-                    color = percentageColor,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 12.sp,
-                )
-
+                if (percentageText.isNullOrEmpty()) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(14.dp)
+                            .width(40.dp)
+                    )
+                } else {
+                    Text(
+                        text = percentageText,
+                        fontFamily = Inter,
+                        color = percentageColor,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
     }
