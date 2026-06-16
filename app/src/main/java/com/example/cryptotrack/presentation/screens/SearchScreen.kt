@@ -54,6 +54,7 @@ import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
+import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.presentation.widgets.TrendWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.BlackNavigation
@@ -154,7 +155,7 @@ private fun Content(
         ) {
 
             if (coinsList.isNotEmpty()) {
-                item{
+                item {
                     Spacer(modifier = Modifier.height(15.dp))
                 }
                 item {
@@ -200,7 +201,7 @@ private fun Content(
 }
 
 @Composable
- fun SearchField(
+fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     onQueryClear: () -> Unit,
@@ -380,7 +381,6 @@ private fun SuggestionList(
     }
 }
 
-
 @Composable
 private fun Suggestion(
     coin: SearchCoin,
@@ -399,7 +399,7 @@ private fun Suggestion(
             .fillMaxWidth()
             .background(color = DarkBlue),
     ) {
-        if(coin.marketCapRank != null) {
+        if (coin.marketCapRank != null) {
             Text(
                 text = coin.marketCapRank.toString(),
                 fontFamily = Inter,
@@ -410,8 +410,7 @@ private fun Suggestion(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(0.2f),
             )
-        }
-        else {
+        } else {
             Box(
                 modifier = Modifier
                     .weight(0.2f)
@@ -458,8 +457,6 @@ private fun Suggestion(
 
     }
 }
-
-
 @Composable
 private fun SearchedCoin(
     coin: RoomCoin,
@@ -547,3 +544,5 @@ private fun SearchedCoinsList(
         }
     }
 }
+
+
