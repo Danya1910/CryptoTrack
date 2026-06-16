@@ -57,7 +57,7 @@ import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.model.SearchCoin
-import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.formatRate
 import com.example.cryptotrack.presentation.util.price.sanitizeAmount
 import com.example.cryptotrack.presentation.util.price.sanitizePrice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
@@ -502,7 +502,7 @@ private fun SelectedCoin(
     onClick: () -> Unit,
 ) {
 
-    val currentPriceFormatted = formatPrice(value = details.currentPrice)
+    val currentPriceFormatted = formatRate(value = details.currentPrice)
 
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
@@ -1030,7 +1030,7 @@ private fun FinalCost(
     val total = (count.toDoubleOrNull() ?: 0.0) *
             (price.toDoubleOrNull() ?: 0.0)
 
-    val formattedTotal = formatPrice(value = total)
+    val formattedTotal = formatRate(value = total)
 
     Box(
         modifier = Modifier

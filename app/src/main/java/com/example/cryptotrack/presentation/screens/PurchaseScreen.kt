@@ -52,13 +52,14 @@ import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
-import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.formatRate
 import com.example.cryptotrack.presentation.util.price.getCoinPlural
 import com.example.cryptotrack.presentation.util.uiModels.AggregatedPurchase
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.PurchaseTopAppBar
+import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -146,8 +147,8 @@ private fun Content(
     val profit = if (currentSum != null) currentSum - investedSum
     else null
 
-    val investedFormatted = formatPrice(value = investedSum)
-    val currentFormatted = currentSum?.let { formatPrice(value = it) }
+    val investedFormatted = formatRate(value = investedSum)
+    val currentFormatted = currentSum?.let { formatRate(value = it) }
 
 
     val profitPercentage = if (isApiDataAvailable && currentSum != null) calculateProfitPercentage(
@@ -169,6 +170,7 @@ private fun Content(
         ConclusionWidget(
             invested = investedFormatted,
             profit = profit,
+            investedSum = investedSum,
         )
     }
 
@@ -405,7 +407,7 @@ private fun ListItem(
     details: FavoriteCoinDetails?,
 ) {
 
-    val totalPrice = formatPrice(purchase.totalValue)
+    val totalPrice = formatRate(purchase.totalValue)
     val percentage = details?.priceChangePercentage24h?.let { "%.2f".format(it) } ?: "--"
 
     val percentageColor = details?.priceChangePercentage24h?.let { if (it >= 0.0) Green else Red }
@@ -550,7 +552,7 @@ private fun HelpWidget(
                     )
                 )
             }
-            .clickable{
+            .clickable {
                 navController.navigate(Screen.PurchaseHistory.route)
             }
             .padding(all = 20.dp)
@@ -600,6 +602,7 @@ private fun HelpWidget(
 private fun ConclusionWidget(
     invested: String,
     profit: Double?,
+    investedSum: Double,
 ) {
 
     val profitColor = when {
@@ -609,9 +612,11 @@ private fun ConclusionWidget(
     }
 
     val profitText = profit?.let {
-        if (profit >= 0.0) "+" + formatPrice(value = profit) + " $"
-        else formatPrice(value = profit) + " $"
+        if (profit >= 0.0) "+" + formatRate(value = profit) + " $"
+        else formatRate(value = profit) + " $"
     } ?: "-- $"
+
+    val isLoading = profit == null
 
     Box(
         modifier = Modifier
@@ -685,13 +690,31 @@ private fun ConclusionWidget(
                     fontSize = 10.sp,
                     color = Color.Gray
                 )
-                Text(
-                    text = profitText,
-                    fontFamily = Inter,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 12.sp,
-                    color = profitColor
-                )
+                if (investedSum != 0.0) {
+                    if (isLoading) {
+                        SkeletonBox(
+                            Modifier
+                                .width(70.dp)
+                                .height(13.dp)
+                        )
+                    } else {
+                        Text(
+                            text = profitText,
+                            fontFamily = Inter,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 12.sp,
+                            color = profitColor
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "0.0$",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 12.sp,
+                        color = profitColor
+                    )
+                }
             }
         }
     }

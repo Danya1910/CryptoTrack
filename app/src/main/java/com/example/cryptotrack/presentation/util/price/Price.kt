@@ -28,6 +28,27 @@ fun formatPrice(value: Double?): String {
     return DecimalFormat(pattern, symbols).format(v)
 }
 
+fun formatRate(value: Double?): String {
+    val v = value ?: return "0.0"
+
+    if (v == 0.0) return "0.0"
+
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
+
+    val pattern = when {
+        v >= 1000 -> "#,##0.00"
+        v >= 1 -> "#,##0.00"
+        v >= 0.01 -> "#,##0.0000"
+        v >= 0.0001 -> "#,##0.000000"
+        else -> "#,##0.00000000"
+    }
+
+    return DecimalFormat(pattern, symbols).format(v)
+}
+
 fun Double.toCompactUsd(): String {
     return when {
         this >= 1_000_000_000_000 ->

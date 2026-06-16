@@ -57,7 +57,7 @@ import com.example.cryptotrack.domain.model.FavoriteCoinDetails
 import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
-import com.example.cryptotrack.presentation.util.price.formatPrice
+import com.example.cryptotrack.presentation.util.price.formatRate
 import com.example.cryptotrack.presentation.util.price.formatTimeAndDate
 import com.example.cryptotrack.presentation.util.price.getCoinPlural
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
@@ -154,8 +154,8 @@ private fun Content(
     } else null
 
 
-    val currentFormatted = currentSum?.let { formatPrice(value = it) }
-    val investedFormatted = formatPrice(value = investedSum)
+    val currentFormatted = currentSum?.let { formatRate(value = it) }
+    val investedFormatted = formatRate(value = investedSum)
     val profitPercentage = if (isApiDataAvailable && currentSum != null)
         calculateProfitPercentage(
             current = currentSum,
@@ -458,7 +458,7 @@ private fun HistoryItem(
 
     val scope = rememberCoroutineScope()
 
-    val buyPrice = formatPrice(purchase.buyPrice)
+    val buyPrice = formatRate(purchase.buyPrice)
 
     val firstInvestedDate = formatTimeAndDate(millis = purchase.buyDate)
 
