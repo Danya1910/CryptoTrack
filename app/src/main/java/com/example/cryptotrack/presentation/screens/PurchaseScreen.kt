@@ -184,6 +184,7 @@ private fun Content(
         TotalVolume(
             profitPercentage = profitPercentage,
             currentPrice = currentFormatted,
+            investedSum = investedSum,
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -227,6 +228,7 @@ private fun Content(
 private fun TotalVolume(
     profitPercentage: Double?,
     currentPrice: String?,
+    investedSum: Double,
 ) {
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
@@ -277,24 +279,61 @@ private fun TotalVolume(
                     fontSize = 12.sp,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "$displayCurrentPrice $",
-                    fontFamily = Inter,
-                    color = Color.White,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 20.sp,
-                )
+                if(investedSum == 0.0) {
+                    Text(
+                        text = "0.0 $",
+                        fontFamily = Inter,
+                        color = Color.White,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 20.sp,
+                    )
+                } else {
+                    if(currentPrice.isNullOrEmpty()){
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(22.dp)
+                                .width(70.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "$displayCurrentPrice $",
+                            fontFamily = Inter,
+                            color = Color.White,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 20.sp,
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.dp))
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = percentageText,
-                        fontFamily = Inter,
-                        color = percentageColor,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 12.sp,
-                    )
+                    if (investedSum == 0.0) {
+                        Text(
+                            text = "0.0%",
+                            fontFamily = Inter,
+                            color = percentageColor,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 12.sp,
+                        )
+                    } else {
+                        if(currentPrice.isNullOrEmpty()){
+                            SkeletonBox(
+                                modifier = Modifier
+                                    .height(14.dp)
+                                    .width(18.dp)
+                            )
+                        } else {
+                            Text(
+                                text = percentageText,
+                                fontFamily = Inter,
+                                color = percentageColor,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 12.sp,
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
                         text = "за все время",
