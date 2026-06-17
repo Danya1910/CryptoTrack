@@ -503,16 +503,23 @@ private fun Suggestion(
             .fillMaxWidth()
             .background(color = DarkBlue),
     ) {
-        Text(
-            text = coin.marketCapRank.toString(),
-            fontFamily = Inter,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color.White,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(0.2f),
-        )
+        if (coin.marketCapRank != null) {
+            Text(
+                text = coin.marketCapRank.toString(),
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(0.2f),
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .weight(0.2f)
+            )
+        }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
