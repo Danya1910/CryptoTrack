@@ -139,6 +139,7 @@ private fun Content(
             .background(color = BlackBackground)
             .padding(paddingValues)
             .fillMaxSize()
+            .padding(vertical = 10.dp)
             .padding(horizontal = 15.dp)
     ) {
         SearchField(
