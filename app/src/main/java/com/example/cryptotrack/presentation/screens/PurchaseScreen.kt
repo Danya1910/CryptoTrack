@@ -448,14 +448,25 @@ private fun ListItem(
 ) {
 
     val totalPrice = formatRate(purchase.totalValue)
-    val percentage = details?.priceChangePercentage24h?.let { "%.2f".format(it) } ?: "--"
+
+    val symbols = DecimalFormatSymbols().apply {
+        groupingSeparator = ' '
+        decimalSeparator = '.'
+    }
 
     val percentageColor = details?.priceChangePercentage24h?.let { if (it >= 0.0) Green else Red }
+
+    val formatter = DecimalFormat("#,##0.00", symbols)
 
     val insteadOfSymbol = if (details?.symbol.isNullOrEmpty()) {
         getCoinPlural(purchase.totalAmount)
     } else {
         details.symbol.uppercase()
+    }
+
+    val percentageText = details?.priceChangePercentage24h?.let {
+        if (it >= 0.0) " +${formatter.format(it)}%" else
+            formatter.format(it) + "%"
     }
 
     Row(
@@ -512,7 +523,7 @@ private fun ListItem(
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "$percentage%",
+                text = percentageText ?: "",
                 fontFamily = Inter,
                 color = percentageColor ?: Color.Transparent,
                 fontWeight = FontWeight.Normal,
