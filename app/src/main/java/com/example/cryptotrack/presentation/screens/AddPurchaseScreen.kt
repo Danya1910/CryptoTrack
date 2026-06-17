@@ -197,7 +197,7 @@ private fun Content(
     ) {
         if (favoriteCoinState.details.isNullOrEmpty()) {
             if (isRateLimited || favoriteCoinState.isLoading) {
-                item{
+                item {
                     SkeletonSelectedCoin(
                         onClick = {
                             viewModel.clearFavoriteCoinsDetails()
@@ -515,9 +515,15 @@ private fun Suggestion(
                 modifier = Modifier.weight(0.2f),
             )
         } else {
-            Box(
-                modifier = Modifier
-                    .weight(0.2f)
+            Text(
+                text = "0",
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(0.2f),
             )
         }
         Row(
