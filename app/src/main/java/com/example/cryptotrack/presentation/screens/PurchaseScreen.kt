@@ -179,6 +179,7 @@ private fun Content(
             .fillMaxSize()
             .padding(paddingValues)
             .padding(horizontal = 15.dp)
+            .padding(vertical = 10.dp)
             .padding(bottom = 75.dp)
     ) {
         TotalVolume(
