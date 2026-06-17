@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -40,9 +42,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -155,6 +159,12 @@ private fun Content(
 
     val favoriteCoinState by viewModel.favoriteCoinsDetailsState.collectAsState()
 
+    LaunchedEffect(favoriteCoinState) {
+        Log.d("Add Purchase Screen", "purchaseState: $favoriteCoinState")
+    }
+
+    val isRateLimited = favoriteCoinState.error?.contains("429") == true
+
     val selectedCoin = favoriteCoinState.details?.firstOrNull()
 
     var buyDate by remember { mutableStateOf<Long?>(null) }
@@ -186,35 +196,44 @@ private fun Content(
             .padding(horizontal = 15.dp),
     ) {
         if (favoriteCoinState.details.isNullOrEmpty()) {
-            item {
-                SearchCoinField(
-                    query = query,
-                    onQueryChange = {
-                        query = it
-                    },
-                    onQueryClear = {
-                        query = ""
-                    }
-                )
-            }
-            item {
-                Spacer(modifier = Modifier.height(10.dp))
-            }
-            item {
-                if((suggestions.suggestions?.coins.isNullOrEmpty() && query.isNotEmpty()) && suggestions.isLoading){
-                    SkeletonSuggestionList()
-                }
-                else {
-                    SuggestionList(
-                        suggestions = suggestions.suggestions,
-                        onCoinClick = { coin ->
-                            query = coin.name
-
-                            viewModel.clearSuggestionsList()
-
-                            viewModel.getFavoriteCoinsDetails(ids = coin.id)
+            if (isRateLimited || favoriteCoinState.isLoading) {
+                item{
+                    SkeletonSelectedCoin(
+                        onClick = {
+                            viewModel.clearFavoriteCoinsDetails()
                         }
                     )
+                }
+            } else {
+                item {
+                    SearchCoinField(
+                        query = query,
+                        onQueryChange = {
+                            query = it
+                        },
+                        onQueryClear = {
+                            query = ""
+                        }
+                    )
+                }
+                item {
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+                item {
+                    if ((suggestions.suggestions?.coins.isNullOrEmpty() && query.isNotEmpty()) && suggestions.isLoading) {
+                        SkeletonSuggestionList()
+                    } else {
+                        SuggestionList(
+                            suggestions = suggestions.suggestions,
+                            onCoinClick = { coin ->
+                                query = coin.name
+
+                                viewModel.clearSuggestionsList()
+
+                                viewModel.getFavoriteCoinsDetails(ids = coin.id)
+                            }
+                        )
+                    }
                 }
             }
         } else {
@@ -654,6 +673,104 @@ private fun SelectedCoin(
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
                         color = percentageColor,
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                textAlign = TextAlign.Center,
+                text = "Выбрать другую монету",
+                fontFamily = Inter,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Gray,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SkeletonSelectedCoin(
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .height(70.dp)
+                .fillMaxWidth()
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = OutlineGray,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(15.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(shape = CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(
+                        verticalArrangement = Arrangement.SpaceAround,
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(17.dp)
+                                .width(100.dp)
+                        )
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(14.dp)
+                                .width(30.dp)
+                        )
+                    }
+                }
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .fillMaxHeight()
+                ) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(17.dp)
+                            .width(100.dp)
+                    )
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(14.dp)
+                            .width(35.dp)
                     )
                 }
             }
