@@ -63,6 +63,7 @@ class CoinGeckoViewModel @Inject constructor(
     }
 
     fun loadGlobalMarket() {
+        if (_globalMarketState.value.globalMarket != null || _globalMarketState.value.isLoading) return
         viewModelScope.launch {
             _globalMarketState.update {
                 it.copy(
@@ -101,6 +102,7 @@ class CoinGeckoViewModel @Inject constructor(
     }
 
     fun loadTrends() {
+        if(_trendState.value.trendCoins != null || _trendState.value.isLoading) return
         viewModelScope.launch {
             _trendState.update {
                 it.copy(
@@ -109,7 +111,7 @@ class CoinGeckoViewModel @Inject constructor(
             }
             runCatching {
                 getTrendCoinsUseCase()
-            }.onSuccess { trend->
+            }.onSuccess { trend ->
                 _trendState.update {
                     it.copy(
                         isLoading = false,
@@ -117,7 +119,7 @@ class CoinGeckoViewModel @Inject constructor(
                     )
                 }
             }.onFailure { throwable ->
-                if(throwable is CancellationException) {
+                if (throwable is CancellationException) {
                     throw throwable
                 }
                 _trendState.update {
@@ -183,6 +185,7 @@ class CoinGeckoViewModel @Inject constructor(
     fun loadMarket(
         order: MarketOrder
     ) {
+        if(!_marketDataState.value.market.isNullOrEmpty() || _marketDataState.value.isLoading) return
         viewModelScope.launch {
             _marketDataState.update {
                 it.copy(
@@ -226,7 +229,7 @@ class CoinGeckoViewModel @Inject constructor(
             }
             runCatching {
                 searchCoinsUseCase(query = query)
-            }.onSuccess { suggestions->
+            }.onSuccess { suggestions ->
                 _searchState.update {
                     it.copy(
                         isLoading = false,
@@ -234,7 +237,7 @@ class CoinGeckoViewModel @Inject constructor(
                     )
                 }
             }.onFailure { throwable ->
-                if(throwable is CancellationException){
+                if (throwable is CancellationException) {
                     throw throwable
                 }
                 _searchState.update {
@@ -259,15 +262,15 @@ class CoinGeckoViewModel @Inject constructor(
             }
             runCatching {
                 getFavoriteCoinsDetailsUseCase(ids = ids)
-            }.onSuccess { details->
+            }.onSuccess { details ->
                 _favoriteCoinsDetailsState.update {
                     it.copy(
                         isLoading = false,
                         details = details,
                     )
                 }
-            }.onFailure {throwable ->
-                if(throwable is CancellationException){
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) {
                     throw throwable
                 }
                 _favoriteCoinsDetailsState.update {
