@@ -1,8 +1,14 @@
 package com.example.cryptotrack.presentation.screens
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,20 +33,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -47,6 +61,7 @@ import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.FavoriteCoin
 import com.example.cryptotrack.presentation.navigation.Screen
+import com.example.cryptotrack.presentation.util.uiModels.StarParticle
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.ui.theme.BlackBackground
@@ -57,6 +72,11 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.Yellow
+import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.random.Random
 
 
 @Composable
@@ -181,6 +201,66 @@ private fun CoinItem(
 
     val isFavorite = coin.id !in removedIds
 
+    val scale = remember { Animatable(1f) }
+
+
+    var showParticles by remember { mutableStateOf(false) }
+
+
+    val particles = remember {
+        List(8) {
+            StarParticle(
+                angle = Random.nextFloat() * 360f,
+                distance = Random.nextFloat() * 50f + 120f
+            )
+        }
+    }
+
+    val particleProgress by animateFloatAsState(
+        targetValue = if (showParticles) 1f else 0f,
+        animationSpec = tween(400),
+        label = "",
+    )
+
+    val filledAlpha by animateFloatAsState(
+        targetValue = if (isFavorite) 1f else 0f,
+        animationSpec = tween(300),
+        label = ""
+    )
+
+    val outlineAlpha by animateFloatAsState(
+        targetValue = if (isFavorite) 0f else 1f,
+        animationSpec = tween(300),
+        label = ""
+    )
+
+    LaunchedEffect(isFavorite) {
+        if (isFavorite) {
+            showParticles = true
+            scale.animateTo(
+                targetValue = 1.25f,
+                animationSpec = tween(250)
+            )
+            scale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy
+                )
+            )
+            delay(400)
+            showParticles = false
+        } else {
+            scale.animateTo(
+                1.2f,
+                tween(150)
+            )
+
+            scale.animateTo(
+                1.1f,
+                tween(200)
+            )
+        }
+    }
 
     Box(
         modifier = modifier
@@ -236,29 +316,78 @@ private fun CoinItem(
                 modifier = Modifier
                     .fillMaxHeight()
             ) {
-                Icon(
-                    painter = painterResource
-                        (
-                        if (isFavorite) R.drawable.ic_fill_star else R.drawable.ic_star
-                    ),
-                    contentDescription = null,
-                    tint = if (isFavorite) Yellow else Color.White,
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(14.dp)
-                        .clickable {
+                        .graphicsLayer {
+                            scaleX = scale.value
+                            scaleY = scale.value
+                        }
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
                             if (coin.id in removedIds) {
                                 removedIds.remove(coin.id)
                             } else {
                                 removedIds.add(coin.id)
                             }
                         }
-                )
+                ) {
+
+                    Icon(
+                        painter = painterResource(R.drawable.ic_star),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.alpha(outlineAlpha)
+                    )
+
+                    Icon(
+                        painter = painterResource(R.drawable.ic_fill_star),
+                        contentDescription = null,
+                        tint = Yellow,
+                        modifier = Modifier.alpha(filledAlpha)
+                    )
+                }
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_right),
                     contentDescription = null,
                     tint = Color.Gray,
                     modifier = Modifier.size(14.dp)
                 )
+            }
+        }
+        Box(
+            contentAlignment = Alignment.CenterEnd,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(end = 10.dp)
+        ) {
+            if (showParticles) {
+                particles.forEach { particle ->
+                    val radians = Math.toRadians(
+                        particle.angle.toDouble()
+                    )
+                    val x = cos(radians).toFloat() * particle.distance * particleProgress
+                    val y = sin(radians).toFloat() * particle.distance * particleProgress
+                    Icon(
+                        painter = painterResource(
+                            R.drawable.ic_fill_star
+                        ),
+                        contentDescription = null,
+                        tint = Yellow,
+                        modifier = Modifier
+                            .size(8.dp)
+                            .offset {
+                                IntOffset(
+                                    x.roundToInt(),
+                                    y.roundToInt()
+                                )
+                            }
+                            .alpha(1f - particleProgress)
+                    )
+                }
             }
         }
     }
