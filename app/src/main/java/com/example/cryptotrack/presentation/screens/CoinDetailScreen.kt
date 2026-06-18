@@ -44,6 +44,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -232,7 +233,6 @@ private fun Content(
                 value = athValue,
                 date = athDate,
                 percentage = details?.marketData?.athChangePercentage?.usd,
-                chart = chart,
                 modifier = Modifier.weight(1f)
             )
             HistoricalGraphItem(
@@ -240,7 +240,6 @@ private fun Content(
                 value = atlValue,
                 date = atlDate,
                 percentage = details?.marketData?.atlChangePercentage?.usd,
-                chart = chart,
                 modifier = Modifier.weight(1f)
             )
 
@@ -862,7 +861,6 @@ private fun HistoricalGraphItem(
     value: String,
     date: String,
     percentage: Double?,
-    chart: CoinsChartList?,
     modifier: Modifier
 ) {
 
@@ -872,7 +870,7 @@ private fun HistoricalGraphItem(
         abs(percentage ?: 0.0)
     )
 
-    val percentageColor = if (percentage ?: 0.0 >= 0.0) Green else Red
+    val percentageColor = if ((percentage ?: 0.0) >= 0.0) Green else Red
 
 
     val percentageText = if ((percentage ?: 0.0) >= 0) {
@@ -930,7 +928,7 @@ private fun HistoricalGraphItem(
                     text = percentageText,
                     fontFamily = Inter,
                     fontSize = 11.sp,
-                    color = percentageColor ?: Color.Gray,
+                    color = percentageColor,
                     fontWeight = FontWeight.Normal,
                 )
             }
@@ -941,10 +939,54 @@ private fun HistoricalGraphItem(
                 modifier = Modifier.padding(top = 10.dp)
             ) {
                 Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(width = 60.dp, height = 50.dp)
                 ) {
-                    HistoryGraph(chart = chart)
+                    val rawPercentage = abs(percentage ?: 0.0)
+                    val activeSteps = if (title == "ATH") {
+                        when {
+                            rawPercentage > 83.3 -> 1
+                            rawPercentage > 66.6 -> 2
+                            rawPercentage > 50.0 -> 3
+                            rawPercentage > 33.3 -> 4
+                            rawPercentage > 16.6 -> 5
+                            else -> 6
+                        }
+                    } else {
+                        when {
+                            rawPercentage > 83.3 -> 6
+                            rawPercentage > 66.6 -> 5
+                            rawPercentage > 50.0 -> 4
+                            rawPercentage > 33.3 -> 3
+                            rawPercentage > 16.6 -> 2
+                            else -> 1
+                        }
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        val stepsHeights = listOf(8.3.dp, 16.6.dp, 25.dp, 33.3.dp, 41.6.dp, 50.dp)
+                        val orderedHeights =
+                            if (title == "ATH") stepsHeights.reversed() else stepsHeights
+                        orderedHeights.forEachIndexed { index, height ->
+                            val isStepActive = if (title == "ATH") {
+                                index >= (6 - activeSteps)
+                            } else {
+                                index < activeSteps
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .width(6.dp)
+                                    .height(height)
+                                    .background(
+                                        color = if(isStepActive) percentageColor else OutlineGray,
+                                        shape = RoundedCornerShape(2.dp)
+                                    )
+                            )
+                        }
+                    }
                 }
             }
         }
