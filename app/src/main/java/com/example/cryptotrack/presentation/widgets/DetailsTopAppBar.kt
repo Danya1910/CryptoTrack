@@ -52,6 +52,9 @@ fun DetailsTopAppBar(
         modifier = Modifier
             .height(60.dp)
             .fillMaxWidth()
+            .background(
+                color = BlackBackground,
+            )
             .padding(
                 start = 20.dp,
                 end = 15.dp
