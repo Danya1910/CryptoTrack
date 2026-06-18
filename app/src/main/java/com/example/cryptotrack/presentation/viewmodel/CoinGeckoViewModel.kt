@@ -3,7 +3,6 @@ package com.example.cryptotrack.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cryptotrack.domain.model.Search
-import com.example.cryptotrack.domain.model.SearchCoin
 import com.example.cryptotrack.domain.usecase.GetCoinChartUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinDetailsUseCase
 import com.example.cryptotrack.domain.usecase.GetFavoriteCoinsDetailsUseCase
@@ -12,7 +11,8 @@ import com.example.cryptotrack.domain.usecase.GetMarketUseCase
 import com.example.cryptotrack.domain.usecase.GetTrendCoinsUseCase
 import com.example.cryptotrack.domain.usecase.SearchCoinsUseCase
 import com.example.cryptotrack.domain.util.MarketOrder
-import com.example.cryptotrack.presentation.states.DetailsScreenStates
+import com.example.cryptotrack.presentation.states.ChartState
+import com.example.cryptotrack.presentation.states.DetailsState
 import com.example.cryptotrack.presentation.states.FavoriteCoinsDetailsState
 import com.example.cryptotrack.presentation.states.GlobalMarketState
 import com.example.cryptotrack.presentation.states.MarketDataState
@@ -20,13 +20,11 @@ import com.example.cryptotrack.presentation.states.SearchState
 import com.example.cryptotrack.presentation.states.TrendState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.http.Query
 import javax.inject.Inject
 
 
@@ -46,13 +44,15 @@ class CoinGeckoViewModel @Inject constructor(
 
     private val _globalMarketState = MutableStateFlow(GlobalMarketState())
     private val _marketDataState = MutableStateFlow(MarketDataState())
-    private val _detailScreenState = MutableStateFlow(DetailsScreenStates())
+    private val _detailsState = MutableStateFlow(DetailsState())
+    private val _chartState = MutableStateFlow(ChartState())
     private val _trendState = MutableStateFlow(TrendState())
     private val _searchState = MutableStateFlow(SearchState())
     private val _favoriteCoinsDetailsState = MutableStateFlow(FavoriteCoinsDetailsState())
     val marketScreenState = _globalMarketState.asStateFlow()
     val marketDataState = _marketDataState.asStateFlow()
-    val detailsScreenState = _detailScreenState.asStateFlow()
+    val detailsState = _detailsState.asStateFlow()
+    val chartState = _chartState.asStateFlow()
     val trendState = _trendState.asStateFlow()
     val searchState = _searchState.asStateFlow()
     val favoriteCoinsDetailsState = _favoriteCoinsDetailsState.asStateFlow()
@@ -134,27 +134,60 @@ class CoinGeckoViewModel @Inject constructor(
 
     fun loadDetails(
         coinId: String,
-        days: Int = 1,
     ) {
         viewModelScope.launch {
-            _detailScreenState.update {
+            _detailsState.update {
                 it.copy(
                     isLoading = true,
                     error = null,
                     details = null,
+                )
+            }
+            runCatching {
+                coroutineScope {
+                    getCoinDetailsUseCase(id = coinId)
+                }
+            }.onSuccess { details ->
+                _detailsState.update {
+                    it.copy(
+                        details = details,
+                        isLoading = false,
+                        error = null,
+                    )
+                }
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) {
+                    throw throwable
+                }
+                _detailsState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = throwable.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun loadChart(
+        coinId: String,
+        days: Int = 1,
+    ) {
+        viewModelScope.launch {
+            _chartState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
                     chart = null
                 )
             }
             runCatching {
                 coroutineScope {
-                    val details = getCoinDetailsUseCase(id = coinId)
-                    val chart = getCoinChartUseCase(id = coinId, days = days)
-                    details to chart
+                    getCoinChartUseCase(id = coinId,days = days)
                 }
-            }.onSuccess { (details, chart) ->
-                _detailScreenState.update {
+            }.onSuccess { chart ->
+                _chartState.update {
                     it.copy(
-                        details = details,
                         chart = chart,
                         isLoading = false,
                         error = null,
@@ -164,7 +197,7 @@ class CoinGeckoViewModel @Inject constructor(
                 if (throwable is CancellationException) {
                     throw throwable
                 }
-                _detailScreenState.update {
+                _chartState.update {
                     it.copy(
                         isLoading = false,
                         error = throwable.message
@@ -304,10 +337,9 @@ class CoinGeckoViewModel @Inject constructor(
     }
 
     fun clearDetails() {
-        _detailScreenState.update {
+        _detailsState.update {
             it.copy(
                 details = null,
-                chart = null,
                 error = null,
             )
         }
