@@ -44,7 +44,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,7 +53,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.navArgument
 import coil.compose.AsyncImage
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.CoinDetails
@@ -65,7 +63,6 @@ import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.DetailsTopAppBar
 import com.example.cryptotrack.presentation.widgets.Graph
-import com.example.cryptotrack.presentation.widgets.HistoryGraph
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -89,7 +86,7 @@ fun CoinDetailsScreen(
     navController: NavController,
     coinViewModel: CoinViewModel,
 ) {
-    val state by viewModel.detailsScreenState.collectAsState()
+    val state by viewModel.detailsState.collectAsState()
     val details = state.details
 
     Scaffold(
@@ -153,14 +150,19 @@ private fun Content(
         else -> 1
     }
 
-    LaunchedEffect(days) {
-        viewModel.loadDetails(coinId = coinId, days = days)
+    LaunchedEffect(Unit) {
+        viewModel.loadDetails(coinId = coinId)
     }
 
-    val state by viewModel.detailsScreenState.collectAsState()
+    LaunchedEffect(days) {
+        viewModel.loadChart(coinId = coinId, days = days)
+    }
 
-    val details = state.details
-    val chart = state.chart
+    val detailsState by viewModel.detailsState.collectAsState()
+    val chartState by viewModel.chartState.collectAsState()
+
+    val details = detailsState.details
+    val chart = chartState.chart
 
     LaunchedEffect(details?.id) {
         val d = details ?: return@LaunchedEffect
@@ -981,7 +983,7 @@ private fun HistoricalGraphItem(
                                     .width(6.dp)
                                     .height(height)
                                     .background(
-                                        color = if(isStepActive) percentageColor else OutlineGray,
+                                        color = if (isStepActive) percentageColor else OutlineGray,
                                         shape = RoundedCornerShape(2.dp)
                                     )
                             )
