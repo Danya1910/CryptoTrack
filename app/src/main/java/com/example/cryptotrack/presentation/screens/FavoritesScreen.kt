@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,7 @@ import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.Yellow
 import kotlinx.coroutines.delay
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
@@ -302,6 +304,8 @@ private fun CoinItem(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = coin.symbol.uppercase(),
@@ -309,6 +313,8 @@ private fun CoinItem(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Column(
