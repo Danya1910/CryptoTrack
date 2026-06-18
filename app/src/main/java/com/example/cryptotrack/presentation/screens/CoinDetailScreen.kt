@@ -44,6 +44,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +64,7 @@ import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.DetailsTopAppBar
 import com.example.cryptotrack.presentation.widgets.Graph
+import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
@@ -567,9 +569,18 @@ private fun GraphWrapper(
                 currentDaysSelected = currentDaysSelected,
                 onDaySelected = onDaySelected,
             )
-            Graph(
-                chart = chart,
-            )
+            Spacer(modifier = Modifier.height(5.dp))
+            if(chart == null) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                )
+            } else {
+                Graph(
+                    chart = chart,
+                )
+            }
         }
     }
 }
