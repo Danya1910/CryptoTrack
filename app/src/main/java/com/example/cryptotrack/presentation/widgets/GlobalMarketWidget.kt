@@ -69,7 +69,6 @@ fun GlobalMarketWidget(
 
     val marketCapColor = if ((market?.marketCapChangePercentage24hUsd ?: 0.0) >= 0.0) Green else Red
 
-
     val formattedPercentageBtc = String.format(
         "%.2f",
         market?.marketCapPercentage?.btc,
