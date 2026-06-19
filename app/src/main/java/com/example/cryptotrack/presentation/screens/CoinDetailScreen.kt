@@ -570,7 +570,7 @@ private fun GraphWrapper(
                 onDaySelected = onDaySelected,
             )
             Spacer(modifier = Modifier.height(5.dp))
-            if(chart == null) {
+            if (chart == null) {
                 SkeletonBox(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -650,18 +650,25 @@ private fun CoinInfo(
     details: CoinDetails?,
 ) {
 
-    val marketCap = formatCompactNumber(number = details?.marketData?.marketCap?.usd)
+    val marketCap =
+        details?.marketData?.marketCap?.usd?.let { formatCompactNumber(number = details.marketData.marketCap.usd) }
 
-    val fullyDilutedValuation =
-        formatCompactNumber(number = details?.marketData?.fullyDilutedValuation?.usd)
+    val fullyDilutedValuation = details?.marketData?.fullyDilutedValuation?.usd?.let {
+        formatCompactNumber(number = details.marketData.fullyDilutedValuation.usd)
+    }
 
-    val totalVolume = formatCompactNumber(number = details?.marketData?.totalVolume?.usd)
+    val totalVolume =
+        details?.marketData?.totalVolume?.usd?.let { formatCompactNumber(number = details.marketData.totalVolume.usd) }
 
-    val circulatingSupply = formatCompactNumber(number = details?.marketData?.circulatingSupply)
+    val circulatingSupply = details?.marketData?.circulatingSupply?.let {
+        formatCompactNumber(number = details.marketData.circulatingSupply)
+    }
 
-    val totalSupply = formatCompactNumber(number = details?.marketData?.totalSupply)
+    val totalSupply =
+        details?.marketData?.totalSupply?.let { formatCompactNumber(number = details.marketData.totalSupply) }
 
-    val maxSupply = formatCompactNumber(number = details?.marketData?.maxSupply)
+    val maxSupply =
+        details?.marketData?.maxSupply?.let { formatCompactNumber(number = details.marketData.maxSupply) }
 
     Box(
         modifier = Modifier
@@ -802,13 +809,21 @@ private fun InfoItem(
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = title,
-            fontFamily = Inter,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color.Gray,
-        )
+        if (title.isEmpty()) {
+            SkeletonBox(
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(10.dp)
+            )
+        } else {
+            Text(
+                text = title,
+                fontFamily = Inter,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Gray,
+            )
+        }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = value,
@@ -817,6 +832,7 @@ private fun InfoItem(
             fontWeight = FontWeight.Normal,
             color = Color.White,
         )
+
     }
 }
 
