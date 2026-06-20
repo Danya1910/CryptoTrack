@@ -42,6 +42,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -548,7 +549,7 @@ private fun DailyPrice(
                             shape = RoundedCornerShape(10.dp)
                         )
                 )
-                if(progress != 0f) {
+                if (progress != 0f) {
                     Canvas(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1051,14 +1052,12 @@ private fun HistoricalGraphItem(
     modifier: Modifier
 ) {
 
-
     val percentageFormatted = String.format(
         "%.2f",
         abs(percentage ?: 0.0)
     )
 
     val percentageColor = if ((percentage ?: 0.0) >= 0.0) Green else Red
-
 
     val percentageText = if ((percentage ?: 0.0) >= 0) {
         "+$percentageFormatted%"
@@ -1095,29 +1094,53 @@ private fun HistoricalGraphItem(
                     fontWeight = FontWeight.Normal,
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = value,
-                    fontFamily = Inter,
-                    fontSize = 12.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Normal,
-                )
+                if (value == "0.00") {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(14.dp)
+                            .width(65.dp)
+                    )
+                } else {
+                    Text(
+                        text = value,
+                        fontFamily = Inter,
+                        fontSize = 12.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = date,
-                    fontFamily = Inter,
-                    fontSize = 10.sp,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Normal,
-                )
+                if (date.isEmpty()) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(12.dp)
+                            .width(60.dp)
+                    )
+                } else {
+                    Text(
+                        text = date,
+                        fontFamily = Inter,
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = percentageText,
-                    fontFamily = Inter,
-                    fontSize = 11.sp,
-                    color = percentageColor,
-                    fontWeight = FontWeight.Normal,
-                )
+                if (percentage == null) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(13.dp)
+                            .width(50.dp)
+                    )
+                } else {
+                    Text(
+                        text = percentageText,
+                        fontFamily = Inter,
+                        fontSize = 11.sp,
+                        color = percentageColor,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(15.dp))
             Column(
@@ -1125,53 +1148,81 @@ private fun HistoricalGraphItem(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(top = 10.dp)
             ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(width = 60.dp, height = 50.dp)
-                ) {
-                    val rawPercentage = abs(percentage ?: 0.0)
-                    val activeSteps = if (title == "ATH") {
-                        when {
-                            rawPercentage > 83.3 -> 1
-                            rawPercentage > 66.6 -> 2
-                            rawPercentage > 50.0 -> 3
-                            rawPercentage > 33.3 -> 4
-                            rawPercentage > 16.6 -> 5
-                            else -> 6
-                        }
-                    } else {
-                        when {
-                            rawPercentage > 83.3 -> 6
-                            rawPercentage > 66.6 -> 5
-                            rawPercentage > 50.0 -> 4
-                            rawPercentage > 33.3 -> 3
-                            rawPercentage > 16.6 -> 2
-                            else -> 1
+
+                if (percentage == null) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(width = 60.dp, height = 50.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            val stepsHeights =
+                                listOf(8.3.dp, 16.6.dp, 25.dp, 33.3.dp, 41.6.dp, 50.dp)
+                            val orderedHeights =
+                                if (title == "ATH") stepsHeights.reversed() else stepsHeights
+                            orderedHeights.forEachIndexed { index, height ->
+                                SkeletonBox(
+                                    modifier = Modifier
+                                        .width(6.dp)
+                                        .height(height)
+                                        .clip(shape = RoundedCornerShape(2.dp))
+                                )
+                            }
                         }
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalAlignment = Alignment.Bottom
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(width = 60.dp, height = 50.dp)
                     ) {
-                        val stepsHeights = listOf(8.3.dp, 16.6.dp, 25.dp, 33.3.dp, 41.6.dp, 50.dp)
-                        val orderedHeights =
-                            if (title == "ATH") stepsHeights.reversed() else stepsHeights
-                        orderedHeights.forEachIndexed { index, height ->
-                            val isStepActive = if (title == "ATH") {
-                                index >= (6 - activeSteps)
-                            } else {
-                                index < activeSteps
+                        val rawPercentage = abs(percentage)
+                        val activeSteps = if (title == "ATH") {
+                            when {
+                                rawPercentage > 83.3 -> 1
+                                rawPercentage > 66.6 -> 2
+                                rawPercentage > 50.0 -> 3
+                                rawPercentage > 33.3 -> 4
+                                rawPercentage > 16.6 -> 5
+                                else -> 6
                             }
-                            Box(
-                                modifier = Modifier
-                                    .width(6.dp)
-                                    .height(height)
-                                    .background(
-                                        color = if (isStepActive) percentageColor else OutlineGray,
-                                        shape = RoundedCornerShape(2.dp)
-                                    )
-                            )
+                        } else {
+                            when {
+                                rawPercentage > 83.3 -> 6
+                                rawPercentage > 66.6 -> 5
+                                rawPercentage > 50.0 -> 4
+                                rawPercentage > 33.3 -> 3
+                                rawPercentage > 16.6 -> 2
+                                else -> 1
+                            }
+                        }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            val stepsHeights =
+                                listOf(8.3.dp, 16.6.dp, 25.dp, 33.3.dp, 41.6.dp, 50.dp)
+                            val orderedHeights =
+                                if (title == "ATH") stepsHeights.reversed() else stepsHeights
+                            orderedHeights.forEachIndexed { index, height ->
+                                val isStepActive = if (title == "ATH") {
+                                    index >= (6 - activeSteps)
+                                } else {
+                                    index < activeSteps
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .width(6.dp)
+                                        .height(height)
+                                        .background(
+                                            color = if (isStepActive) percentageColor else OutlineGray,
+                                            shape = RoundedCornerShape(2.dp)
+                                        )
+                                )
+                            }
                         }
                     }
                 }
