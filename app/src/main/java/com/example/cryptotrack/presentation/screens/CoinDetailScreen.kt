@@ -1239,7 +1239,6 @@ private fun CommunityBlock(
 
 
     Box(
-
         modifier = Modifier
             .fillMaxWidth()
             .background(
@@ -1256,22 +1255,34 @@ private fun CommunityBlock(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            LinkRow(
-                path = images?.thumb,
-                title = "Оффициальный сайт",
-                link = links?.homepage?.firstOrNull(),
-            )
+            if(links == null) {
+                LinkRowSkeleton(
+                    title = "Оффициальный сайт",
+                )
+            } else {
+                LinkRow(
+                    path = images?.thumb,
+                    title = "Оффициальный сайт",
+                    link = links.homepage.firstOrNull(),
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(1.dp)
                     .background(color = OutlineGray)
             )
-            LinkRow(
-                image = R.drawable.ic_reddit,
-                title = "Reddit",
-                link = links?.subredditUrl
-            )
+            if(links == null) {
+                LinkRowSkeleton(
+                    title = "Reddit",
+                )
+            } else {
+                LinkRow(
+                    image = R.drawable.ic_reddit,
+                    title = "Reddit",
+                    link = links.subredditUrl,
+                )
+            }
         }
     }
 }
@@ -1320,6 +1331,43 @@ private fun LinkRow(
                     .size(25.dp)
             )
         }
+        Spacer(modifier = Modifier.width(15.dp))
+        Text(
+            text = title,
+            textAlign = TextAlign.Start,
+            fontFamily = Inter,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.White,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(
+            painter = painterResource(id = R.drawable.ic_link),
+            contentDescription = null,
+            tint = Green,
+            modifier = Modifier
+                .size(15.dp)
+        )
+    }
+}
+
+@Composable
+private fun LinkRowSkeleton(
+    title: String,
+) {
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .height(40.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+    ) {
+        SkeletonBox(
+            modifier = Modifier
+                .size(25.dp)
+                .clip(shape = RoundedCornerShape(5.dp))
+        )
         Spacer(modifier = Modifier.width(15.dp))
         Text(
             text = title,
