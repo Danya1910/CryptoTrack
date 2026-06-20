@@ -279,6 +279,7 @@ private fun CoinHat(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -287,31 +288,36 @@ private fun CoinHat(
             contentDescription = null,
             modifier = Modifier.size(45.dp),
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = details?.name.toString(),
-            fontFamily = Inter,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
-            letterSpacing = 1.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = 120.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            text = details?.symbol.toString(),
-            fontFamily = Inter,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color.Gray,
-        )
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(5.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.weight(1f, fill = false)
+        ) {
+            Text(
+                text = details?.name.toString(),
+                fontFamily = Inter,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                letterSpacing = 1.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            Text(
+                text = details?.symbol.toString(),
+                fontFamily = Inter,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.Gray,
+                maxLines = 1,
+
+            )
+        }
         CoinNumber(number = details?.marketCapRank)
-        Spacer(modifier = Modifier.weight(1f))
         Column(
-            horizontalAlignment = Alignment.End
+            horizontalAlignment = Alignment.End,
         ) {
             Text(
                 text = "$${details?.marketData?.currentPrice?.usd}",
