@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -283,70 +285,118 @@ private fun CoinHat(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        AsyncImage(
-            model = details?.image?.thumb,
-            contentDescription = null,
-            modifier = Modifier.size(45.dp),
-        )
+        if(details?.image?.thumb.isNullOrEmpty()) {
+            SkeletonBox(
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(shape = RoundedCornerShape(3.dp))
+            )
+        } else {
+            AsyncImage(
+                model = details.image.thumb,
+                contentDescription = null,
+                modifier = Modifier.size(45.dp),
+            )
+        }
         Spacer(modifier = Modifier.width(5.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f)
         ) {
-            Text(
-                text = details?.name.toString(),
-                fontFamily = Inter,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                letterSpacing = 1.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false)
-            )
-            Text(
-                text = details?.symbol.toString(),
-                fontFamily = Inter,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.Gray,
-                maxLines = 1,
+            if (details?.name.isNullOrEmpty()) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .width(80.dp)
+                )
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .width(45.dp)
+                )
+            } else {
+                Text(
+                    text = details.name,
+                    fontFamily = Inter,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    letterSpacing = 1.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Text(
+                    text = details.symbol,
+                    fontFamily = Inter,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Gray,
+                    maxLines = 1,
 
-            )
+                    )
+            }
+            if (details?.marketCapRank == null) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(22.dp)
+                        .width(45.dp)
+                        .clip(shape = RoundedCornerShape(5.dp))
+                )
+            } else {
+                CoinNumber(number = details.marketCapRank)
+            }
         }
-        CoinNumber(number = details?.marketCapRank)
         Column(
             horizontalAlignment = Alignment.End,
         ) {
-            Text(
-                text = "$${details?.marketData?.currentPrice?.usd}",
-                fontFamily = Inter,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-            )
+            if(details?.marketData?.currentPrice?.usd == null) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .width(90.dp)
+                        .height(18.dp)
+                )
+            } else {
+                Text(
+                    textAlign = TextAlign.End,
+                    text = "$${details.marketData.currentPrice.usd}",
+                    fontFamily = Inter,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                )
+            }
             Spacer(modifier = Modifier.height(5.dp))
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
             ) {
-                Icon(
-                    painter = painterResource(
-                        if (isPositive) R.drawable.ic_up
-                        else R.drawable.ic_down
-                    ),
-                    contentDescription = null,
-                    tint = percentageColor,
-                    modifier = Modifier.size(7.dp)
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = "$percentageUsd% (24H)",
-                    fontFamily = Inter,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = percentageColor,
-                )
+                if(details?.marketData?.currentPrice?.usd == null) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(14.dp)
+                            .width(50.dp)
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(
+                            if (isPositive) R.drawable.ic_up
+                            else R.drawable.ic_down
+                        ),
+                        contentDescription = null,
+                        tint = percentageColor,
+                        modifier = Modifier.size(7.dp)
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = "$percentageUsd% (24H)",
+                        fontFamily = Inter,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = percentageColor,
+                    )
+                }
             }
         }
     }
