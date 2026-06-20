@@ -19,13 +19,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
@@ -41,14 +38,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -285,7 +278,7 @@ private fun CoinHat(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        if(details?.image?.thumb.isNullOrEmpty()) {
+        if (details?.image?.thumb.isNullOrEmpty()) {
             SkeletonBox(
                 modifier = Modifier
                     .size(45.dp)
@@ -351,7 +344,7 @@ private fun CoinHat(
         Column(
             horizontalAlignment = Alignment.End,
         ) {
-            if(details?.marketData?.currentPrice?.usd == null) {
+            if (details?.marketData?.currentPrice?.usd == null) {
                 SkeletonBox(
                     modifier = Modifier
                         .width(90.dp)
@@ -372,7 +365,7 @@ private fun CoinHat(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End
             ) {
-                if(details?.marketData?.currentPrice?.usd == null) {
+                if (details?.marketData?.currentPrice?.usd == null) {
                     SkeletonBox(
                         modifier = Modifier
                             .height(14.dp)
@@ -467,9 +460,9 @@ private fun DailyPrice(
 
     val knobColor = remember(progress) {
         when {
-            progress < 0.35f -> Color(0xFFEF5350)  // Мягкий красный
-            progress < 0.65f -> Color(0xFFFFCA28)  // Мягкий желтый
-            else -> Color(0xFF66BB6A)              // Мягкий зеленый
+            progress < 0.35f -> Color(0xFFFF3B30)
+            progress < 0.65f -> Color(0xFFFFCC00)
+            else -> Color(0xFF34C759)
         }
     }
 
@@ -482,16 +475,24 @@ private fun DailyPrice(
         Column(
             verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = "$$low24h",
-                fontFamily = Inter,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Start,
-            )
+            if (low24h == null) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .width(40.dp)
+                )
+            } else {
+                Text(
+                    text = "$$low24h",
+                    fontFamily = Inter,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start,
+                )
+            }
             Spacer(modifier = Modifier.height(5.dp))
             Text(
                 text = "24H Low",
@@ -506,6 +507,7 @@ private fun DailyPrice(
         }
         Column(
             verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.End,
             modifier = Modifier.weight(1f)
         ) {
 
@@ -516,7 +518,6 @@ private fun DailyPrice(
             ) {
 
                 val barWidth = maxWidth - 20.dp
-                val knobOffset = barWidth * progress
 
                 Box(
                     modifier = Modifier
@@ -547,49 +548,57 @@ private fun DailyPrice(
                             shape = RoundedCornerShape(10.dp)
                         )
                 )
+                if(progress != 0f) {
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(14.dp)
+                    ) {
+                        val totalWidth = size.width
+                        val xOffset = totalWidth * progress
 
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(14.dp)
-                ) {
-                    val totalWidth = size.width
-                    val xOffset = totalWidth * progress
-
-                    // Мягкая тень/свечение вокруг ползунка
-                    drawCircle(
-                        color = knobColor.copy(alpha = 0.2f),
-                        radius = 7.dp.toPx(),
-                        center = Offset(xOffset, size.height / 2)
-                    )
-                    // Основной цветной круг
-                    drawCircle(
-                        color = knobColor,
-                        radius = 5.dp.toPx(),
-                        center = Offset(xOffset, size.height / 2)
-                    )
-                    // Белая точка внутри
-                    drawCircle(
-                        color = Color.White,
-                        radius = 2.dp.toPx(),
-                        center = Offset(xOffset, size.height / 2)
-                    )
+                        drawCircle(
+                            color = Color.White,
+                            radius = 8.5.dp.toPx(),
+                            center = Offset(xOffset, size.height / 2)
+                        )
+                        drawCircle(
+                            color = knobColor,
+                            radius = 7.dp.toPx(),
+                            center = Offset(xOffset, size.height / 2)
+                        )
+                        drawCircle(
+                            color = Color.White,
+                            radius = 3.5.dp.toPx(),
+                            center = Offset(xOffset, size.height / 2)
+                        )
+                    }
                 }
             }
         }
+        Spacer(modifier = Modifier.width(10.dp))
         Column(
             verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.End
         ) {
-            Text(
-                text = "$$high24h",
-                fontFamily = Inter,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.End,
-            )
+            if (high24h == null) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .width(40.dp)
+                )
+            } else {
+                Text(
+                    text = "$$high24h",
+                    fontFamily = Inter,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End,
+                )
+            }
             Spacer(modifier = Modifier.height(5.dp))
             Text(
                 text = "24H High",
