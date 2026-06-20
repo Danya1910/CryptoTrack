@@ -3,6 +3,7 @@ package com.example.cryptotrack.presentation.screens
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -407,6 +409,14 @@ private fun DailyPrice(
     val progress = ((current - low) / range)
         .coerceIn(0f, 1f)
 
+    val knobColor = remember(progress) {
+        when {
+            progress < 0.35f -> Color(0xFFEF5350)  // Мягкий красный
+            progress < 0.65f -> Color(0xFFFFCA28)  // Мягкий желтый
+            else -> Color(0xFF66BB6A)              // Мягкий зеленый
+        }
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -482,37 +492,34 @@ private fun DailyPrice(
                         )
                 )
 
-                Box(
+                Canvas(
                     modifier = Modifier
-                        .offset(x = 10.dp + knobOffset - 6.dp)
-                        .align(Alignment.CenterStart)
-                        .size(12.dp)
-                        .background(
-                            Color.White,
-                            CircleShape
-                        )
-                )
+                        .fillMaxWidth()
+                        .height(14.dp)
+                ) {
+                    val totalWidth = size.width
+                    val xOffset = totalWidth * progress
+
+                    // Мягкая тень/свечение вокруг ползунка
+                    drawCircle(
+                        color = knobColor.copy(alpha = 0.2f),
+                        radius = 7.dp.toPx(),
+                        center = Offset(xOffset, size.height / 2)
+                    )
+                    // Основной цветной круг
+                    drawCircle(
+                        color = knobColor,
+                        radius = 5.dp.toPx(),
+                        center = Offset(xOffset, size.height / 2)
+                    )
+                    // Белая точка внутри
+                    drawCircle(
+                        color = Color.White,
+                        radius = 2.dp.toPx(),
+                        center = Offset(xOffset, size.height / 2)
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(13.dp))
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 10.dp)
-                    .fillMaxWidth()
-                    .drawBehind {
-                        drawLine(
-                            color = Color.Gray,
-                            start = Offset(0f, size.height / 2),
-                            end = Offset(size.width, size.height / 2),
-                            strokeWidth = 1.dp.toPx(),
-                            pathEffect = PathEffect.dashPathEffect(
-                                intervals = floatArrayOf(
-                                    12f,
-                                    6f
-                                )
-                            )
-                        )
-                    }
-            )
         }
         Column(
             verticalArrangement = Arrangement.Top,
@@ -706,36 +713,66 @@ private fun CoinInfo(
                     .padding(horizontal = 20.dp)
                     .height(IntrinsicSize.Min),
             ) {
-                InfoItem(
-                    icon = R.drawable.ic_market_cap,
-                    title = "Market Cap",
-                    value = "$$marketCap",
-                    modifier = Modifier.weight(1f),
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                        .background(color = OutlineGray)
-                )
-                InfoItem(
-                    icon = R.drawable.ic_bank,
-                    title = "Fully Diluted Valuation",
-                    value = "$$fullyDilutedValuation",
-                    modifier = Modifier.weight(1f),
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                        .background(color = OutlineGray)
-                )
-                InfoItem(
-                    icon = R.drawable.ic_planet,
-                    title = "Volume (24h)",
-                    value = "$$totalVolume",
-                    modifier = Modifier.weight(1f),
-                )
+                if (details != null) {
+                    InfoItem(
+                        icon = R.drawable.ic_market_cap,
+                        title = "Market Cap",
+                        value = "$$marketCap",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    InfoItem(
+                        icon = R.drawable.ic_bank,
+                        title = "Fully Diluted Valuation",
+                        value = "$$fullyDilutedValuation",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    InfoItem(
+                        icon = R.drawable.ic_planet,
+                        title = "Volume (24h)",
+                        value = "$$totalVolume",
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    SkeletonInfoItem(
+                        icon = R.drawable.ic_market_cap,
+                        title = "Market Cap",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    SkeletonInfoItem(
+                        icon = R.drawable.ic_bank,
+                        title = "Fully Diluted Valuation",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    SkeletonInfoItem(
+                        icon = R.drawable.ic_planet,
+                        title = "Volume (24h)",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(10.dp))
             Box(
@@ -754,36 +791,66 @@ private fun CoinInfo(
                     .padding(horizontal = 20.dp)
                     .height(IntrinsicSize.Min),
             ) {
-                InfoItem(
-                    icon = R.drawable.ic_sync,
-                    title = "Circulating Supply",
-                    value = "$circulatingSupply ${details?.symbol?.uppercase()}",
-                    modifier = Modifier.weight(1f),
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                        .background(color = OutlineGray)
-                )
-                InfoItem(
-                    icon = R.drawable.ic_stack,
-                    title = "Total supply",
-                    value = "$totalSupply ${details?.symbol?.uppercase()}",
-                    modifier = Modifier.weight(1f),
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                        .background(color = OutlineGray)
-                )
-                InfoItem(
-                    icon = R.drawable.ic_infinity,
-                    title = "Max Supply",
-                    value = "$maxSupply ${details?.symbol?.uppercase()}",
-                    modifier = Modifier.weight(1f),
-                )
+                if (details != null) {
+                    InfoItem(
+                        icon = R.drawable.ic_sync,
+                        title = "Circulating Supply",
+                        value = "$circulatingSupply ${details.symbol.uppercase()}",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    InfoItem(
+                        icon = R.drawable.ic_stack,
+                        title = "Total supply",
+                        value = "$totalSupply ${details.symbol.uppercase()}",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    InfoItem(
+                        icon = R.drawable.ic_infinity,
+                        title = "Max Supply",
+                        value = "$maxSupply ${details.symbol.uppercase()}",
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    SkeletonInfoItem(
+                        icon = R.drawable.ic_sync,
+                        title = "Circulating Supply",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    SkeletonInfoItem(
+                        icon = R.drawable.ic_stack,
+                        title = "Total supply",
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .background(color = OutlineGray)
+                    )
+                    SkeletonInfoItem(
+                        icon = R.drawable.ic_infinity,
+                        title = "Max Supply",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
@@ -809,21 +876,13 @@ private fun InfoItem(
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        if (title.isEmpty()) {
-            SkeletonBox(
-                modifier = Modifier
-                    .width(70.dp)
-                    .height(10.dp)
-            )
-        } else {
-            Text(
-                text = title,
-                fontFamily = Inter,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.Gray,
-            )
-        }
+        Text(
+            text = title,
+            fontFamily = Inter,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Gray,
+        )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = value,
@@ -833,6 +892,40 @@ private fun InfoItem(
             color = Color.White,
         )
 
+    }
+}
+
+@Composable
+private fun SkeletonInfoItem(
+    title: String,
+    icon: Int,
+    modifier: Modifier,
+) {
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier,
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = title,
+            fontFamily = Inter,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Normal,
+            color = Color.Gray,
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        SkeletonBox(
+            modifier = Modifier
+                .width(60.dp)
+                .height(13.dp)
+        )
     }
 }
 
