@@ -447,7 +447,11 @@ private fun ListItem(
     details: FavoriteCoinDetails?,
 ) {
 
-    val totalPrice = formatRate(purchase.totalValue)
+    val currentPrice = details?.currentPrice?.let{
+        purchase.totalAmount * details.currentPrice
+    }
+
+    val totalPrice = formatRate(currentPrice)
 
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
@@ -514,21 +518,35 @@ private fun ListItem(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.End,
         ) {
-            Text(
-                text = "$totalPrice$",
-                fontFamily = Inter,
-                color = Color.White,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = percentageText ?: "",
-                fontFamily = Inter,
-                color = percentageColor ?: Color.Transparent,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-            )
+            if(details == null) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .width(50.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(13.dp)
+                        .width(42.dp)
+                )
+            } else {
+                Text(
+                    text = "$totalPrice$",
+                    fontFamily = Inter,
+                    color = Color.White,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = percentageText ?: "",
+                    fontFamily = Inter,
+                    color = percentageColor ?: Color.Transparent,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                )
+            }
         }
     }
 }
