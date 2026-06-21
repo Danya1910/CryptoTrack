@@ -51,7 +51,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -279,8 +278,8 @@ private fun SnakeBar(
 ) {
     AnimatedVisibility(
         visible = visible,
-        enter = slideInVertically(initialOffsetY = {it}) + fadeIn(),
-        exit = slideOutVertically(targetOffsetY = {it}) + fadeOut(),
+        enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         modifier = modifier,
     ) {
         Box(
@@ -1027,7 +1026,7 @@ private fun PurchaseWidget(
                     color = Color.Gray,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                if(isLoading) {
+                if (isLoading) {
                     SkeletonBox(
                         modifier = Modifier
                             .height(22.dp)
@@ -1061,7 +1060,7 @@ private fun PurchaseWidget(
                                     tint = Orange,
                                     modifier = Modifier
                                         .size(11.dp)
-                                        .clickable{
+                                        .clickable {
                                             onShowSnackbar()
                                         }
                                 )
@@ -1134,19 +1133,30 @@ private fun PurchaseWidget(
             Column(
                 modifier = Modifier.weight(0.5f)
             ) {
-                PieTest(slices = parts)
-                Spacer(modifier = Modifier.height(10.dp))
-                PurchasePercentage(parts = parts)
+                if (parts.isEmpty()) {
+                    SkeletonPieDiagram()
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Диаграмма пуста, запишите покупку, чтобы заполнить её.",
+                        fontFamily = Inter,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                    )
+                } else {
+                    PieDiagram(slices = parts)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    PurchasePercentage(parts = parts)
+                }
             }
         }
     }
 }
 
 @Composable
-fun PieTest(
+fun PieDiagram(
     slices: List<Slice>,
-
-    ) {
+) {
 
     val gap = 6f
 
@@ -1174,6 +1184,29 @@ fun PieTest(
         }
     }
 }
+
+@Composable
+fun SkeletonPieDiagram(
+) {
+
+
+    Canvas(
+        modifier = Modifier.size(50.dp)
+    ) {
+
+        val stroke = 10.dp.toPx()
+
+        drawArc(
+            color = OutlineGray,
+            startAngle = 0f,
+            sweepAngle = 360f,
+            useCenter = false,
+            style = Stroke(width = stroke)
+        )
+
+    }
+}
+
 
 @Composable
 
