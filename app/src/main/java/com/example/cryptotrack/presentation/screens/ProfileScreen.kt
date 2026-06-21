@@ -953,7 +953,7 @@ private fun RecentlyViewedItem(
                     modifier = Modifier.height(5.dp)
                 )
                 Text(
-                    text = "ETH",
+                    text = coin.symbol.uppercase(),
                     fontFamily = Inter,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
