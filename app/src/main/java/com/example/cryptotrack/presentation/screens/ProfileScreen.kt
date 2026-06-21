@@ -4,6 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -47,7 +52,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -80,9 +84,11 @@ import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Orange
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.SearchBarColor
+import kotlinx.coroutines.delay
 import java.io.File
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -95,6 +101,18 @@ fun ProfileScreen(
     viewModel: CoinGeckoViewModel,
     userViewModel: UserViewModel,
 ) {
+
+    var snackbarTrigger by remember { mutableStateOf(0) }
+
+    val isSnackbarVisible = snackbarTrigger > 0
+
+    LaunchedEffect(snackbarTrigger) {
+        if (snackbarTrigger > 0) {
+            delay(3500)
+            snackbarTrigger = 0
+        }
+    }
+
     Scaffold(
         topBar = {},
         bottomBar = {
@@ -103,13 +121,27 @@ fun ProfileScreen(
             )
         },
     ) { paddingValues ->
-        Content(
-            paddingValues = paddingValues,
-            coinViewModel = coinViewModel,
-            navController = navController,
-            viewModel = viewModel,
-            userViewModel = userViewModel,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            Content(
+                paddingValues = paddingValues,
+                coinViewModel = coinViewModel,
+                navController = navController,
+                viewModel = viewModel,
+                userViewModel = userViewModel,
+                onShowSnackbar = {
+                    snackbarTrigger++
+                },
+            )
+            SnakeBar(
+                visible = isSnackbarVisible,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = paddingValues.calculateBottomPadding())
+            )
+        }
     }
 }
 
@@ -121,6 +153,7 @@ private fun Content(
     navController: NavController,
     viewModel: CoinGeckoViewModel,
     userViewModel: UserViewModel,
+    onShowSnackbar: () -> Unit,
 ) {
 
     val historyOfViewingList by coinViewModel.historyOfViewingCoins.collectAsState(initial = emptyList())
@@ -166,9 +199,6 @@ private fun Content(
             details = purchaseDetails
         )
     } else null
-
-    val profit = if (currentSum != null) currentSum - investedSum
-    else null
 
     val currentFormatted = formatPrice(value = currentSum)
 
@@ -226,6 +256,10 @@ private fun Content(
             investedSum = investedSum,
             profitPercentage = profitPercentage,
             time = time,
+            isLoading = purchaseDetailsState.isLoading,
+            onShowSnackbar = {
+                onShowSnackbar()
+            }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -235,6 +269,51 @@ private fun Content(
         )
         Spacer(modifier = Modifier.height(10.dp))
         RecentlyViewed(coins = historyOfViewingList, navController = navController)
+    }
+}
+
+@Composable
+private fun SnakeBar(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(initialOffsetY = {it}) + fadeIn(),
+        exit = slideOutVertically(targetOffsetY = {it}) + fadeOut(),
+        modifier = modifier,
+    ) {
+        Box(
+            modifier = Modifier
+                .height(50.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 15.dp)
+                .padding(bottom = 15.dp)
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = OutlineGray,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 15.dp)
+            ) {
+                Text(
+                    text = "Сумма вложений",
+                    fontFamily = Inter,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                )
+            }
+        }
     }
 }
 
@@ -893,7 +972,9 @@ private fun PurchaseWidget(
     currentSum: Double?,
     profitPercentage: Double?,
     investedSum: Double,
-    time: Long?
+    time: Long?,
+    isLoading: Boolean,
+    onShowSnackbar: () -> Unit,
 ) {
 
     val symbols = DecimalFormatSymbols().apply {
@@ -911,6 +992,8 @@ private fun PurchaseWidget(
     }
 
     val firstInvestedDate = formatTime(millis = time ?: 0)
+
+    val investedPrice = formatPrice(value = investedSum)
 
     Box(
         modifier = Modifier
@@ -944,29 +1027,54 @@ private fun PurchaseWidget(
                     color = Color.Gray,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                if (investedSum == 0.0) {
-                    Text(
-                        text = "$0.0",
-                        fontFamily = Inter,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 20.sp,
-                        color = Color.White,
+                if(isLoading) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(22.dp)
+                            .fillMaxWidth(0.8f)
                     )
                 } else {
-                    if (currentSum == null) {
-                        SkeletonBox(
-                            modifier = Modifier
-                                .fillMaxWidth(0.8f)
-                                .height(22.dp)
-                        )
-                    } else {
+                    if (investedSum == 0.0) {
                         Text(
-                            text = "$$currentPrice",
+                            text = "$0.0",
                             fontFamily = Inter,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 20.sp,
                             color = Color.White,
                         )
+                    } else {
+                        if (currentSum == null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "$$investedPrice",
+                                    fontFamily = Inter,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 20.sp,
+                                    color = Color.White,
+                                )
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_clock),
+                                    contentDescription = null,
+                                    tint = Orange,
+                                    modifier = Modifier
+                                        .size(11.dp)
+                                        .clickable{
+                                            onShowSnackbar()
+                                        }
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = "$$currentPrice",
+                                fontFamily = Inter,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 20.sp,
+                                color = Color.White,
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
