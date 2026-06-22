@@ -176,10 +176,15 @@ private fun Content(
         aggregatePurchases(purchase)
     }
 
-    LaunchedEffect(aggregatedPurchase) {
-        if (purchase.isNotEmpty()) {
-            val ids = aggregatedPurchase.joinToString(",") { it.coinId }
-            viewModel.getFavoriteCoinsDetails(ids = ids)
+    LaunchedEffect(aggregatedPurchase, favoriteCoins) {
+        if (purchase.isNotEmpty() || favoriteCoins.isNotEmpty()) {
+            val purchaseIds = aggregatedPurchase.map { it.coinId }
+            val favoriteIds = favoriteCoins.map { it.id }
+            val allUniqueIds = (purchaseIds + favoriteIds).toSet()
+            if (allUniqueIds.isNotEmpty()) {
+                val idsString = allUniqueIds.joinToString(",")
+                viewModel.getFavoriteCoinsDetails(ids = idsString)
+            }
         }
     }
 
