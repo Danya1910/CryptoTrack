@@ -68,6 +68,7 @@ import com.example.cryptotrack.ui.theme.Lavender
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Purple
 import com.example.cryptotrack.ui.theme.Red
+import kotlinx.coroutines.delay
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 
@@ -122,14 +123,27 @@ private fun Content(
         )
     }
 
+    val purchaseDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
+
     LaunchedEffect(aggregatedPurchase) {
         if (purchase.isNotEmpty()) {
             val ids = aggregatedPurchase.joinToString(",") { it.coinId }
-            viewModel.getFavoriteCoinsDetails(ids = ids)
+
+            while (true) {
+                val currentDetails = viewModel.favoriteCoinsDetailsState.value.details
+
+                if (currentDetails.isNullOrEmpty()) {
+                    viewModel.getFavoriteCoinsDetails(ids = ids)
+
+                    delay(10000)
+                } else {
+                    break
+                }
+            }
         }
     }
 
-    val purchaseDetails by viewModel.favoriteCoinsDetailsState.collectAsState()
+
 
     val details = purchaseDetails.details
 
