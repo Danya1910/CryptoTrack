@@ -143,8 +143,6 @@ private fun Content(
         }
     }
 
-
-
     val details = purchaseDetails.details
 
     val isApiDataAvailable = !details.isNullOrEmpty()
