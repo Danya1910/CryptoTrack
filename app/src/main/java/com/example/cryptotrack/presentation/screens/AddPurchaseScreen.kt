@@ -1,6 +1,5 @@
 package com.example.cryptotrack.presentation.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,13 +39,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -77,6 +75,8 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.OutlineGreen
 import com.example.cryptotrack.ui.theme.Red
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.SimpleDateFormat
@@ -138,30 +138,46 @@ private fun Content(
 
     var currentCoinId by remember { mutableStateOf("") }
 
+    var isCoinSelected by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.clearFavoriteCoinsDetails()
     }
 
     LaunchedEffect(query) {
-        if (query.isNotEmpty())
+        if (query.isNotEmpty()) {
+            if (isCoinSelected) {
+                isCoinSelected = false
+                return@LaunchedEffect
+            }
             viewModel.search(query = query)
-        else {
+        } else {
             viewModel.clearSuggestionsList()
         }
-
     }
 
     LaunchedEffect(currentCoinId) {
-        if (currentCoinId.isNotEmpty()) {
+        if (currentCoinId.isEmpty()) return@LaunchedEffect
+        while (true) {
             viewModel.getFavoriteCoinsDetails(ids = currentCoinId)
+
+            delay(150)
+
+            snapshotFlow { viewModel.favoriteCoinsDetailsState.value.isLoading }
+                .first { !it }
+
+            val currentState = viewModel.favoriteCoinsDetailsState.value
+            val isRateLimited = currentState.error?.contains("429") == true
+            val hasData = !currentState.details.isNullOrEmpty()
+            if (isRateLimited) {
+                delay(10000)
+            } else if (hasData || currentState.error != null) {
+                break
+            }
         }
     }
 
     val favoriteCoinState by viewModel.favoriteCoinsDetailsState.collectAsState()
-
-    LaunchedEffect(favoriteCoinState) {
-        Log.d("Add Purchase Screen", "purchaseState: $favoriteCoinState")
-    }
 
     val isRateLimited = favoriteCoinState.error?.contains("429") == true
 
@@ -201,6 +217,7 @@ private fun Content(
                     SkeletonSelectedCoin(
                         onClick = {
                             viewModel.clearFavoriteCoinsDetails()
+                            currentCoinId = ""
                         }
                     )
                 }
@@ -226,11 +243,10 @@ private fun Content(
                         SuggestionList(
                             suggestions = suggestions.suggestions,
                             onCoinClick = { coin ->
+                                isCoinSelected = true
                                 query = coin.name
-
                                 viewModel.clearSuggestionsList()
-
-                                viewModel.getFavoriteCoinsDetails(ids = coin.id)
+                                currentCoinId = coin.id
                             }
                         )
                     }
@@ -243,6 +259,7 @@ private fun Content(
                         details = selectedCoin,
                         onClick = {
                             viewModel.clearFavoriteCoinsDetails()
+                            currentCoinId = ""
                         }
                     )
                 }
