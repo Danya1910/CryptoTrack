@@ -131,15 +131,12 @@ private fun Content(
 
     val coinsList by coinViewModel.coins.collectAsState(initial = emptyList())
 
-
-
-
     Column(
         modifier = Modifier
             .background(color = BlackBackground)
             .padding(paddingValues)
             .fillMaxSize()
-            .padding(vertical = 10.dp)
+            .padding(top = 20.dp, bottom = 10.dp)
             .padding(horizontal = 15.dp)
     ) {
         SearchField(
