@@ -473,16 +473,21 @@ private fun SearchedCoin(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .height(27.dp)
+            .height(32.dp)
             .background(
-                color = BlackNavigation,
-                shape = RoundedCornerShape(25.dp)
+                color = DarkBlue,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = OutlineGray,
+                shape = RoundedCornerShape(12.dp)
             )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(start = 6.dp)
+                .padding(start = 8.dp)
                 .fillMaxHeight()
         ) {
             Row(
@@ -519,8 +524,8 @@ private fun SearchedCoin(
                     painter = painterResource(R.drawable.ic_cross),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(6.dp),
-                    tint = GreyCrossColor,
+                        .size(8.dp),
+                    tint = Color.White.copy(alpha = 0.8f),
                 )
             }
         }
