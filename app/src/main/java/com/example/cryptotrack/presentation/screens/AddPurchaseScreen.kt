@@ -481,6 +481,7 @@ private fun SkeletonSuggestionList() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
                 .background(
                     color = DarkBlue,
                     shape = RoundedCornerShape(10.dp)
