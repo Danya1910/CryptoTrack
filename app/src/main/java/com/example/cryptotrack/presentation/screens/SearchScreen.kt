@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
@@ -170,16 +171,19 @@ private fun Content(
             }
 
             item {
-
-                SuggestionList(
-                    suggestions = suggestions.suggestions,
-                    navController = navController,
-                    coinViewModel = coinViewModel,
-                    isExpanded = isExpanded,
-                    onExpandedChange = {
-                        isExpanded = it
-                    }
-                )
+                if ((suggestions.suggestions?.coins.isNullOrEmpty() && query.isNotEmpty()) && suggestions.isLoading) {
+                    SkeletonSuggestionList()
+                } else {
+                    SuggestionList(
+                        suggestions = suggestions.suggestions,
+                        navController = navController,
+                        coinViewModel = coinViewModel,
+                        isExpanded = isExpanded,
+                        onExpandedChange = {
+                            isExpanded = it
+                        }
+                    )
+                }
             }
 
             item {
@@ -380,6 +384,44 @@ private fun SuggestionList(
 }
 
 @Composable
+private fun SkeletonSuggestionList() {
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(
+                    color = DarkBlue,
+                    shape = RoundedCornerShape(10.dp)
+                )
+        ) {
+            Column {
+                for (i in 0..6) {
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(36.dp)
+                            .fillMaxWidth()
+                    )
+                    if (i != 6) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(OutlineGray)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
 private fun Suggestion(
     coin: SearchCoin,
     navController: NavController,
@@ -461,6 +503,7 @@ private fun Suggestion(
 
     }
 }
+
 @Composable
 private fun SearchedCoin(
     coin: RoomCoin,
