@@ -486,7 +486,6 @@ private fun SkeletonSuggestionList() {
                     color = DarkBlue,
                     shape = RoundedCornerShape(10.dp)
                 )
-
         ) {
             Column {
                 for (i in 0..6) {
