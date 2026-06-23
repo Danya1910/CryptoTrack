@@ -165,27 +165,14 @@ private fun Content(
 
     val userData by userViewModel.userData.collectAsState()
 
-    LaunchedEffect(favoriteCoins) {
-        if (favoriteCoins.isNotEmpty()) {
-            val ids = favoriteCoins.joinToString(",") { it.id }
-            viewModel.getFavoriteCoinsDetails(ids = ids)
-        }
-    }
-
     val aggregatedPurchase = remember(purchase) {
         aggregatePurchases(purchase)
     }
 
-    LaunchedEffect(aggregatedPurchase, favoriteCoins) {
-        if (purchase.isNotEmpty() || favoriteCoins.isNotEmpty()) {
-            val purchaseIds = aggregatedPurchase.map { it.coinId }
-            val favoriteIds = favoriteCoins.map { it.id }
-            val allUniqueIds = (purchaseIds + favoriteIds).toSet()
-            if (allUniqueIds.isNotEmpty()) {
-                val idsString = allUniqueIds.joinToString(",")
-                viewModel.getFavoriteCoinsDetails(ids = idsString)
-            }
-        }
+    LaunchedEffect(Unit) {
+        viewModel.observeAndFetchDetails(
+            coinViewModel = coinViewModel
+        )
     }
 
     val purchaseDetailsState by viewModel.favoriteCoinsDetailsState.collectAsState()
