@@ -72,7 +72,6 @@ import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.util.price.formatTime
-import com.example.cryptotrack.presentation.util.uiModels.FavoriteUiItem
 import com.example.cryptotrack.presentation.util.uiModels.Slice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
@@ -205,12 +204,6 @@ private fun Content(
 
     val details = favoriteCoinsDetails.details?.reversed().orEmpty()
 
-    val uiList: List<FavoriteUiItem> = if (favoriteCoinsDetails.details.isNullOrEmpty()) {
-        favoriteCoins.map { FavoriteUiItem.Basic(it) }
-    } else {
-        details.map { FavoriteUiItem.Full(it) }
-    }
-
 
     val favoritesCount = favoriteCoins.size
     val recentlyViewedCount = historyOfViewingList.size
@@ -255,7 +248,8 @@ private fun Content(
 
         Spacer(modifier = Modifier.height(10.dp))
         FavoriteWidget(
-            details = uiList,
+            details = details,
+            coins = favoriteCoins,
             navController = navController,
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -542,7 +536,8 @@ private fun UserInfo(
 
 @Composable
 private fun FavoriteWidget(
-    details: List<FavoriteUiItem>?,
+    details: List<FavoriteCoinDetails>?,
+    coins: List<FavoriteCoin>,
     navController: NavController,
 ) {
 
@@ -595,26 +590,17 @@ private fun FavoriteWidget(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val coins = details?.take(4).orEmpty()
+                val coins = coins.take(5)
 
                 coins.forEachIndexed { index, item ->
 
-                    when (item) {
+                    val coinDetails = details?.find { it.id == item.id }
 
-                        is FavoriteUiItem.Full -> {
-                            FavoriteItemFull(
-                                coin = item.data,
-                                navController = navController
-                            )
-                        }
-
-                        is FavoriteUiItem.Basic -> {
-                            FavoriteItemBasic(
-                                coin = item.data,
-                                navController = navController
-                            )
-                        }
-                    }
+                    FavoriteItem(
+                        details = coinDetails,
+                        coin = item,
+                        navController = navController,
+                    )
 
                     if (index != coins.lastIndex) {
                         Box(
@@ -632,108 +618,34 @@ private fun FavoriteWidget(
 }
 
 @Composable
-private fun FavoriteItemFull(
-    coin: FavoriteCoinDetails,
+private fun FavoriteItem(
+    details: FavoriteCoinDetails?,
+    coin: FavoriteCoin,
     navController: NavController,
 ) {
 
-    val price = formatPrice(value = coin.currentPrice)
+    val price = details?.currentPrice?.let {
+        formatPrice(value = details.currentPrice)
+    }
 
     val symbols = DecimalFormatSymbols().apply {
         groupingSeparator = ' '
         decimalSeparator = '.'
     }
 
-    val percentageColor = if (coin.priceChangePercentage24h >= 0) Green else Red
+    val percentageColor = details?.priceChangePercentage24h?.let {
+        if (details.priceChangePercentage24h >= 0) Green else Red
+    }
 
     val formatter = DecimalFormat("#,##0.00", symbols)
 
-    val percentageText = coin.priceChangePercentage24h.let {
+    val percentageText = details?.priceChangePercentage24h?.let {
         if (it > 0) {
             "+${formatter.format(it)}%"
         } else {
             "${formatter.format(it)}%"
         }
     }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(36.dp)
-            .clickable {
-                navController.navigate(Screen.CoinDetails.createRoute(id = coin.id))
-            }
-            .padding(horizontal = 10.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(end = 10.dp)
-                .fillMaxHeight()
-                .weight(1f),
-        ) {
-            AsyncImage(
-                model = coin.image,
-                contentDescription = null,
-                modifier = Modifier.size(25.dp),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = coin.name,
-                    fontFamily = Inter,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = coin.symbol,
-                    fontFamily = Inter,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        Text(
-            text = "$$price",
-            fontFamily = Inter,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Normal,
-            color = Color.White,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            textAlign = TextAlign.Right,
-            text = percentageText,
-            fontFamily = Inter,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Normal,
-            color = percentageColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(0.3f)
-        )
-
-    }
-}
-
-@Composable
-private fun FavoriteItemBasic(
-    coin: FavoriteCoin,
-    navController: NavController,
-) {
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -782,6 +694,52 @@ private fun FavoriteItemBasic(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+        }
+        if (percentageText == null || percentageColor == null) {
+            Box(
+                contentAlignment = Alignment.CenterStart,
+                modifier = Modifier
+                    .weight(1f),
+            ) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(12.dp)
+                        .width(80.dp)
+                )
+            }
+            Box(
+                contentAlignment = Alignment.CenterEnd,
+                modifier = Modifier
+                    .weight(0.3f),
+            ) {
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(12.dp)
+                        .width(55.dp)
+                )
+            }
+        } else {
+            Text(
+                text = "$$price",
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                textAlign = TextAlign.Right,
+                text = percentageText,
+                fontFamily = Inter,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Normal,
+                color = percentageColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(0.3f)
+            )
         }
     }
 }
