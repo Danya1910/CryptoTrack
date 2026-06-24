@@ -29,10 +29,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 
@@ -65,9 +67,35 @@ class CoinGeckoViewModel @Inject constructor(
     val searchState = _searchState.asStateFlow()
     val favoriteCoinsDetailsState = _favoriteCoinsDetailsState.asStateFlow()
 
+    private val _isSplashReady = MutableStateFlow(false)
+    val isSplashReady = _isSplashReady.asStateFlow()
+
 
     init {
         loadMarket(order = MarketOrder.DEFAULT)
+        loadSplash()
+    }
+
+    fun loadSplash() {
+        viewModelScope.launch {
+            loadGlobalMarket()
+            loadTrends()
+            loadMarket(order = MarketOrder.DEFAULT)
+
+            withTimeoutOrNull(5000) {
+                combine(
+                    _globalMarketState,
+                    _trendState,
+                    _marketDataState
+                ) { global, trends, market ->
+                    val isGlobalReady = global.globalMarket != null && global.error == null
+                    val isTrendsReady = trends.trendCoins != null && trends.error == null
+                    val isMarketReady = market.market != null && market.error == null
+                    isGlobalReady && isTrendsReady && isMarketReady
+                }.first{ it }
+            }
+            _isSplashReady.value = true
+        }
     }
 
     fun loadGlobalMarket() {
