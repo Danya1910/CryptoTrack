@@ -1,5 +1,6 @@
 package com.example.cryptotrack.presentation.viewmodel
 
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cryptotrack.domain.model.FavoriteCoin
@@ -24,6 +25,7 @@ import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -340,7 +342,14 @@ class CoinGeckoViewModel @Inject constructor(
                 .collect { allUniqueIds ->
                     if (allUniqueIds.isNotEmpty()) {
                         val idsString = allUniqueIds.joinToString(",")
-                        getFavoriteCoinsDetails(ids = idsString)
+                        while (true) {
+                            getFavoriteCoinsDetails(ids = idsString)
+                            delay(1500)
+                            val currentDetails =_favoriteCoinsDetailsState.value.details
+                            if(!currentDetails.isNullOrEmpty())
+                                break
+                            delay(8500)
+                        }
                     }
                 }
         }
