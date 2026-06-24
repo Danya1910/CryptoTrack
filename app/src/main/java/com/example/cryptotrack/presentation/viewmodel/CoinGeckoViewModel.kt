@@ -83,16 +83,22 @@ class CoinGeckoViewModel @Inject constructor(
             loadMarket(order = MarketOrder.DEFAULT)
 
             withTimeoutOrNull(5000) {
-                combine(
-                    _globalMarketState,
-                    _trendState,
-                    _marketDataState
-                ) { global, trends, market ->
-                    val isGlobalReady = global.globalMarket != null && global.error == null
-                    val isTrendsReady = trends.trendCoins != null && trends.error == null
-                    val isMarketReady = market.market != null && market.error == null
-                    isGlobalReady && isTrendsReady && isMarketReady
-                }.first{ it }
+                val minimumDelayJob = launch { delay(3000) }
+                val dataLoadingJob = launch {
+                    combine(
+                        _globalMarketState,
+                        _trendState,
+                        _marketDataState
+                    ) { global, trends, market ->
+                        val isGlobalReady = global.globalMarket != null || global.error != null
+                        val isTrendsReady = trends.trendCoins != null || trends.error != null
+                        val isMarketReady = market.market != null || market.error != null
+
+                        isGlobalReady && isTrendsReady && isMarketReady
+                    }.first { it }
+                }
+                minimumDelayJob.join()
+                dataLoadingJob.join()
             }
             _isSplashReady.value = true
         }
@@ -138,7 +144,7 @@ class CoinGeckoViewModel @Inject constructor(
     }
 
     fun loadTrends() {
-        if(_trendState.value.trendCoins != null || _trendState.value.isLoading) return
+        if (_trendState.value.trendCoins != null || _trendState.value.isLoading) return
         viewModelScope.launch {
             _trendState.update {
                 it.copy(
@@ -219,7 +225,7 @@ class CoinGeckoViewModel @Inject constructor(
             }
             runCatching {
                 coroutineScope {
-                    getCoinChartUseCase(id = coinId,days = days)
+                    getCoinChartUseCase(id = coinId, days = days)
                 }
             }.onSuccess { chart ->
                 _chartState.update {
@@ -254,7 +260,7 @@ class CoinGeckoViewModel @Inject constructor(
     fun loadMarket(
         order: MarketOrder
     ) {
-        if(!_marketDataState.value.market.isNullOrEmpty() || _marketDataState.value.isLoading) return
+        if (!_marketDataState.value.market.isNullOrEmpty() || _marketDataState.value.isLoading) return
         viewModelScope.launch {
             _marketDataState.update {
                 it.copy(
@@ -373,8 +379,8 @@ class CoinGeckoViewModel @Inject constructor(
                         while (true) {
                             getFavoriteCoinsDetails(ids = idsString)
                             delay(1500)
-                            val currentDetails =_favoriteCoinsDetailsState.value.details
-                            if(!currentDetails.isNullOrEmpty())
+                            val currentDetails = _favoriteCoinsDetailsState.value.details
+                            if (!currentDetails.isNullOrEmpty())
                                 break
                             delay(8500)
                         }

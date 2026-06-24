@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.test)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.animation.core)
     val roomVersion = "2.8.4"
 
     implementation("androidx.room:room-runtime:$roomVersion")
