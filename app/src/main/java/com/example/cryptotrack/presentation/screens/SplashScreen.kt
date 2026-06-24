@@ -1,5 +1,7 @@
 package com.example.cryptotrack.presentation.screens
 
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -23,14 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.ui.theme.DarkBlue
-import com.example.cryptotrack.ui.theme.Inter
+import com.example.cryptotrack.ui.theme.Green
+import com.example.cryptotrack.ui.theme.Red
 import kotlin.math.sin
+import kotlin.math.tanh
 import kotlin.random.Random
 
 
@@ -55,7 +57,7 @@ fun SplashScreen(
                 color = DarkBlue
             )
     ) {
-        CandleVolatileSplashChart()
+        AnimatedGraph()
     }
 }
 
@@ -123,13 +125,11 @@ fun CandleVolatileSplashChart(modifier: Modifier = Modifier) {
         val height = size.height
 
         // Вычисляем ширину одной свечи и шаг между ними
-        val maxVisibleCandles = 10
+        val maxVisibleCandles = 13
         val candleStep = width / maxVisibleCandles
-        val candleWidth = candleStep * 0.5f // Свеча занимает половину шага, остальное - отступ
+        val candleWidth = candleStep * 0.4f // Свеча занимает половину шага, остальное - отступ
 
         // Цвета для бычьих и медвежьих свечей (классический неоновый крипто-стиль)
-        val greenColor = Color(0xFF00E676)
-        val redColor = Color(0xFFFF5252)
 
         // Рисуем свечи с учетом смещения flowOffset (течение вправо)
         for (i in -1..candles.size) {
@@ -150,7 +150,7 @@ fun CandleVolatileSplashChart(modifier: Modifier = Modifier) {
             val open = (candle.initialOpen + volatility).coerceIn(0f, 1f) * height
             val close = (candle.initialClose + volatility).coerceIn(0f, 1f) * height
 
-            val candleColor = if (candle.isGreen) greenColor else redColor
+            val candleColor = if (candle.isGreen) Green else Red
 
             // 4. Отрисовка фитиля свечи (Тонкая вертикальная линия High-Low)
             drawLine(
@@ -171,5 +171,45 @@ fun CandleVolatileSplashChart(modifier: Modifier = Modifier) {
                 size = Size(candleWidth, bodyHeight)
             )
         }
+    }
+}
+
+
+@Composable
+private fun AnimatedGraph() {
+
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val animationProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1500, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "progress"
+    )
+
+    Canvas(
+        modifier = Modifier
+            .height(300.dp)
+            .fillMaxWidth()
+    ) {
+        val centerX = size.width / 2f
+        val centerY = size.height / 2f
+
+        // Задаем максимальный размах движения (амплитуду) в пикселях
+        val amplitude = 50.dp.toPx()
+
+        // 3. Высчитываем динамическую координату Y для точки
+        // Мы берем центр экрана и смещаем его вверх/вниз в зависимости от прогресса анимации
+        val currentY = centerY + (animationProgress - 0.5f) * 2f * amplitude
+
+        // 4. Рисуем колеблющуюся точку
+        drawCircle(
+            color = Color(0xFF00E676), // Стартовый зеленый цвет
+            radius = 12.dp.toPx(),
+            center = Offset(centerX, currentY)
+        )
     }
 }
