@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- ИСПРАВЛЕНО: Изменен parent для совместимости с Jetpack Compose -->
     <style name="Theme.CryptoTrack" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Тема для сплеш-скрина -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FF0000</item>
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.CryptoTrack</item>
+    </style>
 </resources>
