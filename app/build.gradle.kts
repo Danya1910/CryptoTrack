@@ -83,7 +83,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0")
 
-    implementation("androidx.compose.foundation:foundation:1.6.0")
+    implementation("androidx.compose.foundation:foundation:1.6.0")g
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
