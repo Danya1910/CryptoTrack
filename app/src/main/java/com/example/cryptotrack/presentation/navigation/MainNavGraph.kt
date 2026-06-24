@@ -3,6 +3,7 @@ package com.example.cryptotrack.presentation.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ScaleFactor
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -17,6 +18,7 @@ import com.example.cryptotrack.presentation.screens.AddPurchaseScreen
 import com.example.cryptotrack.presentation.screens.PurchaseHistoryScreen
 import com.example.cryptotrack.presentation.screens.PurchaseScreen
 import com.example.cryptotrack.presentation.screens.SearchScreen
+import com.example.cryptotrack.presentation.screens.SplashScreen
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.viewmodel.UserViewModel
@@ -26,6 +28,22 @@ import com.example.cryptotrack.presentation.viewmodel.UserViewModel
 fun NavGraphBuilder.MainNavGraph(
     navController: NavController,
 ) {
+
+    composable(route = Screen.Splash.route) {backStackEntry ->
+        val parentEntry = remember(backStackEntry) {
+            navController.getBackStackEntry("main_graph")
+        }
+        val viewModel: CoinGeckoViewModel = hiltViewModel(parentEntry)
+
+        SplashScreen(
+            viewModel = viewModel,
+            onMoveToMain = {
+                navController.navigate(Screen.Market.route) {
+                    popUpTo("Splash") {inclusive = true}
+                }
+            }
+        )
+    }
 
     composable(route = Screen.Market.route) { backStackEntry ->
         val parentEntry = remember(backStackEntry) {
