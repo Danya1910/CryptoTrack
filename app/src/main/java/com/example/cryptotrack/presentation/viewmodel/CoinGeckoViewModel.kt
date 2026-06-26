@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -332,7 +333,7 @@ class CoinGeckoViewModel @Inject constructor(
             _favoriteCoinsDetailsState.update {
                 it.copy(
                     isLoading = false,
-                    details = emptyList()
+                    //details = emptyList()
                 )
             }
             runCatching {
@@ -354,7 +355,6 @@ class CoinGeckoViewModel @Inject constructor(
                         error = throwable.message,
                     )
                 }
-
             }
         }
     }
@@ -365,25 +365,31 @@ class CoinGeckoViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 coinViewModel.favoriteCoins,
-                coinViewModel.purchase
-            ) { favoriteList, purchaseList ->
+                coinViewModel.purchase,
+                _favoriteCoinsDetailsState
+            ) { favoriteList, purchaseList, currentDetailsState ->
                 val aggregated = aggregatePurchases(purchaseList)
                 val purchaseIds = aggregated.map { it.coinId }
                 val favoriteIds = favoriteList.map { it.id }
+                val allRequiredIds = (purchaseIds + favoriteIds).toSet()
 
-                (purchaseIds + favoriteIds).toSet()
+                val loadedIds = currentDetailsState.details?.map { it.id }?.toSet() ?: emptySet()
+
+                val isEverythingLoaded = loadedIds.containsAll(allRequiredIds)
+
+                Pair(allRequiredIds, isEverythingLoaded)
             }
-                .collect { allUniqueIds ->
-                    if (allUniqueIds.isNotEmpty()) {
-                        val idsString = allUniqueIds.joinToString(",")
-                        while (true) {
-                            getFavoriteCoinsDetails(ids = idsString)
-                            delay(1500)
-                            val currentDetails = _favoriteCoinsDetailsState.value.details
-                            if (!currentDetails.isNullOrEmpty())
-                                break
-                            delay(8500)
-                        }
+                .filter { (allRequiredIds, _) -> allRequiredIds.isNotEmpty() }
+                .collect { (allUniqueIds, isEverythingLoaded) ->
+                    if (isEverythingLoaded) return@collect
+
+                    val idsString = allUniqueIds.joinToString(",")
+                    while (true) {
+                        getFavoriteCoinsDetails(ids = idsString)
+                        delay(1500)
+                        val currentDetails = _favoriteCoinsDetailsState.value.details
+                        if (!currentDetails.isNullOrEmpty()) break
+                        delay(8500)
                     }
                 }
         }
@@ -407,14 +413,4 @@ class CoinGeckoViewModel @Inject constructor(
             )
         }
     }
-
-    fun clearDetails() {
-        _detailsState.update {
-            it.copy(
-                details = null,
-                error = null,
-            )
-        }
-    }
-
 }
