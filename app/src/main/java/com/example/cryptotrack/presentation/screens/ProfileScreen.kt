@@ -168,6 +168,7 @@ private fun Content(
         aggregatePurchases(purchase)
     }
 
+
     LaunchedEffect(Unit) {
         viewModel.observeAndFetchDetails(
             coinViewModel = coinViewModel
@@ -179,7 +180,6 @@ private fun Content(
     val purchaseDetails = purchaseDetailsState.details
 
     val isApiDataAvailable = !purchaseDetails.isNullOrEmpty()
-
 
     val investedSum = calculateInvested(purchases = purchase)
 
