@@ -6,7 +6,7 @@
 
     <!-- Тема для сплеш-скрина -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#FF0000</item>
+        <item name="windowSplashScreenBackground">#FF090B0D</item>
         <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <item name="postSplashScreenTheme">@style/Theme.CryptoTrack</item>
     </style>
