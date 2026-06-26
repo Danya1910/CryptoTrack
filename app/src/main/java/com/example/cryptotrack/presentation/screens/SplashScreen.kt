@@ -49,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.DarkBlue
+import com.example.cryptotrack.ui.theme.DarkGray
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
@@ -85,7 +86,11 @@ fun SplashScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                color = BlackBackground
+               brush = Brush.linearGradient(
+                   colors = listOf(BlackBackground, DarkGray),
+                   start = Offset(0f, Float.POSITIVE_INFINITY),
+                   end = Offset(Float.POSITIVE_INFINITY, 0f)
+               )
             )
     ) {
         AnimatedGraph(
