@@ -58,6 +58,7 @@ import com.example.cryptotrack.domain.model.CoinDetails
 import com.example.cryptotrack.domain.model.CoinsChartList
 import com.example.cryptotrack.domain.model.Image
 import com.example.cryptotrack.domain.model.Links
+import com.example.cryptotrack.presentation.util.price.formatPrice
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.presentation.widgets.DetailsTopAppBar
@@ -273,6 +274,8 @@ private fun CoinHat(
         abs(details?.marketData?.priceChangePercentage24h ?: 0.0)
     )
 
+    val currentPrice = formatPrice(value = details?.marketData?.currentPrice?.usd)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),
@@ -354,7 +357,7 @@ private fun CoinHat(
             } else {
                 Text(
                     textAlign = TextAlign.End,
-                    text = "$${details.marketData.currentPrice.usd}",
+                    text = "$$currentPrice",
                     fontFamily = Inter,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -454,6 +457,9 @@ private fun DailyPrice(
     val high = high24h?.toFloat() ?: 0f
     val current = currentPrice?.toFloat() ?: 0f
 
+    val lowFormatted = formatPrice(low24h)
+    val highFormatted = formatPrice(high24h)
+
     val range = (high - low).takeIf { it > 0f } ?: 1f
 
     val progress = ((current - low) / range)
@@ -484,7 +490,7 @@ private fun DailyPrice(
                 )
             } else {
                 Text(
-                    text = "$$low24h",
+                    text = "$$lowFormatted",
                     fontFamily = Inter,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
@@ -590,7 +596,7 @@ private fun DailyPrice(
                 )
             } else {
                 Text(
-                    text = "$$high24h",
+                    text = "$$highFormatted",
                     fontFamily = Inter,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
