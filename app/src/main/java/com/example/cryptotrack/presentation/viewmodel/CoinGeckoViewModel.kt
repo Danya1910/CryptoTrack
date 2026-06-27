@@ -329,10 +329,20 @@ class CoinGeckoViewModel @Inject constructor(
     fun getFavoriteCoinsDetails(
         ids: String
     ) {
+
+        val listIds = ids.split(",").map { it.trim() }
+
+
         viewModelScope.launch {
+            val currentDetails = _favoriteCoinsDetailsState.value.details
+            val loadedIds = currentDetails?.map { it.id }?.toSet() ?: emptySet()
+            val isEverythingLoaded = loadedIds.containsAll(listIds)
+
+            if (isEverythingLoaded) return@launch
+
             _favoriteCoinsDetailsState.update {
                 it.copy(
-                    isLoading = false,
+                    isLoading = true,
                     //details = emptyList()
                 )
             }
@@ -343,6 +353,7 @@ class CoinGeckoViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         details = details,
+                        error = null,
                     )
                 }
             }.onFailure { throwable ->
