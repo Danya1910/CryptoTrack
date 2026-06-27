@@ -15,6 +15,7 @@ import com.example.cryptotrack.domain.usecase.GetTrendCoinsUseCase
 import com.example.cryptotrack.domain.usecase.SearchCoinsUseCase
 import com.example.cryptotrack.domain.util.MarketOrder
 import com.example.cryptotrack.presentation.states.ChartState
+import com.example.cryptotrack.presentation.states.DetailsOfFoundCoin
 import com.example.cryptotrack.presentation.states.DetailsState
 import com.example.cryptotrack.presentation.states.FavoriteCoinsDetailsState
 import com.example.cryptotrack.presentation.states.GlobalMarketState
@@ -60,6 +61,7 @@ class CoinGeckoViewModel @Inject constructor(
     private val _trendState = MutableStateFlow(TrendState())
     private val _searchState = MutableStateFlow(SearchState())
     private val _favoriteCoinsDetailsState = MutableStateFlow(FavoriteCoinsDetailsState())
+    private val _foundCoinDetailsState = MutableStateFlow(DetailsOfFoundCoin())
     val marketScreenState = _globalMarketState.asStateFlow()
     val marketDataState = _marketDataState.asStateFlow()
     val detailsState = _detailsState.asStateFlow()
@@ -67,6 +69,7 @@ class CoinGeckoViewModel @Inject constructor(
     val trendState = _trendState.asStateFlow()
     val searchState = _searchState.asStateFlow()
     val favoriteCoinsDetailsState = _favoriteCoinsDetailsState.asStateFlow()
+    val foundCoinDetailsState = _foundCoinDetailsState.asStateFlow()
 
     private val _isSplashReady = MutableStateFlow(false)
     val isSplashReady = _isSplashReady.asStateFlow()
@@ -370,6 +373,62 @@ class CoinGeckoViewModel @Inject constructor(
         }
     }
 
+    fun getFoundCoinDetails(
+        id: String
+    ) {
+
+        val trimmedId = id.trim()
+
+
+        viewModelScope.launch {
+            val currentDetails = _favoriteCoinsDetailsState.value.details
+
+            val existingCoin = currentDetails?.find { it.id == trimmedId }
+
+            if (existingCoin != null) {
+                _foundCoinDetailsState.update { it.copy(details = existingCoin, isLoading = false) }
+                return@launch
+            }
+
+            _foundCoinDetailsState.update {
+                it.copy(
+                    isLoading = true,
+                )
+            }
+
+            runCatching {
+                getFavoriteCoinsDetailsUseCase(ids = id)
+            }.onSuccess { details ->
+                val newCoin = details.firstOrNull()
+                _foundCoinDetailsState.update {
+                    it.copy(
+                        isLoading = false,
+                        details = newCoin,
+                        error = null,
+                    )
+                }
+                if(newCoin != null) {
+                    _favoriteCoinsDetailsState.update { state ->
+                        val updatedList = (state.details ?: emptyList()) + newCoin
+                        state.copy(
+                            details = updatedList
+                        )
+                    }
+                }
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) {
+                    throw throwable
+                }
+                _foundCoinDetailsState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = throwable.message,
+                    )
+                }
+            }
+        }
+    }
+
     fun observeAndFetchDetails(
         coinViewModel: CoinViewModel,
     ) {
@@ -421,6 +480,15 @@ class CoinGeckoViewModel @Inject constructor(
                 suggestions = Search(
                     coins = emptyList()
                 )
+            )
+        }
+    }
+
+    fun clearFoundCoin() {
+        _foundCoinDetailsState.update {
+            it.copy(
+                details = null,
+                error = null,
             )
         }
     }
