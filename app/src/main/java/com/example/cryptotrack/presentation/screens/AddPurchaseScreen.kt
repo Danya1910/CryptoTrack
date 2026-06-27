@@ -141,7 +141,7 @@ private fun Content(
     var isCoinSelected by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.clearFavoriteCoinsDetails()
+        viewModel.clearFoundCoin()
     }
 
     LaunchedEffect(query) {
@@ -159,16 +159,16 @@ private fun Content(
     LaunchedEffect(currentCoinId) {
         if (currentCoinId.isEmpty()) return@LaunchedEffect
         while (true) {
-            viewModel.getFavoriteCoinsDetails(ids = currentCoinId)
+            viewModel.getFoundCoinDetails(id = currentCoinId)
 
             delay(150)
 
-            snapshotFlow { viewModel.favoriteCoinsDetailsState.value.isLoading }
+            snapshotFlow { viewModel.foundCoinDetailsState.value.isLoading }
                 .first { !it }
 
-            val currentState = viewModel.favoriteCoinsDetailsState.value
+            val currentState = viewModel.foundCoinDetailsState.value
             val isRateLimited = currentState.error?.contains("429") == true
-            val hasData = !currentState.details.isNullOrEmpty()
+            val hasData = currentState.details == null
             if (isRateLimited) {
                 delay(10000)
             } else if (hasData || currentState.error != null) {
@@ -177,11 +177,11 @@ private fun Content(
         }
     }
 
-    val favoriteCoinState by viewModel.favoriteCoinsDetailsState.collectAsState()
+    val foundCoinState by viewModel.foundCoinDetailsState.collectAsState()
 
-    val isRateLimited = favoriteCoinState.error?.contains("429") == true
+    val isRateLimited = foundCoinState.error?.contains("429") == true
 
-    val selectedCoin = favoriteCoinState.details?.firstOrNull()
+    val selectedCoin = foundCoinState.details
 
     var buyDate by remember { mutableStateOf<Long?>(null) }
 
@@ -211,12 +211,12 @@ private fun Content(
             .padding(paddingValues)
             .padding(horizontal = 15.dp),
     ) {
-        if (favoriteCoinState.details.isNullOrEmpty()) {
-            if (isRateLimited || favoriteCoinState.isLoading) {
+        if (foundCoinState.details == null) {
+            if (isRateLimited || foundCoinState.isLoading) {
                 item {
                     SkeletonSelectedCoin(
                         onClick = {
-                            viewModel.clearFavoriteCoinsDetails()
+                            viewModel.clearFoundCoin()
                             currentCoinId = ""
                         }
                     )
@@ -258,7 +258,7 @@ private fun Content(
                     SelectedCoin(
                         details = selectedCoin,
                         onClick = {
-                            viewModel.clearFavoriteCoinsDetails()
+                            viewModel.clearFoundCoin()
                             currentCoinId = ""
                         }
                     )
