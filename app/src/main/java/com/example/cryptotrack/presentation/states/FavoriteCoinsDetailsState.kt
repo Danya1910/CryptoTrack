@@ -7,3 +7,9 @@ data class FavoriteCoinsDetailsState (
     val isLoading: Boolean = false,
     val error: String? = null,
 )
+
+data class DetailsOfFoundCoin(
+    val details: FavoriteCoinDetails? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null,
+)
