@@ -33,9 +33,11 @@ import com.example.cryptotrack.ui.theme.DarkBlue
 import com.example.cryptotrack.ui.theme.Green
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.Red
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 @Composable
@@ -49,9 +51,6 @@ fun Graph(
         if (chartData[0].price < chartData[chartData.size - 1].price) {
             Green
         } else Red
-
-
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
     val textMeasurer = rememberTextMeasurer()
 
@@ -96,7 +95,6 @@ fun Graph(
         drawTimeLabels(
             chartData = chartData,
             graphData = graphData,
-            formatter = formatter,
             textMeasurer = textMeasurer
         )
 
@@ -312,18 +310,35 @@ private fun DrawScope.drawDots(
 private fun DrawScope.drawTimeLabels(
     chartData: List<CoinChart>,
     graphData: GraphData,
-    formatter: DateTimeFormatter,
     textMeasurer: TextMeasurer
 ) {
+    if (chartData.isEmpty()) return
+
+    // 1. Получаем правильный формат на основе разницы дат
+    val dynamicFormatter = getDateTimeFormatterForRange(
+        minTime = graphData.minTime,
+        maxTime = graphData.maxTime
+    )
+
+    // Проверяем формат времени в точках для корректного парсинга
+    val isSeconds = graphData.maxTime < 10_000_000_000L
     val timeSteps = 5
 
     for (i in 0..timeSteps) {
         val index = i * (chartData.size - 1) / timeSteps
         val point = chartData[index]
-        val text = Instant
-            .ofEpochMilli(point.time)
+
+        // 2. Парсим время точки строго в соответствии с его типом
+        val instant = if (isSeconds) {
+            Instant.ofEpochSecond(point.time)
+        } else {
+            Instant.ofEpochMilli(point.time)
+        }
+
+        val text = instant
             .atZone(ZoneId.systemDefault())
-            .format(formatter)
+            .format(dynamicFormatter)
+
         val textLayout = textMeasurer.measure(
             text = text,
             style = labelStyle()
@@ -332,6 +347,7 @@ private fun DrawScope.drawTimeLabels(
         val x = rawX
             .coerceAtLeast(textLayout.size.width / 2f + 10f)
             .coerceAtMost(size.width - textLayout.size.width / 2f - 10f)
+
         drawText(
             textLayoutResult = textLayout,
             topLeft = Offset(
@@ -341,6 +357,8 @@ private fun DrawScope.drawTimeLabels(
         )
     }
 }
+
+
 
 @SuppressLint("DefaultLocale")
 private fun DrawScope.drawPriceLabels(
@@ -403,4 +421,27 @@ fun labelStyle(): TextStyle {
         fontFamily = Inter,
         fontWeight = FontWeight.Normal,
     )
+}
+
+private fun getDateTimeFormatterForRange(minTime: Long, maxTime: Long): DateTimeFormatter {
+    // Авто-детекция: если maxTime меньше 10 млрд, то сервер прислал секунды (Unix)
+    val isSeconds = maxTime < 10_000_000_000L
+
+    val startInstant = if (isSeconds) Instant.ofEpochSecond(minTime) else Instant.ofEpochMilli(minTime)
+    val endInstant = if (isSeconds) Instant.ofEpochSecond(maxTime) else Instant.ofEpochMilli(maxTime)
+
+    // Считаем точную разницу в часах и днях
+    val duration = Duration.between(startInstant, endInstant)
+    val totalHours = duration.toHours()
+    val totalDays = duration.toDays()
+
+    val pattern = when {
+        totalHours <= 26   -> "HH:mm"
+        totalDays <= 8     -> "EE, dd"
+        totalDays <= 35    -> "dd MM"
+        totalDays <= 100   -> "dd.MM"
+        else               -> "MMM"
+    }
+
+    return DateTimeFormatter.ofPattern(pattern, Locale.getDefault())
 }
