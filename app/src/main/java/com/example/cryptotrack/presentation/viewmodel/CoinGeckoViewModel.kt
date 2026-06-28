@@ -179,40 +179,36 @@ class CoinGeckoViewModel @Inject constructor(
         }
     }
 
-    fun loadDetails(coinId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun loadDetails(
+        coinId: String,
+    ) {
+        viewModelScope.launch {
             _detailsState.update {
-                it.copy(isLoading = true, error = null, details = null)
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                    details = null,
+                )
             }
-
-            while (true) {
-                val result = runCatching {
-                    getCoinDetailsUseCase(id = coinId)
+            runCatching {
+                getCoinDetailsUseCase(id = coinId)
+            }.onSuccess { details ->
+                _detailsState.update {
+                    it.copy(
+                        details = details,
+                        isLoading = false,
+                        error = null,
+                    )
                 }
-
-                result.onSuccess { details ->
-                    _detailsState.update {
-                        it.copy(details = details, isLoading = false, error = null)
-                    }
-                    return@launch
+            }.onFailure { throwable ->
+                if (throwable is CancellationException) {
+                    throw throwable
                 }
-
-                result.onFailure { throwable ->
-                    if (throwable is CancellationException) throw throwable
-
-                    val errorMsg = throwable.message ?: "Unknown error"
-
-                    if (errorMsg.contains("429")) {
-                        _detailsState.update {
-                            it.copy(error = "Лимит запросов исчерпан (429). Повтор...")
-                        }
-                        delay(10000)
-                    } else {
-                        _detailsState.update {
-                            it.copy(isLoading = false, error = errorMsg)
-                        }
-                        return@launch
-                    }
+                _detailsState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = throwable.message
+                    )
                 }
             }
         }
