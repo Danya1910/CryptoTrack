@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +72,8 @@ import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.Yellow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.Instant
@@ -151,7 +154,8 @@ private fun Content(
         else -> 1
     }
 
-    LaunchedEffect(Unit) {
+
+    LaunchedEffect(coinId) {
         viewModel.loadDetails(coinId = coinId)
     }
 
@@ -164,6 +168,20 @@ private fun Content(
 
     val details = detailsState.details
     val chart = chartState.chart
+
+    LaunchedEffect(detailsState.error) {
+        if(detailsState.error?.contains("429") ?: false) {
+            delay(10000)
+            viewModel.loadDetails(coinId = coinId)
+        }
+    }
+
+    LaunchedEffect(chartState.error) {
+        if(chartState.error?.contains("429") ?: false) {
+            delay(10000)
+            viewModel.loadChart(coinId = coinId, days = days)
+        }
+    }
 
     LaunchedEffect(details?.id) {
         val d = details ?: return@LaunchedEffect
