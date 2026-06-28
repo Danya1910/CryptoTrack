@@ -25,6 +25,7 @@ import com.example.cryptotrack.presentation.states.TrendState
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -178,36 +179,40 @@ class CoinGeckoViewModel @Inject constructor(
         }
     }
 
-    fun loadDetails(
-        coinId: String,
-    ) {
-        viewModelScope.launch {
+    fun loadDetails(coinId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
             _detailsState.update {
-                it.copy(
-                    isLoading = true,
-                    error = null,
-                    details = null,
-                )
+                it.copy(isLoading = true, error = null, details = null)
             }
-            runCatching {
+
+            while (true) {
+                val result = runCatching {
                     getCoinDetailsUseCase(id = coinId)
-            }.onSuccess { details ->
-                _detailsState.update {
-                    it.copy(
-                        details = details,
-                        isLoading = false,
-                        error = null,
-                    )
                 }
-            }.onFailure { throwable ->
-                if (throwable is CancellationException) {
-                    throw throwable
+
+                result.onSuccess { details ->
+                    _detailsState.update {
+                        it.copy(details = details, isLoading = false, error = null)
+                    }
+                    return@launch
                 }
-                _detailsState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = throwable.message
-                    )
+
+                result.onFailure { throwable ->
+                    if (throwable is CancellationException) throw throwable
+
+                    val errorMsg = throwable.message ?: "Unknown error"
+
+                    if (errorMsg.contains("429")) {
+                        _detailsState.update {
+                            it.copy(error = "Лимит запросов исчерпан (429). Повтор...")
+                        }
+                        delay(10000)
+                    } else {
+                        _detailsState.update {
+                            it.copy(isLoading = false, error = errorMsg)
+                        }
+                        return@launch
+                    }
                 }
             }
         }
