@@ -190,9 +190,7 @@ class CoinGeckoViewModel @Inject constructor(
                 )
             }
             runCatching {
-                coroutineScope {
                     getCoinDetailsUseCase(id = coinId)
-                }
             }.onSuccess { details ->
                 _detailsState.update {
                     it.copy(
@@ -228,9 +226,7 @@ class CoinGeckoViewModel @Inject constructor(
                 )
             }
             runCatching {
-                coroutineScope {
                     getCoinChartUseCase(id = coinId, days = days)
-                }
             }.onSuccess { chart ->
                 _chartState.update {
                     it.copy(
