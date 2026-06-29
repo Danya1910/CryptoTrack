@@ -132,19 +132,15 @@ fun Int?.formatWithSpaces(formatter: DecimalFormat): String {
 }
 
 fun getCoinPlural(value: Double): String {
-    // Проверяем, есть ли значимая дробная часть (например, 1.5 или 0.1)
     val hasFraction = value % 1.0 != 0.0
 
     return if (hasFraction) {
-        // Любая дробь -> родительный падеж, ед. число
         "монеты"
     } else {
-        // Если число целое (1.0, 5.0), приводим к Long и склоняем по правилам целых чисел
         getCoinPluralLong(value.toLong())
     }
 }
 
-// Вспомогательная функция для склонения целых чисел
 private fun getCoinPluralLong(value: Long): String {
     val absValue = Math.abs(value)
     val lastDigit = absValue % 10

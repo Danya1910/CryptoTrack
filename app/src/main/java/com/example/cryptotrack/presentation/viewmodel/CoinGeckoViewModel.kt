@@ -1,10 +1,7 @@
 package com.example.cryptotrack.presentation.viewmodel
 
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.cryptotrack.domain.model.FavoriteCoin
-import com.example.cryptotrack.domain.model.PurchaseCoin
 import com.example.cryptotrack.domain.model.Search
 import com.example.cryptotrack.domain.usecase.GetCoinChartUseCase
 import com.example.cryptotrack.domain.usecase.GetCoinDetailsUseCase
@@ -25,7 +22,6 @@ import com.example.cryptotrack.presentation.states.TrendState
 import com.example.cryptotrack.presentation.util.price.aggregatePurchases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,8 +29,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -459,15 +453,6 @@ class CoinGeckoViewModel @Inject constructor(
                         delay(8500)
                     }
                 }
-        }
-    }
-
-    fun clearFavoriteCoinsDetails() {
-        _favoriteCoinsDetailsState.update {
-            it.copy(
-                details = emptyList(),
-                error = null,
-            )
         }
     }
 

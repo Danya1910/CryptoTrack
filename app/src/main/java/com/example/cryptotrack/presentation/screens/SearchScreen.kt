@@ -36,8 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,12 +56,9 @@ import com.example.cryptotrack.presentation.widgets.BottomBar
 import com.example.cryptotrack.presentation.widgets.SkeletonBox
 import com.example.cryptotrack.presentation.widgets.TrendWidget
 import com.example.cryptotrack.ui.theme.BlackBackground
-import com.example.cryptotrack.ui.theme.BlackNavigation
 import com.example.cryptotrack.ui.theme.DarkBlue
-import com.example.cryptotrack.ui.theme.GreyCrossColor
 import com.example.cryptotrack.ui.theme.Inter
 import com.example.cryptotrack.ui.theme.OutlineGray
-import com.example.cryptotrack.ui.theme.SearchBarColor
 
 
 @Composable

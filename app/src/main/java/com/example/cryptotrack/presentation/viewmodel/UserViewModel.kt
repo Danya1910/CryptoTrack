@@ -2,7 +2,6 @@ package com.example.cryptotrack.presentation.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cryptotrack.domain.model.UserData

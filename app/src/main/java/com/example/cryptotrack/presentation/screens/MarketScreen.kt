@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cryptotrack.presentation.viewmodel.CoinGeckoViewModel
-import com.example.cryptotrack.presentation.widgets.BottomBarPreview
 import com.example.cryptotrack.presentation.widgets.CoinMarketWidget
 import com.example.cryptotrack.presentation.widgets.GlobalMarketWidget
 import com.example.cryptotrack.ui.theme.BlackBackground

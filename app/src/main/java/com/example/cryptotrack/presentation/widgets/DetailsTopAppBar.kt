@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -41,12 +40,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.cryptotrack.R
 import com.example.cryptotrack.domain.model.CoinDetails
-import com.example.cryptotrack.presentation.navigation.Screen
 import com.example.cryptotrack.presentation.util.uiModels.StarParticle
 import com.example.cryptotrack.presentation.viewmodel.CoinViewModel
 import com.example.cryptotrack.ui.theme.BlackBackground
 import com.example.cryptotrack.ui.theme.Inter
-import com.example.cryptotrack.ui.theme.Orange
 import com.example.cryptotrack.ui.theme.Yellow
 import kotlinx.coroutines.delay
 import kotlin.math.cos

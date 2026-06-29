@@ -10,10 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import com.example.cryptotrack.ui.theme.DarkGray
 import com.example.cryptotrack.ui.theme.HelpDarkBlue
-import com.example.cryptotrack.ui.theme.OutlineGray
 
 
 @Composable
