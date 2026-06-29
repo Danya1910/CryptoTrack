@@ -1,6 +1,5 @@
 package com.example.cryptotrack.data.repository
 
-import com.example.cryptotrack.data.local.dao.CoinDao
 import com.example.cryptotrack.data.local.dao.UserDao
 import com.example.cryptotrack.data.local.entity.UserEntity
 import com.example.cryptotrack.domain.model.UserData
