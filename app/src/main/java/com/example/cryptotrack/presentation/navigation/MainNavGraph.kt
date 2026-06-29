@@ -3,7 +3,6 @@ package com.example.cryptotrack.presentation.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.remember
-import androidx.compose.ui.layout.ScaleFactor
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
