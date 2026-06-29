@@ -35,21 +35,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -73,7 +69,6 @@ import com.example.cryptotrack.ui.theme.OutlineGray
 import com.example.cryptotrack.ui.theme.Red
 import com.example.cryptotrack.ui.theme.Yellow
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.time.Instant
@@ -111,26 +106,6 @@ fun CoinDetailsScreen(
             coinId = coinId,
         )
     }
-}
-
-
-@Composable
-@Preview(showBackground = true)
-private fun CoinDetailsScreenPreview() {
-
-//    Scaffold(
-//        topBar = {
-//            TopAppBar()
-//        },
-//        bottomBar = {
-//            BottomBarPreview()
-//        }
-////    ) { paddingValues ->
-////        Content(
-////            paddingValues = paddingValues,
-////        )
-//    }
-
 }
 
 @Composable
